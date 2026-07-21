@@ -30,16 +30,22 @@ async function getPublicSettings() {
   return {
     ...PUBLIC_DEFAULT_SETTINGS,
 
-    ...(data || []).reduce((settings, row) => {
-      settings[row.setting_key] =
-        row.setting_value;
+    ...(data || []).reduce(
+      (settings, row) => {
+        settings[row.setting_key] =
+          row.setting_value;
 
-      return settings;
-    }, {})
+        return settings;
+      },
+      {}
+    )
   };
 }
 
-function setTextForSelectors(selectors, text) {
+function setTextForSelectors(
+  selectors,
+  text
+) {
   selectors.forEach(selector => {
     const element =
       document.querySelector(selector);
@@ -52,11 +58,21 @@ function setTextForSelectors(selectors, text) {
 
 async function loadHomepageSettings() {
   const hasHomepageSettings =
-    document.querySelector("#senateControlMessage") ||
-    document.querySelector("#houseControlMessage") ||
-    document.querySelector("#congressControlMessage") ||
-    document.querySelector("#senateForecastText") ||
-    document.querySelector("#houseForecastText") ||
+    document.querySelector(
+      "#senateControlMessage"
+    ) ||
+    document.querySelector(
+      "#houseControlMessage"
+    ) ||
+    document.querySelector(
+      "#congressControlMessage"
+    ) ||
+    document.querySelector(
+      "#senateForecastText"
+    ) ||
+    document.querySelector(
+      "#houseForecastText"
+    ) ||
     document.querySelector(
       "[data-setting='senate_control_message']"
     ) ||
@@ -67,7 +83,9 @@ async function loadHomepageSettings() {
       "[data-setting='congress_control_message']"
     );
 
-  if (!hasHomepageSettings) return;
+  if (!hasHomepageSettings) {
+    return;
+  }
 
   try {
     const settings =
@@ -108,7 +126,9 @@ async function loadHomepageSettings() {
 
 async function loadHome() {
   const box =
-    document.querySelector("#featuredRaces");
+    document.querySelector(
+      "#featuredRaces"
+    );
 
   if (!box) return;
 
@@ -125,14 +145,19 @@ async function loadHome() {
 
     const featured =
       races
-        .filter(race => race.featured)
+        .filter(
+          race => race.featured
+        )
         .slice(0, 6);
 
     const count =
-      document.querySelector("#raceCount");
+      document.querySelector(
+        "#raceCount"
+      );
 
     if (count) {
-      count.textContent = races.length;
+      count.textContent =
+        races.length;
     }
 
     const racesToShow =
@@ -142,13 +167,18 @@ async function loadHome() {
 
     box.innerHTML =
       racesToShow
-        .map(race => raceCard(race))
+        .map(
+          race => raceCard(race)
+        )
         .join("") ||
       '<div class="empty">No published races yet.</div>';
 
     renderElectionMap(races);
   } catch (error) {
-    console.error("Homepage failed:", error);
+    console.error(
+      "Homepage failed:",
+      error
+    );
 
     box.innerHTML =
       '<div class="empty">' +
@@ -164,8 +194,12 @@ function raceCard(race) {
   const candidates =
     [...(race.candidates || [])].sort(
       (a, b) =>
-        Number(b.win_probability || 0) -
-        Number(a.win_probability || 0)
+        Number(
+          b.win_probability || 0
+        ) -
+        Number(
+          a.win_probability || 0
+        )
     );
 
   const office =
@@ -175,7 +209,9 @@ function raceCard(race) {
     officeLabel(office);
 
   const margin =
-    Number(race.projected_margin || 0);
+    Number(
+      race.projected_margin || 0
+    );
 
   return `
     <a
@@ -186,7 +222,9 @@ function raceCard(race) {
     >
       <div class="raceMeta">
         <span>
-          ${escapeHtml(race.state || "")}
+          ${escapeHtml(
+            race.state || ""
+          )}
           ·
           ${escapeHtml(label)}
         </span>
@@ -197,13 +235,17 @@ function raceCard(race) {
           )}"
         >
           ${escapeHtml(
-            race.rating || "Toss-up"
+            race.rating ||
+              "Toss-up"
           )}
         </span>
       </div>
 
       <h3>
-        ${escapeHtml(race.title || "Untitled race")}
+        ${escapeHtml(
+          race.title ||
+            "Untitled race"
+        )}
       </h3>
 
       <div class="candidates">
@@ -217,23 +259,26 @@ function raceCard(race) {
                       <span>
                         <i
                           class="partyDot party-${escapeHtml(
-                            candidate.party || ""
+                            candidate.party ||
+                              ""
                           )}"
                         ></i>
 
                         ${escapeHtml(
-                          candidate.name || ""
+                          candidate.name ||
+                            ""
                         )}
                       </span>
 
                       <strong>
                         ${Number(
-                          candidate.win_probability || 0
+                          candidate.win_probability ||
+                            0
                         ).toFixed(0)}%
                       </strong>
                     </div>
-                                  `
-                         )
+                  `
+                )
                 .join("")
             : `
               <p class="subtle">
@@ -244,11 +289,20 @@ function raceCard(race) {
       </div>
 
       <div class="raceMeta">
-        <span>Model margin</span>
+        <span>
+          Model margin
+        </span>
 
         <strong>
-          ${margin >= 0 ? "D +" : "R +"}
-          ${Math.abs(margin).toFixed(1)}
+          ${
+            margin >= 0
+              ? "D +"
+              : "R +"
+          }
+
+          ${Math.abs(
+            margin
+          ).toFixed(1)}
         </strong>
       </div>
     </a>
@@ -260,7 +314,6 @@ function normalizeStateCode(value) {
     .trim()
     .toUpperCase();
 }
-
 function mapRatingClass(race) {
   const rating =
     String(race?.rating || "")
@@ -268,10 +321,14 @@ function mapRatingClass(race) {
       .trim();
 
   const margin =
-    Number(race?.projected_margin || 0);
+    Number(
+      race?.projected_margin || 0
+    );
 
   const party =
-    margin >= 0 ? "dem" : "rep";
+    margin >= 0
+      ? "dem"
+      : "rep";
 
   if (
     rating.includes("toss") ||
@@ -309,113 +366,171 @@ function chooseStateRace(races) {
     house: 1
   };
 
-  return [...races].sort((a, b) => {
-    const featuredDifference =
-      Number(Boolean(b.featured)) -
-      Number(Boolean(a.featured));
+  return [...races].sort(
+    (a, b) => {
+      const featuredDifference =
+        Number(
+          Boolean(b.featured)
+        ) -
+        Number(
+          Boolean(a.featured)
+        );
 
-    if (featuredDifference !== 0) {
-      return featuredDifference;
+      if (
+        featuredDifference !== 0
+      ) {
+        return featuredDifference;
+      }
+
+      return (
+        (
+          priority[
+            raceOffice(b)
+          ] || 0
+        ) -
+        (
+          priority[
+            raceOffice(a)
+          ] || 0
+        )
+      );
     }
-
-    return (
-      (priority[raceOffice(b)] || 0) -
-      (priority[raceOffice(a)] || 0)
-    );
-  })[0];
+  )[0];
 }
 
 function renderElectionMap(races) {
   const map =
-    document.querySelector("#electionMap") ||
-    document.querySelector("#usMap") ||
-    document.querySelector(".electionMap");
+    document.querySelector(
+      "#electionMap"
+    ) ||
+    document.querySelector(
+      "#usMap"
+    ) ||
+    document.querySelector(
+      ".electionMap"
+    );
 
   if (!map) return;
 
   const stateGroups =
-    races.reduce((groups, race) => {
-      const state =
-        normalizeStateCode(race.state);
+    races.reduce(
+      (groups, race) => {
+        const state =
+          normalizeStateCode(
+            race.state
+          );
 
-      if (!state) return groups;
+        if (!state) {
+          return groups;
+        }
 
-      if (!groups[state]) {
-        groups[state] = [];
-      }
+        if (!groups[state]) {
+          groups[state] = [];
+        }
 
-      groups[state].push(race);
+        groups[state].push(race);
 
-      return groups;
-    }, {});
+        return groups;
+      },
+      {}
+    );
 
   const stateElements =
     map.querySelectorAll(
       "[data-state], [data-state-code], path[id], g[id]"
     );
 
-  stateElements.forEach(element => {
-    const rawState =
-      element.dataset.state ||
-      element.dataset.stateCode ||
-      element.id;
+  stateElements.forEach(
+    element => {
+      const rawState =
+        element.dataset.state ||
+        element.dataset.stateCode ||
+        element.id;
 
-    const state =
-      normalizeStateCode(rawState)
-        .replace(/^US[-_]/, "")
-        .replace(/^STATE[-_]/, "");
+      const state =
+        normalizeStateCode(
+          rawState
+        )
+          .replace(
+            /^US[-_]/,
+            ""
+          )
+          .replace(
+            /^STATE[-_]/,
+            ""
+          );
 
-    if (state.length !== 2) return;
+      if (state.length !== 2) {
+        return;
+      }
 
-    element.classList.remove(
-      "map-dem-safe",
-      "map-dem-likely",
-      "map-dem-lean",
-      "map-dem-tilt",
-      "map-rep-safe",
-      "map-rep-likely",
-      "map-rep-lean",
-      "map-rep-tilt",
-      "map-tossup",
-      "map-no-race"
-    );
+      element.classList.remove(
+        "map-dem-safe",
+        "map-dem-likely",
+        "map-dem-lean",
+        "map-dem-tilt",
+        "map-rep-safe",
+        "map-rep-likely",
+        "map-rep-lean",
+        "map-rep-tilt",
+        "map-tossup",
+        "map-no-race"
+      );
 
-    const stateRaces =
-      stateGroups[state] || [];
+      const stateRaces =
+        stateGroups[state] || [];
 
-    if (!stateRaces.length) {
-      element.classList.add("map-no-race");
-      element.style.cursor = "";
-      element.onclick = null;
+      if (
+        !stateRaces.length
+      ) {
+        element.classList.add(
+          "map-no-race"
+        );
 
-      return;
+        element.style.cursor =
+          "";
+
+        element.onclick =
+          null;
+
+        return;
+      }
+
+      const selectedRace =
+        chooseStateRace(
+          stateRaces
+        );
+
+      element.classList.add(
+        mapRatingClass(
+          selectedRace
+        )
+      );
+
+      element.style.cursor =
+        "pointer";
+
+      element.setAttribute(
+        "aria-label",
+        `${selectedRace.title}: ${selectedRace.rating}`
+      );
+
+      element.onclick = () => {
+        location.href =
+          "race.html?id=" +
+          encodeURIComponent(
+            selectedRace.slug
+          );
+      };
     }
-
-    const selectedRace =
-      chooseStateRace(stateRaces);
-
-    element.classList.add(
-      mapRatingClass(selectedRace)
-    );
-
-    element.style.cursor = "pointer";
-
-    element.setAttribute(
-      "aria-label",
-      `${selectedRace.title}: ${selectedRace.rating}`
-    );
-
-    element.onclick = () => {
-      location.href =
-        "race.html?id=" +
-        encodeURIComponent(selectedRace.slug);
-    };
-  });
+  );
 }
 
 async function loadRaceGrid() {
   const box =
-    document.querySelector("#raceGrid");
+    document.querySelector(
+      "#raceGrid"
+    );
 
   if (!box) return;
 
@@ -436,12 +551,17 @@ async function loadRaceGrid() {
 
   try {
     const races =
-      await getPublishedRaces(office);
+      await getPublishedRaces(
+        office
+      );
 
     function displayRaces(list) {
       box.innerHTML =
         list
-          .map(race => raceCard(race))
+          .map(
+            race =>
+              raceCard(race)
+          )
           .join("") ||
         `<div class="empty">No published ${escapeHtml(
           label
@@ -451,7 +571,9 @@ async function loadRaceGrid() {
     displayRaces(races);
 
     const input =
-      document.querySelector("#raceSearch");
+      document.querySelector(
+        "#raceSearch"
+      );
 
     if (input) {
       input.oninput = () => {
@@ -461,20 +583,28 @@ async function loadRaceGrid() {
             .trim();
 
         const filtered =
-          races.filter(race => {
-            const searchable = [
-              race.title || "",
-              race.state || "",
-      ...(race.candidates || []).map(
-                candidate =>
-                         candidate.name || ""
-              )
-            ]
-              .join(" ")
-              .toLowerCase();
+          races.filter(
+            race => {
+              const searchable = [
+                race.title || "",
+                race.state || "",
+                ...(
+                  race.candidates ||
+                  []
+                ).map(
+                  candidate =>
+                    candidate.name ||
+                    ""
+                )
+              ]
+                .join(" ")
+                .toLowerCase();
 
-            return searchable.includes(query);
-          });
+              return searchable.includes(
+                query
+              );
+            }
+          );
 
         displayRaces(filtered);
       };
@@ -497,21 +627,29 @@ async function loadRaceGrid() {
 
 function houseDistrictLabel(race) {
   const title =
-    String(race.title || "").trim();
+    String(
+      race.title || ""
+    ).trim();
 
   const state =
-    normalizeStateCode(race.state);
+    normalizeStateCode(
+      race.state
+    );
 
   const stateDistrictMatch =
     title.match(
       /\b([A-Z]{2})[-\s](\d{1,2}|AL)\b/i
     );
 
-  if (stateDistrictMatch) {
+  if (
+    stateDistrictMatch
+  ) {
     return (
-      stateDistrictMatch[1].toUpperCase() +
+      stateDistrictMatch[1]
+        .toUpperCase() +
       "-" +
-      stateDistrictMatch[2].toUpperCase()
+      stateDistrictMatch[2]
+        .toUpperCase()
     );
   }
 
@@ -520,7 +658,10 @@ function houseDistrictLabel(race) {
       /\b(?:district\s*)?(\d{1,2})(?:st|nd|rd|th)?\b/i
     );
 
-  if (districtMatch && state) {
+  if (
+    districtMatch &&
+    state
+  ) {
     return `${state}-${districtMatch[1]}`;
   }
 
@@ -532,22 +673,30 @@ function houseRaceSortValue(race) {
     houseDistrictLabel(race);
 
   const districtMatch =
-    label.match(/-(\d+)$/);
+    label.match(
+      /-(\d+)$/
+    );
 
   return {
     state:
-      normalizeStateCode(race.state),
+      normalizeStateCode(
+        race.state
+      ),
 
     district:
       districtMatch
-        ? Number(districtMatch[1])
+        ? Number(
+            districtMatch[1]
+          )
         : 0
   };
 }
 
 async function loadHouseHexMap() {
   const map =
-    document.querySelector("#houseHexMap");
+    document.querySelector(
+      "#houseHexMap"
+    );
 
   if (!map) return;
 
@@ -560,32 +709,44 @@ async function loadHouseHexMap() {
 
   try {
     const races =
-      await getPublishedRaces("house");
+      await getPublishedRaces(
+        "house"
+      );
 
     const sortedRaces =
-      [...races].sort((a, b) => {
-        const first =
-          houseRaceSortValue(a);
+      [...races].sort(
+        (a, b) => {
+          const first =
+            houseRaceSortValue(
+              a
+            );
 
-        const second =
-          houseRaceSortValue(b);
+          const second =
+            houseRaceSortValue(
+              b
+            );
 
-        const stateComparison =
-          first.state.localeCompare(
-            second.state
+          const stateComparison =
+            first.state.localeCompare(
+              second.state
+            );
+
+          if (
+            stateComparison !== 0
+          ) {
+            return stateComparison;
+          }
+
+          return (
+            first.district -
+            second.district
           );
-
-        if (stateComparison !== 0) {
-          return stateComparison;
         }
+      );
 
-        return (
-          first.district -
-          second.district
-        );
-      });
-
-    if (!sortedRaces.length) {
+    if (
+      !sortedRaces.length
+    ) {
       map.innerHTML =
         '<div class="empty">No published House races yet.</div>';
 
@@ -596,21 +757,31 @@ async function loadHouseHexMap() {
       sortedRaces
         .map(race => {
           const district =
-            houseDistrictLabel(race);
+            houseDistrictLabel(
+              race
+            );
 
           const rating =
             String(
-              race.rating || "Toss-up"
+              race.rating ||
+                "Toss-up"
             );
 
           const candidates =
-            [...(race.candidates || [])].sort(
+            [
+              ...(
+                race.candidates ||
+                []
+              )
+            ].sort(
               (a, b) =>
                 Number(
-                  b.win_probability || 0
+                  b.win_probability ||
+                    0
                 ) -
                 Number(
-                  a.win_probability || 0
+                  a.win_probability ||
+                    0
                 )
             );
 
@@ -622,8 +793,11 @@ async function loadHouseHexMap() {
             rating,
 
             leader
-              ? `${leader.name} ${Number(
-                  leader.win_probability || 0
+              ? `${
+                  leader.name
+                } ${Number(
+                  leader.win_probability ||
+                    0
                 ).toFixed(0)}%`
               : ""
           ]
@@ -636,18 +810,30 @@ async function loadHouseHexMap() {
                 race
               )}"
               type="button"
-              title="${escapeHtml(description)}"
-              aria-label="${escapeHtml(description)}"
+              title="${escapeHtml(
+                description
+              )}"
+              aria-label="${escapeHtml(
+                description
+              )}"
               data-race-slug="${escapeHtml(
                 race.slug || ""
               )}"
             >
-              <span class="houseHexLabel">
-                ${escapeHtml(district)}
+              <span
+                class="houseHexLabel"
+              >
+                ${escapeHtml(
+                  district
+                )}
               </span>
 
-              <span class="houseHexRating">
-                ${escapeHtml(rating)}
+              <span
+                class="houseHexRating"
+              >
+                ${escapeHtml(
+                  rating
+                )}
               </span>
             </button>
           `;
@@ -655,15 +841,20 @@ async function loadHouseHexMap() {
         .join("");
 
     map
-      .querySelectorAll("[data-race-slug]")
+      .querySelectorAll(
+        "[data-race-slug]"
+      )
       .forEach(button => {
         button.onclick = () => {
           const slug =
-            button.dataset.raceSlug;
+            button.dataset
+              .raceSlug;
 
           location.href =
             "race.html?id=" +
-            encodeURIComponent(slug);
+            encodeURIComponent(
+              slug
+            );
         };
       });
   } catch (error) {
@@ -683,7 +874,9 @@ async function loadHouseHexMap() {
 }
 async function loadRace() {
   const root =
-    document.querySelector("#raceRoot");
+    document.querySelector(
+      "#raceRoot"
+    );
 
   if (!root) return;
 
@@ -699,19 +892,27 @@ async function loadRace() {
       new URLSearchParams(
         location.search
       ).get("id");
-    
+
     if (!slug) {
       root.innerHTML =
-     '<div class="empty">No race was selected.</div>';
+        '<div class="empty">No race was selected.</div>';
 
       return;
     }
 
-    const { data: race, error } = await sb
+    const {
+      data: race,
+      error
+    } = await sb
       .from("races")
-      .select("*,candidates(*)")
+      .select(
+        "*,candidates(*)"
+      )
       .eq("slug", slug)
-      .eq("status", "published")
+      .eq(
+        "status",
+        "published"
+      )
       .maybeSingle();
 
     if (error) {
@@ -726,19 +927,28 @@ async function loadRace() {
     }
 
     const polls =
-      await getPublishedPolls(race.id);
+      await getPublishedPolls(
+        race.id
+      );
 
     const average =
       weightedAverage(polls);
 
     const candidates =
-      [...(race.candidates || [])].sort(
+      [
+        ...(
+          race.candidates ||
+          []
+        )
+      ].sort(
         (a, b) =>
           Number(
-            b.win_probability || 0
+            b.win_probability ||
+              0
           ) -
           Number(
-            a.win_probability || 0
+            a.win_probability ||
+              0
           )
       );
 
@@ -750,7 +960,8 @@ async function loadRace() {
 
     const margin =
       Number(
-        race.projected_margin || 0
+        race.projected_margin ||
+          0
       );
 
     document.title =
@@ -762,12 +973,15 @@ async function loadRace() {
 
           <div>
             <div class="kicker">
-              2026 ${escapeHtml(label)} Forecast
+              2026 ${escapeHtml(
+                label
+              )} Forecast
             </div>
 
             <h1>
               ${escapeHtml(
-                race.title || "Election Forecast"
+                race.title ||
+                  "Election Forecast"
               )}
             </h1>
 
@@ -784,7 +998,8 @@ async function loadRace() {
               )}"
             >
               ${escapeHtml(
-                race.rating || "Toss-up"
+                race.rating ||
+                  "Toss-up"
               )}
             </span>
           </div>
@@ -793,13 +1008,15 @@ async function loadRace() {
             <div class="bigProb">
               ${Number(
                 candidates[0]
-                  ?.win_probability || 0
+                  ?.win_probability ||
+                  0
               ).toFixed(0)}%
             </div>
 
             <b>
               ${escapeHtml(
-                candidates[0]?.name ||
+                candidates[0]
+                  ?.name ||
                   "Leading candidate"
               )}
             </b>
@@ -807,6 +1024,24 @@ async function loadRace() {
             <div>
               chance to win
             </div>
+
+            ${
+              candidates[0]
+                ? `
+                  <div
+                    class="subtle"
+                    style="margin-top:8px"
+                  >
+                    ${Number(
+                      candidates[0]
+                        .expected_vote_share ||
+                        0
+                    ).toFixed(1)}%
+                    projected vote
+                  </div>
+                `
+                : ""
+            }
           </div>
 
         </div>
@@ -816,28 +1051,36 @@ async function loadRace() {
         <div class="grid2">
 
           <div class="card">
-            <h2>Forecast</h2>
+            <h2>
+              Forecast
+            </h2>
 
             ${
               candidates.length
                 ? candidates
                     .map(
                       candidate => `
-                        <div class="candidateLine">
+                        <div
+                          class="candidateLine"
+                        >
                           <span>
                             <i
                               class="partyDot party-${escapeHtml(
-                                candidate.party || ""
+                                candidate.party ||
+                                  ""
                               )}"
                             ></i>
 
                             <b>
                               ${escapeHtml(
-                                candidate.name || ""
+                                candidate.name ||
+                                  ""
                               )}
                             </b>
 
-                            <small class="subtle">
+                            <small
+                              class="subtle"
+                            >
                               ${escapeHtml(
                                 partyName(
                                   candidate.party
@@ -848,8 +1091,18 @@ async function loadRace() {
 
                           <strong>
                             ${Number(
-                              candidate.win_probability || 0
+                              candidate
+                                .win_probability ||
+                                0
                             ).toFixed(0)}%
+                            win
+                            ·
+                            ${Number(
+                              candidate
+                                .expected_vote_share ||
+                                0
+                            ).toFixed(1)}%
+                            vote
                           </strong>
                         </div>
                       `
@@ -866,7 +1119,12 @@ async function loadRace() {
               Projected margin:
 
               <b>
-                ${margin >= 0 ? "D +" : "R +"}
+                ${
+                  margin >= 0
+                    ? "D +"
+                    : "R +"
+                }
+
                 ${Math.abs(
                   margin
                 ).toFixed(1)}
@@ -875,7 +1133,9 @@ async function loadRace() {
           </div>
 
           <div class="card">
-            <h2>Polling average</h2>
+            <h2>
+              Polling average
+            </h2>
 
             ${
               average
@@ -885,7 +1145,8 @@ async function loadRace() {
                     style="font-size:48px;color:var(--ink)"
                   >
                     ${
-                      average.margin >= 0
+                      average.margin >=
+                      0
                         ? "D +"
                         : "R +"
                     }
@@ -895,7 +1156,9 @@ async function loadRace() {
                     ).toFixed(1)}
                   </div>
 
-                  <div class="controlBar">
+                  <div
+                    class="controlBar"
+                  >
                     <span
                       class="dem"
                       style="width:${Math.max(
@@ -919,13 +1182,21 @@ async function loadRace() {
                     ></span>
                   </div>
 
-                  <div class="raceMeta">
+                  <div
+                    class="raceMeta"
+                  >
                     <b>
-                      D ${average.dem.toFixed(1)}%
+                      D
+                      ${average.dem.toFixed(
+                        1
+                      )}%
                     </b>
 
                     <b>
-                      R ${average.rep.toFixed(1)}%
+                      R
+                      ${average.rep.toFixed(
+                        1
+                      )}%
                     </b>
                   </div>
                 `
@@ -933,16 +1204,19 @@ async function loadRace() {
                   <p class="subtle">
                     No published polls yet.
                   </p>
-                   `
+                `
             }
           </div>
-   </div>
+
+        </div>
       </section>
 
       <section class="section">
         <div class="sectionHead">
           <div>
-            <h2>Recent polls</h2>
+            <h2>
+              Recent polls
+            </h2>
 
             <p>
               Weighted by recency,
@@ -957,12 +1231,29 @@ async function loadRace() {
           <table>
             <thead>
               <tr>
-                <th>Pollster</th>
-                <th>Dates</th>
-                <th>Sample</th>
-                <th>Dem</th>
-                <th>Rep</th>
-                <th>Margin</th>
+                <th>
+                  Pollster
+                </th>
+
+                <th>
+                  Dates
+                </th>
+
+                <th>
+                  Sample
+                </th>
+
+                <th>
+                  Dem
+                </th>
+
+                <th>
+                  Rep
+                </th>
+
+                <th>
+                  Margin
+                </th>
               </tr>
             </thead>
 
@@ -970,74 +1261,89 @@ async function loadRace() {
               ${
                 polls.length
                   ? polls
-                      .map(poll => {
-                        const pollMargin =
-                          Number(
-                            poll.dem_pct || 0
-                          ) -
-                          Number(
-                            poll.rep_pct || 0
-                          );
+                      .map(
+                        poll => {
+                          const pollMargin =
+                            Number(
+                              poll.dem_pct ||
+                                0
+                            ) -
+                            Number(
+                              poll.rep_pct ||
+                                0
+                            );
 
-                        return `
-                          <tr>
-                            <td>
-                              <b>
-                                ${escapeHtml(
-                                  poll.pollster ||
-                                    "Unknown pollster"
+                          return `
+                            <tr>
+                              <td>
+                                <b>
+                                  ${escapeHtml(
+                                    poll.pollster ||
+                                      "Unknown pollster"
+                                  )}
+                                </b>
+                              </td>
+
+                              <td>
+                                ${fmtDate(
+                                  poll.start_date
                                 )}
-                              </b>
-                            </td>
+                                –
+                                ${fmtDate(
+                                  poll.end_date
+                                )}
+                              </td>
 
-                            <td>
-                              ${fmtDate(
-                                poll.start_date
-                              )}–${fmtDate(
-                                poll.end_date
-                              )}
-                            </td>
-
-                            <td>
-                              ${
-                                poll.sample_size ||
-                                "—"
-                              }
-
-                              ${escapeHtml(
-                                poll.population ||
-                                  ""
-                              )}
-                            </td>
-
-                            <td>
-                              ${Number(
-                                poll.dem_pct || 0
-                              ).toFixed(1)}
-                            </td>
-
-                            <td>
-                              ${Number(
-                                poll.rep_pct || 0
-                              ).toFixed(1)}
-                            </td>
-
-                            <td>
-                              <b>
+                              <td>
                                 ${
-                                  pollMargin >= 0
-                                    ? "D +"
-                                    : "R +"
+                                  poll.sample_size ||
+                                  "—"
                                 }
 
-                                ${Math.abs(
-                                  pollMargin
-                                ).toFixed(1)}
-                              </b>
-                            </td>
-                          </tr>
-                        `;
-                      })
+                                ${escapeHtml(
+                                  poll.population ||
+                                    ""
+                                )}
+                              </td>
+
+                              <td>
+                                ${Number(
+                                  poll.dem_pct ||
+                                    0
+                                ).toFixed(
+                                  1
+                                )}
+                              </td>
+
+                              <td>
+                                ${Number(
+                                  poll.rep_pct ||
+                                    0
+                                ).toFixed(
+                                  1
+                                )}
+                              </td>
+
+                              <td>
+                                <b>
+                                  ${
+                                    pollMargin >=
+                                    0
+                                      ? "D +"
+                                      : "R +"
+                                  }
+
+                                  ${Math.abs(
+                                    pollMargin
+                                  ).toFixed(
+                                    1
+                                  )}
+                                </b>
+                              </td>
+                            </tr>
+                          `;
+                        }
+                      )
                       .join("")
                   : `
                     <tr>
@@ -1070,21 +1376,27 @@ async function loadRace() {
       "</div>";
   }
 }
-
-
 async function loadGenericBallot() {
   const homepageBox =
-    document.querySelector("#genericBallotPolls");
+    document.querySelector(
+      "#genericBallotPolls"
+    );
 
   const table =
-    document.querySelector("#genericBallotTable");
+    document.querySelector(
+      "#genericBallotTable"
+    );
 
   const hasGenericBallotSection =
     homepageBox ||
     table ||
-    document.querySelector("#genericMargin");
+    document.querySelector(
+      "#genericMargin"
+    );
 
-  if (!hasGenericBallotSection) return;
+  if (!hasGenericBallotSection) {
+    return;
+  }
 
   if (!configured) {
     if (homepageBox) {
@@ -1095,7 +1407,10 @@ async function loadGenericBallot() {
     if (table) {
       table.innerHTML = `
         <tr>
-          <td colspan="6" class="empty">
+          <td
+            colspan="6"
+            class="empty"
+          >
             Connect Supabase to load generic ballot polls.
           </td>
         </tr>
@@ -1106,56 +1421,93 @@ async function loadGenericBallot() {
   }
 
   try {
-    const { data, error } = await sb
-      .from("generic_ballot_polls")
+    const {
+      data,
+      error
+    } = await sb
+      .from(
+        "generic_ballot_polls"
+      )
       .select("*")
-      .eq("status", "published")
-      .order("end_date", {
-        ascending: false
-      });
+      .eq(
+        "status",
+        "published"
+      )
+      .order(
+        "end_date",
+        {
+          ascending: false
+        }
+      );
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
-    const polls = data || [];
-    const average = weightedAverage(polls);
+    const polls =
+      data || [];
+
+    const average =
+      weightedAverage(polls);
 
     const marginBox =
-      document.querySelector("#genericMargin");
+      document.querySelector(
+        "#genericMargin"
+      );
 
     const leaderBox =
-      document.querySelector("#genericLeader");
+      document.querySelector(
+        "#genericLeader"
+      );
 
     const countBox =
-      document.querySelector("#genericPollCount");
+      document.querySelector(
+        "#genericPollCount"
+      );
 
     const demBox =
-      document.querySelector("#genericDemAverage");
+      document.querySelector(
+        "#genericDemAverage"
+      );
 
     const repBox =
-      document.querySelector("#genericRepAverage");
+      document.querySelector(
+        "#genericRepAverage"
+      );
 
     const demStatus =
-      document.querySelector("#genericDemStatus");
+      document.querySelector(
+        "#genericDemStatus"
+      );
 
     const repStatus =
-      document.querySelector("#genericRepStatus");
+      document.querySelector(
+        "#genericRepStatus"
+      );
 
     if (average) {
       const democraticLead =
         average.margin >= 0;
 
       const marginText =
-        `${democraticLead ? "D +" : "R +"}${Math.abs(
+        `${
+          democraticLead
+            ? "D +"
+            : "R +"
+        }${Math.abs(
           average.margin
         ).toFixed(1)}`;
 
       const pollCountText =
         `${polls.length} published poll${
-          polls.length === 1 ? "" : "s"
+          polls.length === 1
+            ? ""
+            : "s"
         }`;
 
       if (marginBox) {
-        marginBox.textContent = marginText;
+        marginBox.textContent =
+          marginText;
       }
 
       if (leaderBox) {
@@ -1166,30 +1518,43 @@ async function loadGenericBallot() {
       }
 
       if (countBox) {
-        countBox.textContent = pollCountText;
-            }
+        countBox.textContent =
+          pollCountText;
+      }
 
       if (demBox) {
-         demBox.textContent =
-          `${average.dem.toFixed(1)}%`;
+        demBox.textContent =
+          `${average.dem.toFixed(
+            1
+          )}%`;
       }
 
       if (repBox) {
         repBox.textContent =
-          `${average.rep.toFixed(1)}%`;
+          `${average.rep.toFixed(
+            1
+          )}%`;
       }
 
       if (demStatus) {
         demStatus.textContent =
-          `Average of ${polls.length} published poll${
-            polls.length === 1 ? "" : "s"
+          `Average of ${
+            polls.length
+          } published poll${
+            polls.length === 1
+              ? ""
+              : "s"
           }.`;
       }
 
       if (repStatus) {
         repStatus.textContent =
-          `Average of ${polls.length} published poll${
-            polls.length === 1 ? "" : "s"
+          `Average of ${
+            polls.length
+          } published poll${
+            polls.length === 1
+              ? ""
+              : "s"
           }.`;
       }
 
@@ -1202,12 +1567,17 @@ async function loadGenericBallot() {
             ${marginText}
           </div>
 
-          <div class="controlBar">
+          <div
+            class="controlBar"
+          >
             <span
               class="dem"
               style="width:${Math.max(
                 0,
-                Math.min(100, average.dem)
+                Math.min(
+                  100,
+                  average.dem
+                )
               )}%"
             ></span>
 
@@ -1215,24 +1585,42 @@ async function loadGenericBallot() {
               class="rep"
               style="width:${Math.max(
                 0,
-                Math.min(100, average.rep)
+                Math.min(
+                  100,
+                  average.rep
+                )
               )}%"
             ></span>
           </div>
 
-          <div class="raceMeta">
-            <b>D ${average.dem.toFixed(1)}%</b>
-            <b>R ${average.rep.toFixed(1)}%</b>
+          <div
+            class="raceMeta"
+          >
+            <b>
+              D
+              ${average.dem.toFixed(
+                1
+              )}%
+            </b>
+
+            <b>
+              R
+              ${average.rep.toFixed(
+                1
+              )}%
+            </b>
           </div>
 
           <p class="subtle">
-            Based on ${pollCountText}.
+            Based on
+            ${pollCountText}.
           </p>
         `;
       }
     } else {
       if (marginBox) {
-        marginBox.textContent = "—";
+        marginBox.textContent =
+          "—";
       }
 
       if (leaderBox) {
@@ -1246,11 +1634,13 @@ async function loadGenericBallot() {
       }
 
       if (demBox) {
-        demBox.textContent = "—%";
+        demBox.textContent =
+          "—%";
       }
 
       if (repBox) {
-        repBox.textContent = "—%";
+        repBox.textContent =
+          "—%";
       }
 
       if (demStatus) {
@@ -1275,8 +1665,14 @@ async function loadGenericBallot() {
           ? polls
               .map(poll => {
                 const pollMargin =
-                  Number(poll.dem_pct || 0) -
-                  Number(poll.rep_pct || 0);
+                  Number(
+                    poll.dem_pct ||
+                      0
+                  ) -
+                  Number(
+                    poll.rep_pct ||
+                      0
+                  );
 
                 return `
                   <tr>
@@ -1292,27 +1688,36 @@ async function loadGenericBallot() {
                     <td>
                       ${fmtDate(
                         poll.start_date
-                      )}–${fmtDate(
+                      )}
+                      –
+                      ${fmtDate(
                         poll.end_date
                       )}
                     </td>
 
                     <td>
-                      ${poll.sample_size || "—"}
+                      ${
+                        poll.sample_size ||
+                        "—"
+                      }
+
                       ${escapeHtml(
-                        poll.population || ""
+                        poll.population ||
+                          ""
                       )}
                     </td>
 
                     <td>
                       ${Number(
-                        poll.dem_pct || 0
+                        poll.dem_pct ||
+                          0
                       ).toFixed(1)}
                     </td>
 
                     <td>
                       ${Number(
-                        poll.rep_pct || 0
+                        poll.rep_pct ||
+                          0
                       ).toFixed(1)}
                     </td>
 
@@ -1322,7 +1727,9 @@ async function loadGenericBallot() {
                           pollMargin >= 0
                             ? "D +"
                             : "R +"
-                        }${Math.abs(
+                        }
+
+                        ${Math.abs(
                           pollMargin
                         ).toFixed(1)}
                       </b>
@@ -1333,7 +1740,10 @@ async function loadGenericBallot() {
               .join("")
           : `
             <tr>
-              <td colspan="6" class="empty">
+              <td
+                colspan="6"
+                class="empty"
+              >
                 No generic ballot polls have been published.
               </td>
             </tr>
@@ -1348,22 +1758,28 @@ async function loadGenericBallot() {
     if (homepageBox) {
       homepageBox.innerHTML =
         `<div class="empty">${escapeHtml(
-          error.message
+          error.message ||
+            "Unable to load generic ballot polls."
         )}</div>`;
     }
 
     if (table) {
       table.innerHTML = `
         <tr>
-          <td colspan="6" class="empty">
-            ${escapeHtml(error.message)}
+          <td
+            colspan="6"
+            class="empty"
+          >
+            ${escapeHtml(
+              error.message ||
+                "Unable to load generic ballot polls."
+            )}
           </td>
         </tr>
       `;
     }
   }
 }
-
 document.addEventListener(
   "DOMContentLoaded",
   () => {
@@ -1378,11 +1794,13 @@ document.addEventListener(
 
     tasks.forEach(task => {
       try {
-        const result = task();
+        const result =
+          task();
 
         if (
           result &&
-          typeof result.catch === "function"
+          typeof result.catch ===
+            "function"
         ) {
           result.catch(error => {
             console.error(
