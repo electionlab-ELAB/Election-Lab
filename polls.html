@@ -88,16 +88,19 @@
         </div>
 
         <div class="probCard">
-          <div class="bigProb">
+          <div
+            class="bigProb"
+            id="genericMargin"
+          >
             —
           </div>
 
-          <b>
+          <b id="genericLeader">
             No average yet
           </b>
 
-          <div>
-            Add published polls to begin
+          <div id="genericPollCount">
+            Loading published polls...
           </div>
         </div>
 
@@ -114,13 +117,17 @@
 
           <div
             class="bigProb"
+            id="genericDemAverage"
             style="color:var(--blue)"
           >
             —%
           </div>
 
-          <p class="subtle">
-            No published polls yet.
+          <p
+            class="subtle"
+            id="genericDemStatus"
+          >
+            Loading published polls...
           </p>
         </div>
 
@@ -131,13 +138,17 @@
 
           <div
             class="bigProb"
+            id="genericRepAverage"
             style="color:var(--red)"
           >
             —%
           </div>
 
-          <p class="subtle">
-            No published polls yet.
+          <p
+            class="subtle"
+            id="genericRepStatus"
+          >
+            Loading published polls...
           </p>
         </div>
 
@@ -158,7 +169,7 @@
 
           <p>
             Published national congressional ballot polls
-            will appear below.
+            appear below.
           </p>
         </div>
       </div>
@@ -177,13 +188,13 @@
             </tr>
           </thead>
 
-          <tbody>
+          <tbody id="genericBallotTable">
             <tr>
               <td
                 colspan="6"
                 class="empty"
               >
-                No generic ballot polls have been published.
+                Loading generic ballot polls...
               </td>
             </tr>
           </tbody>
