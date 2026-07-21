@@ -1,1 +1,183 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>2026 Senate Forecast | ElectionLab</title><link rel="stylesheet" href="styles.css"></head><body><header class="topbar"><nav class="nav"><a class="brand" href="index.html"><img src="electionlab-logo.png"><span>ElectionLab</span></a><button class="menuBtn">☰</button><div class="navlinks"><a class="" href="index.html">Home</a><a class="active" href="senate.html">Senate</a><a class="" href="house.html">House</a><a class="" href="governors.html">Governors</a><a class="" href="polls.html">Polling</a></div></nav></header><main class="page"><section class="hero"><div class="kicker">ElectionLab Forecast</div><h1>2026 Senate</h1><p>Race-by-race probabilities, ratings, candidates, and polling averages.</p></section><section class="section"><div class="toolbar"><input id="raceSearch" placeholder="Search state, race, or candidate…"></div><div class="grid3" id="raceGrid"><div class="loading">Loading Senate races…</div></div></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="common.js"></script><script src="public.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>2026 Senate Forecast | ElectionLab</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body data-race-type="senate">
+
+  <header class="topbar">
+    <nav class="nav">
+
+      <a class="brand" href="index.html">
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
+        <span>ElectionLab</span>
+      </a>
+
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+
+      <div class="navlinks">
+        <a href="index.html">Home</a>
+        <a class="active" href="senate.html">Senate</a>
+        <a href="house.html">House</a>
+        <a href="governors.html">Governors</a>
+        <a href="polls.html">Polling</a>
+      </div>
+
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="hero">
+      <div class="kicker">ElectionLab Forecast</div>
+
+      <h1>2026 Senate</h1>
+
+      <p>
+        Race-by-race probabilities, ratings, candidates, and polling averages.
+      </p>
+    </section>
+
+    <section class="section mapSection">
+
+      <div class="sectionHeading">
+
+        <div>
+          <div class="kicker">Election Map</div>
+          <h2>2026 Senate Forecast Map</h2>
+        </div>
+
+        <p class="mapInstructions">
+          Select a state to view its Senate race forecast.
+        </p>
+
+      </div>
+
+      <div class="mapCard">
+
+        <div
+          id="senateMap"
+          class="forecastMap"
+          aria-label="2026 Senate election forecast map"
+        >
+          <div class="loading">
+            Loading Senate map…
+          </div>
+        </div>
+
+        <div
+          class="mapLegend"
+          aria-label="Forecast rating legend"
+        >
+
+          <div class="legendItem">
+            <span class="legendColor safeDem"></span>
+            <span>Safe Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor likelyDem"></span>
+            <span>Likely Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor leanDem"></span>
+            <span>Lean Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor tiltDem"></span>
+            <span>Tilt Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor tossup"></span>
+            <span>Tossup</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor tiltRep"></span>
+            <span>Tilt Republican</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor leanRep"></span>
+            <span>Lean Republican</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor likelyRep"></span>
+            <span>Likely Republican</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor safeRep"></span>
+            <span>Safe Republican</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="sectionHeading">
+        <div>
+          <div class="kicker">Race Ratings</div>
+          <h2>Senate Races</h2>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input
+          id="raceSearch"
+          type="search"
+          placeholder="Search state, race, or candidate…"
+          aria-label="Search Senate races"
+          autocomplete="off"
+        >
+      </div>
+
+      <div
+        class="grid3"
+        id="raceGrid"
+      >
+        <div class="loading">
+          Loading Senate races…
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="public.js"></script>
+  <script src="maps.js"></script>
+
+</body>
+</html>
