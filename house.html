@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
@@ -13,7 +12,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 
-<body data-race-type="house">
+<body>
 
   <header class="topbar">
     <nav class="nav">
@@ -23,6 +22,7 @@
           src="electionlab-logo.png"
           alt="ElectionLab logo"
         >
+
         <span>ElectionLab</span>
       </a>
 
@@ -38,7 +38,7 @@
       <div class="navlinks">
         <a href="index.html">Home</a>
         <a href="senate.html">Senate</a>
-        <a class="active" href="house.html">House</a>
+        <a href="house.html" class="active">House</a>
         <a href="governors.html">Governors</a>
         <a href="polls.html">Polling</a>
       </div>
@@ -46,89 +46,189 @@
     </nav>
   </header>
 
-  <main class="page">
+  <main>
 
     <section class="hero">
-      <div class="kicker">ElectionLab Forecast</div>
-
-      <h1>2026 House Forecast</h1>
-
-      <p>
-        District-level ratings, candidates, control probabilities, and race
-        analysis for the 2026 House elections.
-      </p>
-    </section>
-
-    <section class="section mapSection">
-
-      <div class="sectionHeading">
+      <div class="heroGrid">
 
         <div>
-          <div class="kicker">Election Map</div>
-          <h2>2026 House Forecast Map</h2>
+          <div class="kicker">
+            2026 U.S. House Forecast
+          </div>
+
+          <h1>
+            House Race Ratings
+          </h1>
+
+          <p>
+            Explore ElectionLab's published forecasts for
+            competitive U.S. House races across the country.
+          </p>
         </div>
 
-        <p class="mapInstructions">
-          Select a district to view its House race forecast.
-        </p>
+        <div class="probCard">
+          <div class="bigProb">
+            435
+          </div>
 
-      </div>
+          <b>House seats</b>
 
-      <div class="mapCard">
-
-        <div
-          id="houseMap"
-          class="forecastMap"
-          aria-label="2026 House election forecast map"
-        >
-          <div class="loading">
-            Loading House map…
+          <div>
+            218 needed for control
           </div>
         </div>
 
       </div>
-
     </section>
 
     <section class="section">
-
-      <div class="raceSectionHeader">
+      <div class="sectionHead">
 
         <div>
-          <div class="kicker">Race Ratings</div>
-          <h2>House Districts</h2>
+          <div class="kicker">
+            District Forecast
+          </div>
+
+          <h2>
+            House Hex Map
+          </h2>
+
+          <p>
+            Each hexagon represents a published House race.
+            Click a district to open its full forecast.
+          </p>
         </div>
 
-        <div class="toolbar raceToolbar">
+      </div>
+
+      <div class="card houseMapCard">
+
+        <div
+          id="houseHexMap"
+          class="houseHexMap"
+        >
+          <div class="empty">
+            Loading House map...
+          </div>
+        </div>
+
+        <div class="mapLegend">
+
+          <span>
+            <i class="legendDot map-dem-safe"></i>
+            Safe D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-likely"></i>
+            Likely D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-lean"></i>
+            Lean D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-tilt"></i>
+            Tilt D
+          </span>
+
+          <span>
+            <i class="legendDot map-tossup"></i>
+            Toss-up
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-tilt"></i>
+            Tilt R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-lean"></i>
+            Lean R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-likely"></i>
+            Likely R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-safe"></i>
+            Safe R
+          </span>
+
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="sectionHead">
+
+        <div>
+          <div class="kicker">
+            Race Database
+          </div>
+
+          <h2>
+            House Forecasts
+          </h2>
+
+          <p>
+            Search published House races by state,
+            district, or candidate.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="raceSearch">
+            Search races
+          </label>
+
           <input
             id="raceSearch"
             type="search"
-            placeholder="Search state, district, or candidate…"
-            aria-label="Search House races"
-            autocomplete="off"
+            placeholder="Search PA-16 or candidate name"
           >
         </div>
 
       </div>
 
       <div
-        class="grid3"
         id="raceGrid"
+        class="raceGrid"
       >
-        <div class="loading">
-          Loading House races…
+        <div class="empty">
+          Loading House races...
         </div>
       </div>
-
     </section>
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <footer class="footer">
+    <div>
+      <b>ElectionLab</b>
+
+      <p class="subtle">
+        Independent election forecasts and polling analysis.
+      </p>
+    </div>
+
+    <div class="subtle">
+      Forecasts express uncertainty, not certainty.
+    </div>
+  </footer>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="public.js"></script>
-  <script src="maps.js"></script>
 
 </body>
 </html>
