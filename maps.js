@@ -1,787 +1,1629 @@
 /*
-  ElectionLab Forecast Maps
-  -------------------------
-  Creates interactive state tile maps for:
-  - Senate
-  - Governors
-
-  The script reads race information from the cards inside #raceGrid.
+  ElectionLab Maps
+  ----------------
+  - Real U.S. state maps for Senate and Governors
+  - U.S.-shaped 435-seat hex map for the House
+  - Correct state-to-race navigation
 */
 
-document.addEventListener("DOMContentLoaded", () => {
-  const pageType = document.body.dataset.raceType;
+const MAP_DEPENDENCIES = {
+  d3:
+    "https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js",
 
-  if (pageType === "senate") {
-    initializeForecastMap("senateMap", "senate");
-  }
+  topojson:
+    "https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js",
 
-  if (pageType === "governor") {
-    initializeForecastMap("governorMap", "governor");
-  }
-
-  if (pageType === "house") {
-    initializeHouseMap();
-  }
-});
-
-
-/* =========================================================
-   STATE TILE POSITIONS
-   ========================================================= */
-
-const STATE_TILES = [
-  { abbr: "AK", name: "Alaska", row: 1, col: 1 },
-  { abbr: "ME", name: "Maine", row: 1, col: 12 },
-
-  { abbr: "WA", name: "Washington", row: 2, col: 2 },
-  { abbr: "ID", name: "Idaho", row: 2, col: 3 },
-  { abbr: "MT", name: "Montana", row: 2, col: 4 },
-  { abbr: "ND", name: "North Dakota", row: 2, col: 5 },
-  { abbr: "MN", name: "Minnesota", row: 2, col: 6 },
-  { abbr: "WI", name: "Wisconsin", row: 2, col: 7 },
-  { abbr: "MI", name: "Michigan", row: 2, col: 8 },
-  { abbr: "NY", name: "New York", row: 2, col: 10 },
-  { abbr: "VT", name: "Vermont", row: 2, col: 11 },
-  { abbr: "NH", name: "New Hampshire", row: 2, col: 12 },
-
-  { abbr: "OR", name: "Oregon", row: 3, col: 2 },
-  { abbr: "NV", name: "Nevada", row: 3, col: 3 },
-  { abbr: "WY", name: "Wyoming", row: 3, col: 4 },
-  { abbr: "SD", name: "South Dakota", row: 3, col: 5 },
-  { abbr: "IA", name: "Iowa", row: 3, col: 6 },
-  { abbr: "IL", name: "Illinois", row: 3, col: 7 },
-  { abbr: "IN", name: "Indiana", row: 3, col: 8 },
-  { abbr: "OH", name: "Ohio", row: 3, col: 9 },
-  { abbr: "PA", name: "Pennsylvania", row: 3, col: 10 },
-  { abbr: "NJ", name: "New Jersey", row: 3, col: 11 },
-  { abbr: "MA", name: "Massachusetts", row: 3, col: 12 },
-
-  { abbr: "CA", name: "California", row: 4, col: 2 },
-  { abbr: "UT", name: "Utah", row: 4, col: 3 },
-  { abbr: "CO", name: "Colorado", row: 4, col: 4 },
-  { abbr: "NE", name: "Nebraska", row: 4, col: 5 },
-  { abbr: "MO", name: "Missouri", row: 4, col: 6 },
-  { abbr: "KY", name: "Kentucky", row: 4, col: 7 },
-  { abbr: "WV", name: "West Virginia", row: 4, col: 8 },
-  { abbr: "VA", name: "Virginia", row: 4, col: 9 },
-  { abbr: "MD", name: "Maryland", row: 4, col: 10 },
-  { abbr: "DE", name: "Delaware", row: 4, col: 11 },
-  { abbr: "RI", name: "Rhode Island", row: 4, col: 12 },
-
-  { abbr: "AZ", name: "Arizona", row: 5, col: 3 },
-  { abbr: "NM", name: "New Mexico", row: 5, col: 4 },
-  { abbr: "KS", name: "Kansas", row: 5, col: 5 },
-  { abbr: "AR", name: "Arkansas", row: 5, col: 6 },
-  { abbr: "TN", name: "Tennessee", row: 5, col: 7 },
-  { abbr: "NC", name: "North Carolina", row: 5, col: 9 },
-  { abbr: "SC", name: "South Carolina", row: 5, col: 10 },
-  { abbr: "DC", name: "District of Columbia", row: 5, col: 11 },
-
-  { abbr: "OK", name: "Oklahoma", row: 6, col: 5 },
-  { abbr: "LA", name: "Louisiana", row: 6, col: 6 },
-  { abbr: "MS", name: "Mississippi", row: 6, col: 7 },
-  { abbr: "AL", name: "Alabama", row: 6, col: 8 },
-  { abbr: "GA", name: "Georgia", row: 6, col: 9 },
-
-  { abbr: "HI", name: "Hawaii", row: 7, col: 2 },
-  { abbr: "TX", name: "Texas", row: 7, col: 5 },
-  { abbr: "FL", name: "Florida", row: 7, col: 10 }
-];
-
-
-/* =========================================================
-   FORECAST COLORS
-   ========================================================= */
-
-const RATING_COLORS = {
-  "safe democratic": "#173f8f",
-  "solid democratic": "#173f8f",
-  "safe dem": "#173f8f",
-  "solid dem": "#173f8f",
-
-  "likely democratic": "#2f65c7",
-  "likely dem": "#2f65c7",
-
-  "lean democratic": "#5b8ee4",
-  "lean dem": "#5b8ee4",
-
-  "tilt democratic": "#91b4ef",
-  "tilt dem": "#91b4ef",
-
-  "tossup": "#9ca3af",
-  "toss-up": "#9ca3af",
-  "competitive": "#9ca3af",
-
-  "tilt republican": "#eea6a6",
-  "tilt rep": "#eea6a6",
-
-  "lean republican": "#df7171",
-  "lean rep": "#df7171",
-
-  "likely republican": "#c94242",
-  "likely rep": "#c94242",
-
-  "safe republican": "#8f1f2a",
-  "solid republican": "#8f1f2a",
-  "safe rep": "#8f1f2a",
-  "solid rep": "#8f1f2a",
-
-  "not up": "#283548",
-  "no election": "#283548",
-  "unrated": "#38475b"
+  atlas:
+    "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"
 };
 
+const STATE_FIPS_TO_CODE = {
+  "01": "AL",
+  "02": "AK",
+  "04": "AZ",
+  "05": "AR",
+  "06": "CA",
+  "08": "CO",
+  "09": "CT",
+  "10": "DE",
+  "11": "DC",
+  "12": "FL",
+  "13": "GA",
+  "15": "HI",
+  "16": "ID",
+  "17": "IL",
+  "18": "IN",
+  "19": "IA",
+  "20": "KS",
+  "21": "KY",
+  "22": "LA",
+  "23": "ME",
+  "24": "MD",
+  "25": "MA",
+  "26": "MI",
+  "27": "MN",
+  "28": "MS",
+  "29": "MO",
+  "30": "MT",
+  "31": "NE",
+  "32": "NV",
+  "33": "NH",
+  "34": "NJ",
+  "35": "NM",
+  "36": "NY",
+  "37": "NC",
+  "38": "ND",
+  "39": "OH",
+  "40": "OK",
+  "41": "OR",
+  "42": "PA",
+  "44": "RI",
+  "45": "SC",
+  "46": "SD",
+  "47": "TN",
+  "48": "TX",
+  "49": "UT",
+  "50": "VT",
+  "51": "VA",
+  "53": "WA",
+  "54": "WV",
+  "55": "WI",
+  "56": "WY"
+};
 
-/* =========================================================
-   CREATE SENATE / GOVERNOR MAP
-   ========================================================= */
+const STATE_NAMES = {
+  AL: "Alabama",
+  AK: "Alaska",
+  AZ: "Arizona",
+  AR: "Arkansas",
+  CA: "California",
+  CO: "Colorado",
+  CT: "Connecticut",
+  DE: "Delaware",
+  DC: "District of Columbia",
+  FL: "Florida",
+  GA: "Georgia",
+  HI: "Hawaii",
+  ID: "Idaho",
+  IL: "Illinois",
+  IN: "Indiana",
+  IA: "Iowa",
+  KS: "Kansas",
+  KY: "Kentucky",
+  LA: "Louisiana",
+  ME: "Maine",
+  MD: "Maryland",
+  MA: "Massachusetts",
+  MI: "Michigan",
+  MN: "Minnesota",
+  MS: "Mississippi",
+  MO: "Missouri",
+  MT: "Montana",
+  NE: "Nebraska",
+  NV: "Nevada",
+  NH: "New Hampshire",
+  NJ: "New Jersey",
+  NM: "New Mexico",
+  NY: "New York",
+  NC: "North Carolina",
+  ND: "North Dakota",
+  OH: "Ohio",
+  OK: "Oklahoma",
+  OR: "Oregon",
+  PA: "Pennsylvania",
+  RI: "Rhode Island",
+  SC: "South Carolina",
+  SD: "South Dakota",
+  TN: "Tennessee",
+  TX: "Texas",
+  UT: "Utah",
+  VT: "Vermont",
+  VA: "Virginia",
+  WA: "Washington",
+  WV: "West Virginia",
+  WI: "Wisconsin",
+  WY: "Wyoming"
+};
 
-function initializeForecastMap(containerId, raceType) {
-  const mapContainer = document.getElementById(containerId);
+const MAP_RATING_CLASSES = [
+  "map-dem-safe",
+  "map-dem-likely",
+  "map-dem-lean",
+  "map-dem-tilt",
+  "map-tossup",
+  "map-rep-tilt",
+  "map-rep-lean",
+  "map-rep-likely",
+  "map-rep-safe",
+  "map-no-race",
+  "map-not-up",
+  "map-unrated"
+];
 
-  if (!mapContainer) {
-    return;
-  }
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+    const pageType =
+      document.body.dataset.raceType;
 
-  renderMapShell(mapContainer, raceType);
+    try {
+      if (
+        pageType === "senate"
+      ) {
+        await initializeStateMap(
+          "senateMap",
+          "senate"
+        );
+      }
 
-  const raceGrid = document.getElementById("raceGrid");
+      if (
+        pageType === "governor"
+      ) {
+        await initializeStateMap(
+          "governorMap",
+          "governor"
+        );
+      }
 
-  if (!raceGrid) {
-    updateMapRatings(mapContainer, raceType);
-    return;
-  }
-
-  /*
-    public.js loads races after the page loads, so this watches
-    the race grid and refreshes the map whenever cards appear.
-  */
-  const observer = new MutationObserver(() => {
-    updateMapRatings(mapContainer, raceType);
-  });
-
-  observer.observe(raceGrid, {
-    childList: true,
-    subtree: true,
-    characterData: true
-  });
-
-  updateMapRatings(mapContainer, raceType);
-}
-
-
-function renderMapShell(container, raceType) {
-  container.innerHTML = "";
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "electionMapWrapper";
-
-  const map = document.createElement("div");
-  map.className = "electionTileMap";
-
-  STATE_TILES.forEach((state) => {
-    const tile = document.createElement("button");
-
-    tile.type = "button";
-    tile.className = "stateTile";
-    tile.dataset.state = state.name;
-    tile.dataset.abbr = state.abbr;
-    tile.dataset.rating = "unrated";
-
-    tile.style.gridRow = state.row;
-    tile.style.gridColumn = state.col;
-
-    tile.setAttribute(
-      "aria-label",
-      `${state.name}: currently unrated`
-    );
-
-    tile.innerHTML = `
-      <span class="stateAbbr">${state.abbr}</span>
-      <span class="stateRatingDot"></span>
-    `;
-
-    tile.addEventListener("click", () => {
-      handleStateClick(state, raceType);
-    });
-
-    tile.addEventListener("mouseenter", (event) => {
-      showMapTooltip(event, state, tile.dataset.rating);
-    });
-
-    tile.addEventListener("mousemove", moveMapTooltip);
-    tile.addEventListener("mouseleave", hideMapTooltip);
-
-    map.appendChild(tile);
-  });
-
-  wrapper.appendChild(map);
-  container.appendChild(wrapper);
-
-  createMapTooltip();
-  injectMapStyles();
-}
-
-
-/* =========================================================
-   READ RATINGS FROM RACE CARDS
-   ========================================================= */
-
-function updateMapRatings(mapContainer, raceType) {
-  const raceData = extractRaceData();
-
-  const stateTiles = mapContainer.querySelectorAll(".stateTile");
-
-  stateTiles.forEach((tile) => {
-    const stateName = tile.dataset.state;
-    const stateAbbr = tile.dataset.abbr;
-
-    let matchingRace = raceData.find((race) => {
-      const searchableText = race.text.toLowerCase();
-
-      return (
-        searchableText.includes(stateName.toLowerCase()) ||
-        containsStateAbbreviation(searchableText, stateAbbr)
+      if (
+        pageType === "house"
+      ) {
+        await initializeHouseMap();
+      }
+    } catch (error) {
+      console.error(
+        "Election map failed:",
+        error
       );
-    });
 
-    let rating = "unrated";
-
-    if (matchingRace) {
-      rating = detectRating(matchingRace.text);
-    } else if (raceType === "senate") {
-      rating = "not up";
+      showMapError(
+        pageType,
+        error
+      );
     }
+  }
+);
 
-    setTileRating(tile, rating);
-  });
-}
-
-
-function extractRaceData() {
-  const raceGrid = document.getElementById("raceGrid");
-
-  if (!raceGrid) {
-    return [];
+function loadScriptOnce(
+  src,
+  globalName
+) {
+  if (
+    globalName &&
+    window[globalName]
+  ) {
+    return Promise.resolve();
   }
 
-  const cards = Array.from(
-    raceGrid.querySelectorAll(
-      ".card, .raceCard, .race-card, article, [data-race-id]"
-    )
-  );
-
-  return cards
-    .map((card) => ({
-      element: card,
-      text: normalizeText(card.innerText || card.textContent || "")
-    }))
-    .filter((race) => race.text.length > 0);
-}
-
-
-function detectRating(text) {
-  const normalized = normalizeText(text).toLowerCase();
-
-  const possibleRatings = Object.keys(RATING_COLORS);
-
-  /*
-    Check longer rating phrases first so "likely republican"
-    is found before a shorter partial phrase.
-  */
-  possibleRatings.sort((a, b) => b.length - a.length);
-
-  const match = possibleRatings.find((rating) =>
-    normalized.includes(rating)
-  );
-
-  return match || "unrated";
-}
-
-
-function setTileRating(tile, rating) {
-  const normalizedRating = normalizeRating(rating);
-  const color = getRatingColor(normalizedRating);
-
-  tile.dataset.rating = formatRating(normalizedRating);
-  tile.style.backgroundColor = color;
-
-  tile.classList.toggle(
-    "lightStateTile",
-    isLightColorRating(normalizedRating)
-  );
-
-  tile.setAttribute(
-    "aria-label",
-    `${tile.dataset.state}: ${formatRating(normalizedRating)}`
-  );
-}
-
-
-/* =========================================================
-   CARD NAVIGATION
-   ========================================================= */
-
-function handleStateClick(state) {
-  const raceGrid = document.getElementById("raceGrid");
-
-  if (!raceGrid) {
-    return;
-  }
-
-  const cards = Array.from(
-    raceGrid.querySelectorAll(
-      ".card, .raceCard, .race-card, article, [data-race-id]"
-    )
-  );
-
-  const matchingCard = cards.find((card) => {
-    const text = normalizeText(
-      card.innerText || card.textContent || ""
-    ).toLowerCase();
-
-    return (
-      text.includes(state.name.toLowerCase()) ||
-      containsStateAbbreviation(text, state.abbr)
+  const existing =
+    document.querySelector(
+      `script[src="${src}"]`
     );
-  });
 
-  if (!matchingCard) {
-    return;
+  if (existing) {
+    return new Promise(
+      (resolve, reject) => {
+        if (
+          globalName &&
+          window[globalName]
+        ) {
+          resolve();
+          return;
+        }
+
+        existing.addEventListener(
+          "load",
+          resolve,
+          { once: true }
+        );
+
+        existing.addEventListener(
+          "error",
+          reject,
+          { once: true }
+        );
+      }
+    );
   }
 
-  matchingCard.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
+  return new Promise(
+    (resolve, reject) => {
+      const script =
+        document.createElement(
+          "script"
+        );
 
-  matchingCard.classList.add("mapSelectedRace");
+      script.src = src;
+      script.async = true;
 
-  window.setTimeout(() => {
-    matchingCard.classList.remove("mapSelectedRace");
-  }, 1800);
+      script.onload = resolve;
+
+      script.onerror = () => {
+        reject(
+          new Error(
+            `Unable to load ${src}`
+          )
+        );
+      };
+
+      document.head.appendChild(
+        script
+      );
+    }
+  );
 }
 
+async function loadMapDependencies() {
+  await loadScriptOnce(
+    MAP_DEPENDENCIES.d3,
+    "d3"
+  );
 
-/* =========================================================
-   HOUSE MAP
-   ========================================================= */
+  await loadScriptOnce(
+    MAP_DEPENDENCIES.topojson,
+    "topojson"
+  );
+}
 
-function initializeHouseMap() {
-  const houseMap = document.getElementById("houseMap");
+async function getStateAtlas() {
+  const response =
+    await fetch(
+      MAP_DEPENDENCIES.atlas
+    );
 
-  if (!houseMap) {
+  if (!response.ok) {
+    throw new Error(
+      "Unable to download the U.S. map data."
+    );
+  }
+
+  return response.json();
+}
+
+function stateCodeFromFeature(
+  feature
+) {
+  return (
+    STATE_FIPS_TO_CODE[
+      String(feature.id)
+        .padStart(2, "0")
+    ] || ""
+  );
+}
+
+function normalizeOffice(value) {
+  const office =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    office === "governors"
+  ) {
+    return "governor";
+  }
+
+  return office;
+}
+
+async function getMapRaces(
+  office
+) {
+  const normalizedOffice =
+    normalizeOffice(office);
+
+  if (
+    typeof getPublishedRaces ===
+    "function"
+  ) {
+    return (
+      await getPublishedRaces(
+        normalizedOffice
+      )
+    ) || [];
+  }
+
+  const { data, error } =
+    await sb
+      .from("races")
+      .select(
+        "*,candidates(*)"
+      )
+      .eq(
+        "status",
+        "published"
+      )
+      .eq(
+        "office",
+        normalizedOffice
+      );
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+function raceByState(
+  races
+) {
+  return races.reduce(
+    (lookup, race) => {
+      const state =
+        String(
+          race.state || ""
+        )
+          .trim()
+          .toUpperCase();
+
+      if (
+        /^[A-Z]{2}$/.test(state)
+      ) {
+        lookup[state] = race;
+      }
+
+      return lookup;
+    },
+    {}
+  );
+}
+
+function mapClassForRace(
+  race,
+  office
+) {
+  if (!race) {
+    return office === "senate"
+      ? "map-not-up"
+      : "map-no-race";
+  }
+
+  const rating =
+    String(
+      race.rating || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const margin =
+    Number(
+      race.projected_margin || 0
+    );
+
+  const party =
+    margin >= 0
+      ? "dem"
+      : "rep";
+
+  if (
+    rating.includes("toss") ||
+    rating.includes("tied")
+  ) {
+    return "map-tossup";
+  }
+
+  if (rating.includes("safe")) {
+    return `map-${party}-safe`;
+  }
+
+  if (
+    rating.includes("likely") ||
+    rating.includes("likley")
+  ) {
+    return `map-${party}-likely`;
+  }
+
+  if (rating.includes("lean")) {
+    return `map-${party}-lean`;
+  }
+
+  if (rating.includes("tilt")) {
+    return `map-${party}-tilt`;
+  }
+
+  return "map-tossup";
+}
+
+function readableRating(
+  race,
+  office
+) {
+  if (!race) {
+    return office === "senate"
+      ? "Not up in 2026"
+      : "No published forecast";
+  }
+
+  return (
+    race.rating ||
+    "Toss-up"
+  );
+}
+
+function removeMapClasses(
+  element
+) {
+  element.classList.remove(
+    ...MAP_RATING_CLASSES
+  );
+}
+
+async function initializeStateMap(
+  containerId,
+  office
+) {
+  const container =
+    document.getElementById(
+      containerId
+    );
+
+  if (!container) {
     return;
   }
 
-  /*
-    A real House map requires district GeoJSON boundary data.
-    This message avoids leaving the page permanently stuck loading.
-  */
-  houseMap.innerHTML = `
-    <div class="houseMapPlaceholder">
-      <div class="houseMapIcon">435</div>
-
-      <div>
-        <h3>House district map</h3>
-
-        <p>
-          The statewide map system is connected. District boundaries
-          will appear here once the congressional district map data is added.
-        </p>
-      </div>
+  container.innerHTML = `
+    <div class="loading">
+      Loading U.S. map…
     </div>
   `;
 
-  injectMapStyles();
+  await loadMapDependencies();
+
+  const [
+    atlas,
+    races
+  ] = await Promise.all([
+    getStateAtlas(),
+    getMapRaces(office)
+  ]);
+
+  renderStateMap(
+    container,
+    atlas,
+    races,
+    office
+  );
+}
+function renderStateMap(
+  container,
+  atlas,
+  races,
+  office
+) {
+  const states =
+    topojson.feature(
+      atlas,
+      atlas.objects.states
+    );
+
+  const borders =
+    topojson.mesh(
+      atlas,
+      atlas.objects.states,
+      (a, b) => a !== b
+    );
+
+  const width = 975;
+  const height = 610;
+
+  const projection =
+    d3.geoAlbersUsa()
+      .fitSize(
+        [width, height],
+        states
+      );
+
+  const path =
+    d3.geoPath(
+      projection
+    );
+
+  const raceLookup =
+    raceByState(races);
+
+  container.innerHTML = "";
+
+  const svg =
+    d3
+      .select(container)
+      .append("svg")
+      .attr(
+        "class",
+        "usMapSvg"
+      )
+      .attr(
+        "viewBox",
+        `0 0 ${width} ${height}`
+      )
+      .attr(
+        "role",
+        "img"
+      )
+      .attr(
+        "aria-label",
+        `${
+          office === "senate"
+            ? "Senate"
+            : "Governor"
+        } forecast map`
+      );
+
+  const stateGroup =
+    svg.append("g");
+
+  stateGroup
+    .selectAll("path")
+    .data(states.features)
+    .join("path")
+    .attr(
+      "class",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        const race =
+          raceLookup[code];
+
+        return [
+          "usMapState",
+          mapClassForRace(
+            race,
+            office
+          ),
+          race
+            ? "hasRace"
+            : ""
+        ]
+          .filter(Boolean)
+          .join(" ");
+      }
+    )
+    .attr(
+      "d",
+      path
+    )
+    .attr(
+      "tabindex",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        return raceLookup[code]
+          ? 0
+          : -1;
+      }
+    )
+    .attr(
+      "role",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        return raceLookup[code]
+          ? "link"
+          : "img";
+      }
+    )
+    .attr(
+      "aria-label",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        const race =
+          raceLookup[code];
+
+        const stateName =
+          STATE_NAMES[code] ||
+          code;
+
+        if (!race) {
+          return `${stateName}: ${readableRating(
+            null,
+            office
+          )}`;
+        }
+
+        return `${stateName}: ${
+          race.title ||
+          "Published race"
+        }, ${readableRating(
+          race,
+          office
+        )}`;
+      }
+    )
+    .on(
+      "mouseenter",
+      function (
+        event,
+        feature
+      ) {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        showStateTooltip(
+          event,
+          code,
+          raceLookup[code],
+          office
+        );
+      }
+    )
+    .on(
+      "mousemove",
+      moveStateTooltip
+    )
+    .on(
+      "mouseleave",
+      hideStateTooltip
+    )
+    .on(
+      "click",
+      function (
+        event,
+        feature
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        openRaceFromMap(
+          raceLookup[code]
+        );
+      }
+    )
+    .on(
+      "keydown",
+      function (
+        event,
+        feature
+      ) {
+        if (
+          event.key !== "Enter" &&
+          event.key !== " "
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        openRaceFromMap(
+          raceLookup[code]
+        );
+      }
+    );
+
+  svg
+    .append("path")
+    .datum(borders)
+    .attr(
+      "d",
+      path
+    )
+    .attr(
+      "fill",
+      "none"
+    )
+    .attr(
+      "stroke",
+      "rgba(255,255,255,.85)"
+    )
+    .attr(
+      "stroke-width",
+      0.9
+    )
+    .attr(
+      "vector-effect",
+      "non-scaling-stroke"
+    )
+    .attr(
+      "pointer-events",
+      "none"
+    );
+
+  addStateLabels(
+    svg,
+    states.features,
+    path,
+    raceLookup,
+    office
+  );
+
+  ensureMapTooltip();
 }
 
-
-/* =========================================================
-   TOOLTIP
-   ========================================================= */
-
-function createMapTooltip() {
-  if (document.getElementById("electionMapTooltip")) {
-    return;
-  }
-
-  const tooltip = document.createElement("div");
-
-  tooltip.id = "electionMapTooltip";
-  tooltip.className = "electionMapTooltip";
-  tooltip.setAttribute("role", "tooltip");
-
-  document.body.appendChild(tooltip);
-}
-
-
-function showMapTooltip(event, state, rating) {
-  const tooltip = document.getElementById("electionMapTooltip");
-
-  if (!tooltip) {
-    return;
-  }
-
-  tooltip.innerHTML = `
-    <strong>${state.name}</strong>
-    <span>${formatRating(rating)}</span>
-  `;
-
-  tooltip.classList.add("visible");
-  moveMapTooltip(event);
-}
-
-
-function moveMapTooltip(event) {
-  const tooltip = document.getElementById("electionMapTooltip");
-
-  if (!tooltip) {
-    return;
-  }
-
-  tooltip.style.left = `${event.clientX + 14}px`;
-  tooltip.style.top = `${event.clientY + 14}px`;
-}
-
-
-function hideMapTooltip() {
-  const tooltip = document.getElementById("electionMapTooltip");
-
-  if (tooltip) {
-    tooltip.classList.remove("visible");
-  }
-}
-
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
-function normalizeText(value) {
-  return String(value)
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-
-function normalizeRating(rating) {
-  const value = normalizeText(rating).toLowerCase();
-
-  const ratingAliases = {
-    "solid democratic": "safe democratic",
-    "solid dem": "safe democratic",
-    "safe dem": "safe democratic",
-
-    "likely dem": "likely democratic",
-    "lean dem": "lean democratic",
-    "tilt dem": "tilt democratic",
-
-    "toss-up": "tossup",
-    "competitive": "tossup",
-
-    "tilt rep": "tilt republican",
-    "lean rep": "lean republican",
-    "likely rep": "likely republican",
-
-    "solid republican": "safe republican",
-    "solid rep": "safe republican",
-    "safe rep": "safe republican",
-
-    "no election": "not up"
+function addStateLabels(
+  svg,
+  features,
+  path,
+  raceLookup,
+  office
+) {
+  const labelOffsets = {
+    CT: [-8, 6],
+    DE: [7, 8],
+    DC: [12, 10],
+    FL: [10, 10],
+    HI: [12, 6],
+    LA: [-2, 8],
+    MA: [12, -1],
+    MD: [9, 7],
+    MI: [9, 9],
+    NH: [8, -2],
+    NJ: [8, 2],
+    RI: [12, 5],
+    VT: [-7, -3]
   };
 
-  return ratingAliases[value] || value || "unrated";
+  svg
+    .append("g")
+    .selectAll("text")
+    .data(
+      features.filter(
+        feature =>
+          stateCodeFromFeature(
+            feature
+          ) !== "DC"
+      )
+    )
+    .join("text")
+    .attr(
+      "class",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        const ratingClass =
+          mapClassForRace(
+            raceLookup[code],
+            office
+          );
+
+        const lightClass =
+          [
+            "map-dem-tilt",
+            "map-rep-tilt",
+            "map-no-race",
+            "map-unrated"
+          ].includes(
+            ratingClass
+          )
+            ? " dark"
+            : "";
+
+        return (
+          "usMapStateLabel" +
+          lightClass
+        );
+      }
+    )
+    .attr(
+      "x",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        const centroid =
+          path.centroid(
+            feature
+          );
+
+        return (
+          centroid[0] +
+          (
+            labelOffsets[
+              code
+            ]?.[0] ||
+            0
+          )
+        );
+      }
+    )
+    .attr(
+      "y",
+      feature => {
+        const code =
+          stateCodeFromFeature(
+            feature
+          );
+
+        const centroid =
+          path.centroid(
+            feature
+          );
+
+        return (
+          centroid[1] +
+          (
+            labelOffsets[
+              code
+            ]?.[1] ||
+            0
+          )
+        );
+      }
+    )
+    .text(
+      feature =>
+        stateCodeFromFeature(
+          feature
+        )
+    );
 }
 
-
-function getRatingColor(rating) {
-  return RATING_COLORS[rating] || RATING_COLORS.unrated;
-}
-
-
-function formatRating(rating) {
-  return normalizeText(rating)
-    .split(" ")
-    .map((word) => {
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(" ");
-}
-
-
-function containsStateAbbreviation(text, abbreviation) {
-  const escapedAbbreviation = abbreviation.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    "\\$&"
-  );
-
-  const pattern = new RegExp(
-    `(^|[^a-z])${escapedAbbreviation.toLowerCase()}([^a-z]|$)`
-  );
-
-  return pattern.test(text.toLowerCase());
-}
-
-
-function isLightColorRating(rating) {
-  return [
-    "tilt democratic",
-    "tossup",
-    "tilt republican"
-  ].includes(rating);
-}
-
-
-/* =========================================================
-   MAP CSS
-   Injected automatically so the map works immediately.
-   You may move this CSS into styles.css later.
-   ========================================================= */
-
-function injectMapStyles() {
-  if (document.getElementById("electionMapStyles")) {
+function openRaceFromMap(
+  race
+) {
+  if (
+    !race ||
+    !race.slug
+  ) {
     return;
   }
 
-  const style = document.createElement("style");
+  location.href =
+    "race.html?id=" +
+    encodeURIComponent(
+      race.slug
+    );
+}
 
-  style.id = "electionMapStyles";
+function ensureMapTooltip() {
+  if (
+    document.getElementById(
+      "mapTooltip"
+    )
+  ) {
+    return;
+  }
 
-  style.textContent = `
-    .forecastMap {
-      width: 100%;
-      min-height: 420px;
-    }
+  const tooltip =
+    document.createElement(
+      "div"
+    );
 
-    .electionMapWrapper {
-      width: 100%;
-      padding: 24px;
-      overflow-x: auto;
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      border-radius: 18px;
-      background:
-        radial-gradient(
-          circle at top,
-          rgba(66, 90, 122, 0.16),
-          transparent 48%
-        ),
-        rgba(13, 22, 34, 0.88);
-      box-shadow:
-        0 18px 45px rgba(0, 0, 0, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    }
+  tooltip.id =
+    "mapTooltip";
 
-    .electionTileMap {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(48px, 68px));
-      grid-template-rows: repeat(7, minmax(48px, 68px));
-      gap: 7px;
-      width: max-content;
-      min-width: 100%;
-      justify-content: center;
-      align-items: center;
-    }
+  tooltip.className =
+    "mapTooltip";
 
-    .stateTile {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      min-width: 48px;
-      min-height: 48px;
-      border: 1px solid rgba(255, 255, 255, 0.17);
-      border-radius: 11px;
-      color: #ffffff;
-      font: inherit;
-      cursor: pointer;
-      transition:
-        transform 150ms ease,
-        filter 150ms ease,
-        border-color 150ms ease,
-        box-shadow 150ms ease;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        0 5px 12px rgba(0, 0, 0, 0.14);
-    }
+  tooltip.setAttribute(
+    "role",
+    "tooltip"
+  );
 
-    .stateTile:hover {
-      z-index: 5;
-      transform: translateY(-3px) scale(1.06);
-      filter: brightness(1.12);
-      border-color: rgba(255, 255, 255, 0.55);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        0 10px 24px rgba(0, 0, 0, 0.28);
-    }
+  document.body.appendChild(
+    tooltip
+  );
+}
 
-    .stateTile:focus-visible {
-      z-index: 6;
-      outline: 3px solid rgba(255, 255, 255, 0.9);
-      outline-offset: 3px;
-    }
+function showStateTooltip(
+  event,
+  stateCode,
+  race,
+  office
+) {
+  const tooltip =
+    document.getElementById(
+      "mapTooltip"
+    );
 
-    .stateAbbr {
-      display: block;
-      font-size: 0.86rem;
-      font-weight: 800;
-      letter-spacing: 0.035em;
-      line-height: 1;
-    }
+  if (!tooltip) {
+    return;
+  }
 
-    .stateRatingDot {
-      position: absolute;
-      right: 6px;
-      bottom: 6px;
-      width: 5px;
-      height: 5px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.72);
-    }
+  const stateName =
+    STATE_NAMES[stateCode] ||
+    stateCode;
 
-    .stateTile.lightStateTile {
-      color: #111827;
-      border-color: rgba(17, 24, 39, 0.18);
-    }
+  const title =
+    race?.title ||
+    stateName;
 
-    .stateTile.lightStateTile .stateRatingDot {
-      background: rgba(17, 24, 39, 0.58);
-    }
+  const rating =
+    readableRating(
+      race,
+      office
+    );
 
-    .electionMapTooltip {
-      position: fixed;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      min-width: 145px;
-      padding: 10px 12px;
-      pointer-events: none;
-      opacity: 0;
-      transform: translateY(4px);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 10px;
-      color: #f8fafc;
-      background: rgba(10, 17, 27, 0.96);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
-      transition:
-        opacity 120ms ease,
-        transform 120ms ease;
-    }
+  const leader =
+    race
+      ? leadingCandidateText(
+          race
+        )
+      : "";
 
-    .electionMapTooltip.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  tooltip.innerHTML = `
+    <strong>
+      ${escapeMapHtml(
+        title
+      )}
+    </strong>
 
-    .electionMapTooltip strong {
-      font-size: 0.88rem;
-    }
+    <span>
+      ${escapeMapHtml(
+        rating
+      )}
+    </span>
 
-    .electionMapTooltip span {
-      color: #aebdce;
-      font-size: 0.78rem;
-    }
-
-    .mapSelectedRace {
-      animation: electionLabRaceHighlight 1.8s ease;
-    }
-
-    @keyframes electionLabRaceHighlight {
-      0%,
-      100% {
-        transform: translateY(0);
-        box-shadow: inherit;
-      }
-
-      30% {
-        transform: translateY(-5px);
-        box-shadow:
-          0 0 0 3px rgba(80, 145, 255, 0.32),
-          0 18px 35px rgba(0, 0, 0, 0.25);
-      }
-    }
-
-    .houseMapPlaceholder {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      min-height: 260px;
-      padding: 30px;
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      border-radius: 18px;
-      color: #eef4fb;
-      background:
-        radial-gradient(
-          circle at top left,
-          rgba(54, 103, 181, 0.2),
-          transparent 44%
-        ),
-        rgba(13, 22, 34, 0.88);
-    }
-
-    .houseMapPlaceholder h3 {
-      margin: 0 0 7px;
-    }
-
-    .houseMapPlaceholder p {
-      max-width: 620px;
-      margin: 0;
-      color: #aebdce;
-      line-height: 1.6;
-    }
-
-    .houseMapIcon {
-      display: grid;
-      flex: 0 0 auto;
-      place-items: center;
-      width: 72px;
-      height: 72px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 18px;
-      color: #ffffff;
-      background: linear-gradient(145deg, #264f8f, #17335d);
-      font-weight: 850;
-      font-size: 1.2rem;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
-    }
-
-    @media (max-width: 760px) {
-      .forecastMap {
-        min-height: 350px;
-      }
-
-      .electionMapWrapper {
-        padding: 15px;
-      }
-
-      .electionTileMap {
-        grid-template-columns: repeat(12, 45px);
-        grid-template-rows: repeat(7, 45px);
-        gap: 5px;
-        justify-content: start;
-      }
-
-      .stateTile {
-        min-width: 45px;
-        min-height: 45px;
-        border-radius: 9px;
-      }
-
-      .stateAbbr {
-        font-size: 0.73rem;
-      }
-
-      .houseMapPlaceholder {
-        align-items: flex-start;
-        padding: 22px;
-      }
-
-      .houseMapIcon {
-        width: 58px;
-        height: 58px;
-      }
+    ${
+      leader
+        ? `
+          <span>
+            ${escapeMapHtml(
+              leader
+            )}
+          </span>
+        `
+        : ""
     }
   `;
 
-  document.head.appendChild(style);
+  tooltip.classList.add(
+    "visible"
+  );
+
+  moveStateTooltip(
+    event
+  );
+}
+
+function moveStateTooltip(
+  event
+) {
+  const tooltip =
+    document.getElementById(
+      "mapTooltip"
+    );
+
+  if (!tooltip) {
+    return;
+  }
+
+  const padding = 14;
+
+  const tooltipWidth =
+    tooltip.offsetWidth ||
+    190;
+
+  const tooltipHeight =
+    tooltip.offsetHeight ||
+    70;
+
+  let left =
+    event.clientX +
+    padding;
+
+  let top =
+    event.clientY +
+    padding;
+
+  if (
+    left +
+      tooltipWidth >
+    window.innerWidth -
+      12
+  ) {
+    left =
+      event.clientX -
+      tooltipWidth -
+      padding;
+  }
+
+  if (
+    top +
+      tooltipHeight >
+    window.innerHeight -
+      12
+  ) {
+    top =
+      event.clientY -
+      tooltipHeight -
+      padding;
+  }
+
+  tooltip.style.left =
+    `${Math.max(
+      8,
+      left
+    )}px`;
+
+  tooltip.style.top =
+    `${Math.max(
+      8,
+      top
+    )}px`;
+}
+
+function hideStateTooltip() {
+  const tooltip =
+    document.getElementById(
+      "mapTooltip"
+    );
+
+  if (tooltip) {
+    tooltip.classList.remove(
+      "visible"
+    );
+  }
+}
+
+function leadingCandidateText(
+  race
+) {
+  const candidates =
+    [
+      ...(
+        race.candidates ||
+        []
+      )
+    ].sort(
+      (a, b) =>
+        Number(
+          b.win_probability ||
+            0
+        ) -
+        Number(
+          a.win_probability ||
+            0
+        )
+    );
+
+  const leader =
+    candidates[0];
+
+  if (!leader) {
+    return "";
+  }
+
+  return `${
+    leader.name ||
+    "Leading candidate"
+  }: ${Number(
+    leader.win_probability ||
+      0
+  ).toFixed(0)}% chance`;
+}
+
+function escapeMapHtml(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+/* =========================================================
+   HOUSE HEX MAP
+   ========================================================= */
+
+async function initializeHouseMap() {
+  const map =
+    document.getElementById(
+      "houseHexMap"
+    );
+
+  if (!map) {
+    return;
+  }
+
+  map.innerHTML = `
+    <div class="loading">
+      Loading House map…
+    </div>
+  `;
+
+  const races =
+    await getMapRaces(
+      "house"
+    );
+
+  renderHouseHexMap(
+    map,
+    races
+  );
+}
+
+function renderHouseHexMap(
+  map,
+  races
+) {
+  if (!races.length) {
+    map.innerHTML = `
+      <div class="empty">
+        No published House races yet.
+      </div>
+    `;
+
+    return;
+  }
+
+  const sortedRaces =
+    [...races].sort(
+      (a, b) => {
+        const first =
+          houseRaceSortValue(
+            a
+          );
+
+        const second =
+          houseRaceSortValue(
+            b
+          );
+
+        const stateComparison =
+          first.state.localeCompare(
+            second.state
+          );
+
+        if (
+          stateComparison !== 0
+        ) {
+          return stateComparison;
+        }
+
+        return (
+          first.district -
+          second.district
+        );
+      }
+    );
+
+  const positions =
+    buildHouseHexPositions(
+      sortedRaces.length
+    );
+
+  map.innerHTML =
+    sortedRaces
+      .map(
+        (race, index) => {
+          const position =
+            positions[index];
+
+          const district =
+            houseDistrictLabel(
+              race
+            );
+
+          const rating =
+            race.rating ||
+            "Toss-up";
+
+          const mapClass =
+            mapClassForRace(
+              race,
+              "house"
+            );
+
+          const description =
+            buildHouseRaceDescription(
+              race
+            );
+
+          return `
+            <button
+              class="houseHex ${mapClass}"
+              type="button"
+              data-race-slug="${escapeMapHtml(
+                race.slug || ""
+              )}"
+              style="
+                grid-column:${position.column};
+                grid-row:${position.row};
+              "
+              title="${escapeMapHtml(
+                description
+              )}"
+              aria-label="${escapeMapHtml(
+                description
+              )}"
+            >
+              <span
+                class="houseHexLabel"
+              >
+                ${escapeMapHtml(
+                  district
+                )}
+              </span>
+
+              <span
+                class="houseHexRating"
+              >
+                ${escapeMapHtml(
+                  rating
+                )}
+              </span>
+            </button>
+          `;
+        }
+      )
+      .join("");
+
+  map
+    .querySelectorAll(
+      "[data-race-slug]"
+    )
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        event => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const slug =
+            button.dataset
+              .raceSlug;
+
+          if (!slug) {
+            return;
+          }
+
+          location.href =
+            "race.html?id=" +
+            encodeURIComponent(
+              slug
+            );
+        }
+      );
+    });
+}
+
+function buildHouseHexPositions(
+  count
+) {
+  const outlineRows = [
+    {
+      row: 2,
+      start: 8,
+      length: 12
+    },
+
+    {
+      row: 3,
+      start: 6,
+      length: 18
+    },
+
+    {
+      row: 4,
+      start: 5,
+      length: 21
+    },
+
+    {
+      row: 5,
+      start: 4,
+      length: 23
+    },
+
+    {
+      row: 6,
+      start: 4,
+      length: 24
+    },
+
+    {
+      row: 7,
+      start: 3,
+      length: 25
+    },
+
+    {
+      row: 8,
+      start: 3,
+      length: 25
+    },
+
+    {
+      row: 9,
+      start: 4,
+      length: 24
+    },
+
+    {
+      row: 10,
+      start: 5,
+      length: 22
+    },
+
+    {
+      row: 11,
+      start: 7,
+      length: 18
+    },
+
+    {
+      row: 12,
+      start: 10,
+      length: 13
+    },
+
+    {
+      row: 13,
+      start: 14,
+      length: 8
+    }
+  ];
+
+  const positions = [];
+
+  outlineRows.forEach(
+    rowInfo => {
+      for (
+        let index = 0;
+        index < rowInfo.length;
+        index += 1
+      ) {
+        positions.push({
+          row:
+            rowInfo.row,
+
+          column:
+            rowInfo.start +
+            index
+        });
+      }
+    }
+  );
+
+  let nextRow = 14;
+  let nextColumn = 8;
+
+  while (
+    positions.length < count
+  ) {
+    positions.push({
+      row:
+        nextRow,
+
+      column:
+        nextColumn
+    });
+
+    nextColumn += 1;
+
+    if (
+      nextColumn > 24
+    ) {
+      nextColumn = 8;
+      nextRow += 1;
+    }
+  }
+
+  return positions.slice(
+    0,
+    count
+  );
+}
+
+function houseDistrictLabel(
+  race
+) {
+  const title =
+    String(
+      race.title || ""
+    ).trim();
+
+  const state =
+    String(
+      race.state || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const stateDistrictMatch =
+    title.match(
+      /\b([A-Z]{2})[-\s](\d{1,2}|AL)\b/i
+    );
+
+  if (
+    stateDistrictMatch
+  ) {
+    return (
+      stateDistrictMatch[1]
+        .toUpperCase() +
+      "-" +
+      stateDistrictMatch[2]
+        .toUpperCase()
+    );
+  }
+
+  const districtMatch =
+    title.match(
+      /\b(?:district\s*)?(\d{1,2})(?:st|nd|rd|th)?\b/i
+    );
+
+  if (
+    districtMatch &&
+    state
+  ) {
+    return (
+      state +
+      "-" +
+      districtMatch[1]
+    );
+  }
+
+  return state || "House";
+}
+
+function houseRaceSortValue(
+  race
+) {
+  const label =
+    houseDistrictLabel(
+      race
+    );
+
+  const state =
+    String(
+      race.state || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const districtMatch =
+    label.match(
+      /-(\d+)$/
+    );
+
+  return {
+    state,
+
+    district:
+      districtMatch
+        ? Number(
+            districtMatch[1]
+          )
+        : 0
+  };
+}
+
+function buildHouseRaceDescription(
+  race
+) {
+  const candidates =
+    [
+      ...(
+        race.candidates ||
+        []
+      )
+    ].sort(
+      (a, b) =>
+        Number(
+          b.win_probability ||
+            0
+        ) -
+        Number(
+          a.win_probability ||
+            0
+        )
+    );
+
+  const leader =
+    candidates[0];
+
+  const parts = [
+    race.title ||
+      houseDistrictLabel(
+        race
+      ),
+
+    race.rating ||
+      "Toss-up"
+  ];
+
+  if (leader) {
+    parts.push(
+      `${
+        leader.name ||
+        "Leading candidate"
+      } ${Number(
+        leader.win_probability ||
+          0
+      ).toFixed(0)}%`
+    );
+  }
+
+  return parts.join(
+    " — "
+  );
+}
+
+/* =========================================================
+   ERROR HANDLING
+   ========================================================= */
+
+function showMapError(
+  pageType,
+  error
+) {
+  let container = null;
+
+  if (
+    pageType === "senate"
+  ) {
+    container =
+      document.getElementById(
+        "senateMap"
+      );
+  }
+
+  if (
+    pageType === "governor"
+  ) {
+    container =
+      document.getElementById(
+        "governorMap"
+      );
+  }
+
+  if (
+    pageType === "house"
+  ) {
+    container =
+      document.getElementById(
+        "houseHexMap"
+      );
+  }
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="empty">
+      ${escapeMapHtml(
+        error?.message ||
+          "Unable to load the election map."
+      )}
+    </div>
+  `;
 }
