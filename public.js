@@ -3,7 +3,10 @@ const PUBLIC_DEFAULT_SETTINGS = {
     "Republicans are favored to retain control of the Senate",
 
   house_control_message:
-    "Republicans are favored to retain control of the House"
+    "Republicans are favored to retain control of the House",
+
+  congress_control_message:
+    "Republicans are favored to retain control of Congress"
 };
 
 async function getPublicSettings() {
@@ -51,6 +54,7 @@ async function loadHomepageSettings() {
   const hasHomepageSettings =
     document.querySelector("#senateControlMessage") ||
     document.querySelector("#houseControlMessage") ||
+    document.querySelector("#congressControlMessage") ||
     document.querySelector("#senateForecastText") ||
     document.querySelector("#houseForecastText") ||
     document.querySelector(
@@ -58,6 +62,9 @@ async function loadHomepageSettings() {
     ) ||
     document.querySelector(
       "[data-setting='house_control_message']"
+    ) ||
+    document.querySelector(
+      "[data-setting='congress_control_message']"
     );
 
   if (!hasHomepageSettings) return;
@@ -82,6 +89,14 @@ async function loadHomepageSettings() {
         "[data-setting='house_control_message']"
       ],
       settings.house_control_message
+    );
+
+    setTextForSelectors(
+      [
+        "#congressControlMessage",
+        "[data-setting='congress_control_message']"
+      ],
+      settings.congress_control_message
     );
   } catch (error) {
     console.error(
@@ -218,7 +233,7 @@ function raceCard(race) {
                       </strong>
                     </div>
                   `
-                )
+                         )
                 .join("")
             : `
               <p class="subtle">
@@ -453,7 +468,7 @@ async function loadRaceGrid() {
 
               ...(race.candidates || []).map(
                 candidate =>
-                  candidate.name || ""
+                         candidate.name || ""
               )
             ]
               .join(" ")
@@ -688,7 +703,7 @@ async function loadRace() {
 
     if (!slug) {
       root.innerHTML =
-        '<div class="empty">No race was selected.</div>';
+     '<div class="empty">No race was selected.</div>';
 
       return;
     }
@@ -922,8 +937,7 @@ async function loadRace() {
                 `
             }
           </div>
-
-        </div>
+   </div>
       </section>
 
       <section class="section">
@@ -1158,7 +1172,7 @@ async function loadGenericBallot() {
       }
 
       if (demBox) {
-        demBox.textContent =
+         demBox.textContent =
           `${average.dem.toFixed(1)}%`;
       }
 
