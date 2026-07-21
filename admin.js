@@ -22,10 +22,40 @@ const DEFAULT_SETTINGS = {
     "Republicans are favored to retain control of the House",
 
   congress_control_message:
-    "Republicans are favored to retain control of Congress"
+    "Democrats currently lead the national vote",
+
+  senate_republican_seats:
+    "51",
+
+  senate_tossup_seats:
+    "0",
+
+  senate_democratic_seats:
+    "49",
+
+  house_republican_seats:
+    "220",
+
+  house_tossup_seats:
+    "0",
+
+  house_democratic_seats:
+    "215",
+
+  governor_republican_seats:
+    "27",
+
+  governor_tossup_seats:
+    "0",
+
+  governor_democratic_seats:
+    "23"
 };
 
-function msg(text, type = "success") {
+function msg(
+  text,
+  type = "success"
+) {
   const notice =
     $("#adminMessage");
 
@@ -70,23 +100,36 @@ async function requireAdmin() {
   }
 
   const {
-    data: { session }
+    data: { session },
+    error: sessionError
   } = await sb.auth.getSession();
 
-  if (!session) {
+  if (
+    sessionError ||
+    !session
+  ) {
     location.href =
       "login.html";
 
     return false;
   }
 
-  const { data, error } = await sb
+  const {
+    data,
+    error
+  } = await sb
     .from("admins")
     .select("user_id")
-    .eq("user_id", session.user.id)
+    .eq(
+      "user_id",
+      session.user.id
+    )
     .maybeSingle();
 
-  if (error || !data) {
+  if (
+    error ||
+    !data
+  ) {
     await sb.auth.signOut();
 
     location.href =
@@ -100,14 +143,17 @@ async function requireAdmin() {
 
   if (emailBox) {
     emailBox.textContent =
-      session.user.email;
+      session.user.email || "";
   }
 
   return true;
 }
 
 async function loadSettings() {
-  const { data, error } = await sb
+  const {
+    data,
+    error
+  } = await sb
     .from("site_settings")
     .select(
       "setting_key, setting_value"
@@ -129,7 +175,9 @@ async function loadSettings() {
 
     ...(data || []).reduce(
       (settings, row) => {
-        settings[row.setting_key] =
+        settings[
+          row.setting_key
+        ] =
           row.setting_value;
 
         return settings;
@@ -162,32 +210,34 @@ async function reloadAll() {
       .select("*")
       .order(
         "end_date",
-        { ascending: false }
+        {
+          ascending: false
+        }
       ),
 
     sb
-      .from("generic_ballot_polls")
+      .from(
+        "generic_ballot_polls"
+      )
       .select("*")
       .order(
         "end_date",
-        { ascending: false }
+        {
+          ascending: false
+        }
       ),
 
     loadSettings()
   ]);
 
-  if (
+  const firstError =
     raceResult.error ||
     candidateResult.error ||
     pollResult.error ||
-    genericBallotResult.error
-  ) {
-    throw (
-      raceResult.error ||
-      candidateResult.error ||
-      pollResult.error ||
-      genericBallotResult.error
-    );
+    genericBallotResult.error;
+
+  if (firstError) {
+    throw firstError;
   }
 
   state.races =
@@ -203,7 +253,9 @@ async function reloadAll() {
     genericBallotResult.data || [];
 
   state.settings =
-    settingsResult;
+    settingsResult || {
+      ...DEFAULT_SETTINGS
+    };
 
   renderDashboard();
   renderWebsiteSettings();
@@ -229,107 +281,173 @@ function renderDashboard() {
 
   if (statRaces) {
     statRaces.textContent =
-      state.races.length;
+      String(
+        state.races.length
+      );
   }
 
   if (statPublished) {
     statPublished.textContent =
-      state.races.filter(
-        race =>
-          race.status ===
-          "published"
-      ).length;
+      String(
+        state.races.filter(
+          race =>
+            race.status ===
+            "published"
+        ).length
+      );
   }
 
   if (statCandidates) {
     statCandidates.textContent =
-      state.candidates.length;
+      String(
+        state.candidates.length
+      );
   }
 
   if (statPolls) {
     statPolls.textContent =
-      state.polls.length;
+      String(
+        state.polls.length
+      );
   }
 }
 
-function ensureCongressSettingsInput() {
-  const form =
-    $("#homepageSettingsForm");
+function setInputValue(
+  selector,
+  settingKey
+) {
+  const input =
+    $(selector);
 
-  if (
-    !form ||
-    $("#homepageCongress")
-  ) {
+  if (!input) {
     return;
   }
 
-  const wrapper =
-    document.createElement("div");
-
-  wrapper.className =
-    "field";
-
-  wrapper.innerHTML = `
-    <label for="homepageCongress">
-      Generic Ballot congressional control message
-    </label>
-
-    <textarea
-      id="homepageCongress"
-      rows="3"
-      required
-    ></textarea>
-  `;
-
-  const submitButton =
-    form.querySelector(
-      "button[type='submit'], input[type='submit']"
-    );
-
-  if (submitButton) {
-    submitButton.insertAdjacentElement(
-      "beforebegin",
-      wrapper
-    );
-  } else {
-    form.appendChild(wrapper);
-  }
+  input.value =
+    state.settings[
+      settingKey
+    ] ??
+    DEFAULT_SETTINGS[
+      settingKey
+    ] ??
+    "";
 }
+
 function renderWebsiteSettings() {
-  ensureCongressSettingsInput();
+  setInputValue(
+    "#homepageSenate",
+    "senate_control_message"
+  );
 
-  const senateInput =
-    $("#homepageSenate");
+  setInputValue(
+    "#homepageHouse",
+    "house_control_message"
+  );
 
-  const houseInput =
-    $("#homepageHouse");
+  setInputValue(
+    "#homepageCongress",
+    "congress_control_message"
+  );
 
-  const congressInput =
-    $("#homepageCongress");
+  setInputValue(
+    "#senateRepublicanSeats",
+    "senate_republican_seats"
+  );
 
-  if (senateInput) {
-    senateInput.value =
-      state.settings
-        .senate_control_message ||
-      DEFAULT_SETTINGS
-        .senate_control_message;
+  setInputValue(
+    "#senateTossupSeats",
+    "senate_tossup_seats"
+  );
+
+  setInputValue(
+    "#senateDemocraticSeats",
+    "senate_democratic_seats"
+  );
+
+  setInputValue(
+    "#houseRepublicanSeats",
+    "house_republican_seats"
+  );
+
+  setInputValue(
+    "#houseTossupSeats",
+    "house_tossup_seats"
+  );
+
+  setInputValue(
+    "#houseDemocraticSeats",
+    "house_democratic_seats"
+  );
+
+  setInputValue(
+    "#governorRepublicanSeats",
+    "governor_republican_seats"
+  );
+
+  setInputValue(
+    "#governorTossupSeats",
+    "governor_tossup_seats"
+  );
+
+  setInputValue(
+    "#governorDemocraticSeats",
+    "governor_democratic_seats"
+  );
+}
+
+function readRequiredText(
+  selector,
+  label
+) {
+  const input =
+    $(selector);
+
+  if (!input) {
+    throw new Error(
+      `${label} field could not be found.`
+    );
   }
 
-  if (houseInput) {
-    houseInput.value =
-      state.settings
-        .house_control_message ||
-      DEFAULT_SETTINGS
-        .house_control_message;
+  const value =
+    input.value.trim();
+
+  if (!value) {
+    throw new Error(
+      `${label} is required.`
+    );
   }
 
-  if (congressInput) {
-    congressInput.value =
-      state.settings
-        .congress_control_message ||
-      DEFAULT_SETTINGS
-        .congress_control_message;
+  return value;
+}
+
+function readRequiredInteger(
+  selector,
+  label,
+  maximum
+) {
+  const input =
+    $(selector);
+
+  if (!input) {
+    throw new Error(
+      `${label} field could not be found.`
+    );
   }
+
+  const value =
+    Number(input.value);
+
+  if (
+    !Number.isInteger(value) ||
+    value < 0 ||
+    value > maximum
+  ) {
+    throw new Error(
+      `${label} must be a whole number between 0 and ${maximum}.`
+    );
+  }
+
+  return value;
 }
 
 async function saveHomepageSettings(
@@ -337,130 +455,205 @@ async function saveHomepageSettings(
 ) {
   event.preventDefault();
 
-  ensureCongressSettingsInput();
+  try {
+    const values = {
+      senate_control_message:
+        readRequiredText(
+          "#homepageSenate",
+          "Senate headline"
+        ),
 
-  const senateInput =
-    $("#homepageSenate");
+      house_control_message:
+        readRequiredText(
+          "#homepageHouse",
+          "House headline"
+        ),
 
-  const houseInput =
-    $("#homepageHouse");
+      congress_control_message:
+        readRequiredText(
+          "#homepageCongress",
+          "Generic ballot headline"
+        ),
 
-  const congressInput =
-    $("#homepageCongress");
+      senate_republican_seats:
+        readRequiredInteger(
+          "#senateRepublicanSeats",
+          "Senate Republican seats",
+          100
+        ),
 
-  if (
-    !senateInput ||
-    !houseInput ||
-    !congressInput
-  ) {
-    msg(
-      "The website settings inputs could not be found.",
-      "error"
-    );
+      senate_tossup_seats:
+        readRequiredInteger(
+          "#senateTossupSeats",
+          "Senate toss-up seats",
+          100
+        ),
 
-    return;
-  }
+      senate_democratic_seats:
+        readRequiredInteger(
+          "#senateDemocraticSeats",
+          "Senate Democratic seats",
+          100
+        ),
 
-  const senateMessage =
-    senateInput.value.trim();
+      house_republican_seats:
+        readRequiredInteger(
+          "#houseRepublicanSeats",
+          "House Republican seats",
+          435
+        ),
 
-  const houseMessage =
-    houseInput.value.trim();
+      house_tossup_seats:
+        readRequiredInteger(
+          "#houseTossupSeats",
+          "House toss-up seats",
+          435
+        ),
 
-  const congressMessage =
-    congressInput.value.trim();
+      house_democratic_seats:
+        readRequiredInteger(
+          "#houseDemocraticSeats",
+          "House Democratic seats",
+          435
+        ),
 
-  if (
-    !senateMessage ||
-    !houseMessage ||
-    !congressMessage
-  ) {
-    msg(
-      "All three control messages are required.",
-      "error"
-    );
+      governor_republican_seats:
+        readRequiredInteger(
+          "#governorRepublicanSeats",
+          "Republican governorships",
+          50
+        ),
 
-    return;
-  }
+      governor_tossup_seats:
+        readRequiredInteger(
+          "#governorTossupSeats",
+          "Toss-up governorships",
+          50
+        ),
 
-  const updatedAt =
-    new Date().toISOString();
+      governor_democratic_seats:
+        readRequiredInteger(
+          "#governorDemocraticSeats",
+          "Democratic governorships",
+          50
+        )
+    };
 
-  const rows = [
-    {
-      setting_key:
-        "senate_control_message",
+    const senateTotal =
+      values
+        .senate_republican_seats +
+      values
+        .senate_tossup_seats +
+      values
+        .senate_democratic_seats;
 
-      setting_value:
-        senateMessage,
+    const houseTotal =
+      values
+        .house_republican_seats +
+      values
+        .house_tossup_seats +
+      values
+        .house_democratic_seats;
 
-      updated_at:
-        updatedAt
-    },
+    const governorTotal =
+      values
+        .governor_republican_seats +
+      values
+        .governor_tossup_seats +
+      values
+        .governor_democratic_seats;
 
-    {
-      setting_key:
-        "house_control_message",
-
-      setting_value:
-        houseMessage,
-
-      updated_at:
-        updatedAt
-    },
-
-    {
-      setting_key:
-        "congress_control_message",
-
-      setting_value:
-        congressMessage,
-
-      updated_at:
-        updatedAt
+    if (senateTotal !== 100) {
+      throw new Error(
+        "Senate totals must add up to 100."
+      );
     }
-  ];
 
-  const { error } = await sb
-    .from("site_settings")
-    .upsert(
-      rows,
-      {
-        onConflict:
-          "setting_key"
-      }
-    );
+    if (houseTotal !== 435) {
+      throw new Error(
+        "House totals must add up to 435."
+      );
+    }
 
-  if (error) {
+    if (governorTotal !== 50) {
+      throw new Error(
+        "Governor totals must add up to 50."
+      );
+    }
+
+    const updatedAt =
+      new Date().toISOString();
+
+    const rows =
+      Object.entries(values).map(
+        ([
+          settingKey,
+          settingValue
+        ]) => ({
+          setting_key:
+            settingKey,
+
+          setting_value:
+            String(
+              settingValue
+            ),
+
+          updated_at:
+            updatedAt
+        })
+      );
+
+    const { error } =
+      await sb
+        .from("site_settings")
+        .upsert(
+          rows,
+          {
+            onConflict:
+              "setting_key"
+          }
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    state.settings = {
+      ...state.settings,
+
+      ...Object.fromEntries(
+        Object.entries(
+          values
+        ).map(
+          ([
+            key,
+            value
+          ]) => [
+            key,
+            String(value)
+          ]
+        )
+      )
+    };
+
     msg(
-      error.message,
+      "Website headlines and forecast totals saved."
+    );
+  } catch (error) {
+    msg(
+      error.message ||
+        "Unable to save website settings.",
       "error"
     );
-
-    return;
   }
-
-  state.settings
-    .senate_control_message =
-    senateMessage;
-
-  state.settings
-    .house_control_message =
-    houseMessage;
-
-  state.settings
-    .congress_control_message =
-    congressMessage;
-
-  msg(
-    "Website forecast messages saved."
-  );
 }
 function renderRaces() {
   const body =
     $("#racesBody");
 
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   body.innerHTML =
     state.races
@@ -568,7 +761,9 @@ function renderCandidates() {
   const body =
     $("#candidatesBody");
 
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   body.innerHTML =
     state.candidates
@@ -610,6 +805,13 @@ function renderCandidates() {
             </td>
 
             <td>
+              ${Number(
+                candidate
+                  .expected_vote_share || 0
+              ).toFixed(1)}%
+            </td>
+
+            <td>
               <button
                 class="btn light"
                 type="button"
@@ -633,7 +835,7 @@ function renderCandidates() {
     `
       <tr>
         <td
-          colspan="5"
+          colspan="6"
           class="empty"
         >
           No candidates yet.
@@ -646,7 +848,9 @@ function renderPolls() {
   const body =
     $("#pollsBody");
 
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   body.innerHTML =
     state.polls
@@ -751,6 +955,7 @@ function renderPolls() {
       </tr>
     `;
 }
+
 function genericBallotAverage(
   polls
 ) {
@@ -781,8 +986,11 @@ function genericBallotAverage(
       );
 
     const qualityWeight =
-      Number(
-        poll.quality_weight || 1
+      Math.max(
+        0.1,
+        Number(
+          poll.quality_weight || 1
+        )
       );
 
     const weight =
@@ -825,7 +1033,9 @@ function renderGenericBallotPolls() {
   const body =
     $("#genericBallotBody");
 
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const average =
     genericBallotAverage(
@@ -1025,13 +1235,41 @@ function populateRaceSelects() {
     $("#pollRace");
 
   if (candidateRace) {
+    const selectedValue =
+      candidateRace.value;
+
     candidateRace.innerHTML =
       options;
+
+    if (
+      state.races.some(
+        race =>
+          race.id ===
+          selectedValue
+      )
+    ) {
+      candidateRace.value =
+        selectedValue;
+    }
   }
 
   if (pollRace) {
+    const selectedValue =
+      pollRace.value;
+
     pollRace.innerHTML =
       options;
+
+    if (
+      state.races.some(
+        race =>
+          race.id ===
+          selectedValue
+      )
+    ) {
+      pollRace.value =
+        selectedValue;
+    }
   }
 }
 
@@ -1040,7 +1278,9 @@ function openModal(id) {
     $("#" + id);
 
   if (modal) {
-    modal.classList.add("open");
+    modal.classList.add(
+      "open"
+    );
   }
 }
 
@@ -1049,13 +1289,16 @@ function closeModal(id) {
     $("#" + id);
 
   if (modal) {
-    modal.classList.remove("open");
+    modal.classList.remove(
+      "open"
+    );
   }
 }
 function editRace(id = "") {
   const race =
     state.races.find(
-      item => item.id === id
+      item =>
+        item.id === id
     ) || {};
 
   $("#raceId").value =
@@ -1080,7 +1323,9 @@ function editRace(id = "") {
     race.projected_margin ?? 0;
 
   $("#raceFeatured").checked =
-    Boolean(race.featured);
+    Boolean(
+      race.featured
+    );
 
   $("#raceStatus").value =
     race.status || "draft";
@@ -1088,7 +1333,9 @@ function editRace(id = "") {
   $("#raceSummary").value =
     race.summary || "";
 
-  openModal("raceModal");
+  openModal(
+    "raceModal"
+  );
 }
 
 async function saveRace(event) {
@@ -1106,7 +1353,8 @@ async function saveRace(event) {
     state:
       $("#raceState")
         .value
-        .trim(),
+        .trim()
+        .toUpperCase(),
 
     title:
       $("#raceTitle")
@@ -1118,21 +1366,27 @@ async function saveRace(event) {
         .value
         .trim()
         .toLowerCase()
-        .replace(/\s+/g, "-"),
+        .replace(
+          /\s+/g,
+          "-"
+        ),
 
     rating:
       $("#raceRating").value,
 
     projected_margin:
       Number(
-        $("#raceMargin").value
+        $("#raceMargin")
+          .value
       ),
 
     featured:
-      $("#raceFeatured").checked,
+      $("#raceFeatured")
+        .checked,
 
     status:
-      $("#raceStatus").value,
+      $("#raceStatus")
+        .value,
 
     summary:
       $("#raceSummary")
@@ -1140,7 +1394,8 @@ async function saveRace(event) {
         .trim(),
 
     updated_at:
-      new Date().toISOString()
+      new Date()
+        .toISOString()
   };
 
   const query = id
@@ -1152,7 +1407,8 @@ async function saveRace(event) {
         .from("races")
         .insert(row);
 
-  const { error } = await query;
+  const { error } =
+    await query;
 
   if (error) {
     msg(
@@ -1163,7 +1419,9 @@ async function saveRace(event) {
     return;
   }
 
-  closeModal("raceModal");
+  closeModal(
+    "raceModal"
+  );
 
   await reloadAll();
 
@@ -1180,12 +1438,15 @@ async function deleteRace(id) {
       "Delete this race and all attached candidates and polls?"
     );
 
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
 
-  const { error } = await sb
-    .from("races")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await sb
+      .from("races")
+      .delete()
+      .eq("id", id);
 
   if (error) {
     msg(
@@ -1198,13 +1459,18 @@ async function deleteRace(id) {
 
   await reloadAll();
 
-  msg("Race deleted.");
+  msg(
+    "Race deleted."
+  );
 }
 
-function editCandidate(id = "") {
+function editCandidate(
+  id = ""
+) {
   const candidate =
     state.candidates.find(
-      item => item.id === id
+      item =>
+        item.id === id
     ) || {};
 
   $("#candidateId").value =
@@ -1225,18 +1491,24 @@ function editCandidate(id = "") {
     );
 
   $("#candidateProb").value =
-    candidate.win_probability ?? 50;
+    candidate
+      .win_probability ?? 50;
 
   $("#candidateVote").value =
-    candidate.expected_vote_share ?? 50;
+    candidate
+      .expected_vote_share ?? 50;
 
   $("#candidatePhoto").value =
     candidate.photo_url || "";
 
-  openModal("candidateModal");
+  openModal(
+    "candidateModal"
+  );
 }
 
-async function saveCandidate(event) {
+async function saveCandidate(
+  event
+) {
   event.preventDefault();
 
   const id =
@@ -1244,7 +1516,8 @@ async function saveCandidate(event) {
 
   const row = {
     race_id:
-      $("#candidateRace").value,
+      $("#candidateRace")
+        .value,
 
     name:
       $("#candidateName")
@@ -1252,25 +1525,30 @@ async function saveCandidate(event) {
         .trim(),
 
     party:
-      $("#candidateParty").value,
+      $("#candidateParty")
+        .value,
 
     incumbent:
-      $("#candidateIncumbent").checked,
+      $("#candidateIncumbent")
+        .checked,
 
     win_probability:
       Number(
-        $("#candidateProb").value
+        $("#candidateProb")
+          .value
       ),
 
     expected_vote_share:
       Number(
-        $("#candidateVote").value
+        $("#candidateVote")
+          .value
       ),
 
     photo_url:
       $("#candidatePhoto")
         .value
-        .trim() || null
+        .trim() ||
+      null
   };
 
   const query = id
@@ -1282,7 +1560,8 @@ async function saveCandidate(event) {
         .from("candidates")
         .insert(row);
 
-  const { error } = await query;
+  const { error } =
+    await query;
 
   if (error) {
     msg(
@@ -1293,14 +1572,20 @@ async function saveCandidate(event) {
     return;
   }
 
-  closeModal("candidateModal");
+  closeModal(
+    "candidateModal"
+  );
 
   await reloadAll();
 
-  msg("Candidate saved.");
+  msg(
+    "Candidate saved."
+  );
 }
 
-async function deleteCandidate(id) {
+async function deleteCandidate(
+  id
+) {
   if (
     !confirm(
       "Delete this candidate?"
@@ -1309,10 +1594,11 @@ async function deleteCandidate(id) {
     return;
   }
 
-  const { error } = await sb
-    .from("candidates")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await sb
+      .from("candidates")
+      .delete()
+      .eq("id", id);
 
   if (error) {
     msg(
@@ -1325,13 +1611,15 @@ async function deleteCandidate(id) {
 
   await reloadAll();
 
-  msg("Candidate deleted.");
+  msg(
+    "Candidate deleted."
+  );
 }
-
 function editPoll(id = "") {
   const poll =
     state.polls.find(
-      item => item.id === id
+      item =>
+        item.id === id
     ) || {};
 
   $("#pollId").value =
@@ -1367,7 +1655,9 @@ function editPoll(id = "") {
   $("#pollStatus").value =
     poll.status || "draft";
 
-  openModal("pollModal");
+  openModal(
+    "pollModal"
+  );
 }
 
 async function savePoll(event) {
@@ -1378,7 +1668,8 @@ async function savePoll(event) {
 
   const row = {
     race_id:
-      $("#pollRace").value,
+      $("#pollRace")
+        .value,
 
     pollster:
       $("#pollster")
@@ -1386,36 +1677,44 @@ async function savePoll(event) {
         .trim(),
 
     start_date:
-      $("#pollStart").value,
+      $("#pollStart")
+        .value,
 
     end_date:
-      $("#pollEnd").value,
+      $("#pollEnd")
+        .value,
 
     sample_size:
       Number(
-        $("#pollSample").value
+        $("#pollSample")
+          .value
       ),
 
     population:
-      $("#pollPopulation").value,
+      $("#pollPopulation")
+        .value,
 
     dem_pct:
       Number(
-        $("#pollDem").value
+        $("#pollDem")
+          .value
       ),
 
     rep_pct:
       Number(
-        $("#pollRep").value
+        $("#pollRep")
+          .value
       ),
 
     quality_weight:
       Number(
-        $("#pollQuality").value
+        $("#pollQuality")
+          .value
       ),
 
     status:
-      $("#pollStatus").value
+      $("#pollStatus")
+        .value
   };
 
   const query = id
@@ -1427,7 +1726,8 @@ async function savePoll(event) {
         .from("polls")
         .insert(row);
 
-  const { error } = await query;
+  const { error } =
+    await query;
 
   if (error) {
     msg(
@@ -1438,7 +1738,9 @@ async function savePoll(event) {
     return;
   }
 
-  closeModal("pollModal");
+  closeModal(
+    "pollModal"
+  );
 
   await reloadAll();
 
@@ -1456,10 +1758,11 @@ async function deletePoll(id) {
     return;
   }
 
-  const { error } = await sb
-    .from("polls")
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await sb
+      .from("polls")
+      .delete()
+      .eq("id", id);
 
   if (error) {
     msg(
@@ -1472,14 +1775,18 @@ async function deletePoll(id) {
 
   await reloadAll();
 
-  msg("Race poll deleted.");
+  msg(
+    "Race poll deleted."
+  );
 }
+
 function editGenericBallotPoll(
   id = ""
 ) {
   const poll =
     state.genericBallotPolls.find(
-      item => item.id === id
+      item =>
+        item.id === id
     ) || {};
 
   $("#genericBallotId").value =
@@ -1572,7 +1879,8 @@ async function saveGenericBallotPoll(
         .value,
 
     updated_at:
-      new Date().toISOString()
+      new Date()
+        .toISOString()
   };
 
   const query = id
@@ -1622,12 +1930,13 @@ async function deleteGenericBallotPoll(
     return;
   }
 
-  const { error } = await sb
-    .from(
-      "generic_ballot_polls"
-    )
-    .delete()
-    .eq("id", id);
+  const { error } =
+    await sb
+      .from(
+        "generic_ballot_polls"
+      )
+      .delete()
+      .eq("id", id);
 
   if (error) {
     msg(
@@ -1644,7 +1953,6 @@ async function deleteGenericBallotPoll(
     "Generic ballot poll deleted."
   );
 }
-
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
