@@ -287,15 +287,14 @@ function ensureCongressSettingsInput() {
     );
 
   if (submitButton) {
-    form.insertBefore(
-      wrapper,
-      submitButton
+    submitButton.insertAdjacentElement(
+      "beforebegin",
+      wrapper
     );
   } else {
     form.appendChild(wrapper);
   }
 }
-
 function renderWebsiteSettings() {
   ensureCongressSettingsInput();
 
