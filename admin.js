@@ -19,7 +19,10 @@ const DEFAULT_SETTINGS = {
     "Republicans are favored to retain control of the Senate",
 
   house_control_message:
-    "Republicans are favored to retain control of the House"
+    "Republicans are favored to retain control of the House",
+
+  congress_control_message:
+    "Republicans are favored to retain control of Congress"
 };
 
 function msg(text, type = "success") {
@@ -249,12 +252,58 @@ function renderDashboard() {
   }
 }
 
+function ensureCongressSettingsInput() {
+  const form =
+    $("#homepageSettingsForm");
+
+  if (!form || $("#homepageCongress")) {
+    return;
+  }
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.className =
+    "field";
+
+  wrapper.innerHTML = `
+    <label for="homepageCongress">
+      Generic Ballot congressional control message
+    </label>
+
+    <textarea
+      id="homepageCongress"
+      rows="3"
+      required
+    ></textarea>
+  `;
+
+  const submitButton =
+    form.querySelector(
+      "button[type='submit'], input[type='submit']"
+    );
+
+  if (submitButton) {
+    form.insertBefore(
+      wrapper,
+      submitButton
+    );
+  } else {
+    form.appendChild(wrapper);
+  }
+}
+
 function renderWebsiteSettings() {
+  ensureCongressSettingsInput();
+
   const senateInput =
     $("#homepageSenate");
 
   const houseInput =
     $("#homepageHouse");
+
+  const congressInput =
+    $("#homepageCongress");
 
   if (senateInput) {
     senateInput.value =
@@ -271,6 +320,14 @@ function renderWebsiteSettings() {
       DEFAULT_SETTINGS
         .house_control_message;
   }
+
+  if (congressInput) {
+    congressInput.value =
+      state.settings
+        .congress_control_message ||
+      DEFAULT_SETTINGS
+        .congress_control_message;
+  }
 }
 
 async function saveHomepageSettings(
@@ -278,41 +335,53 @@ async function saveHomepageSettings(
 ) {
   event.preventDefault();
 
+  ensureCongressSettingsInput();
+
   const senateInput =
     $("#homepageSenate");
 
   const houseInput =
     $("#homepageHouse");
 
+  const congressInput =
+    $("#homepageCongress");
+
   if (
     !senateInput ||
-    !houseInput
+    !houseInput ||
+    !congressInput
   ) {
     msg(
-      "The homepage settings inputs could not be found.",
+      "The website settings inputs could not be found.",
       "error"
     );
 
     return;
   }
-
   const senateMessage =
     senateInput.value.trim();
 
   const houseMessage =
     houseInput.value.trim();
 
+  const congressMessage =
+    congressInput.value.trim();
+
   if (
     !senateMessage ||
-    !houseMessage
+    !houseMessage ||
+    !congressMessage
   ) {
     msg(
-      "Both homepage control messages are required.",
+      "All three control messages are required.",
       "error"
     );
 
     return;
   }
+
+  const updatedAt =
+    new Date().toISOString();
 
   const rows = [
     {
@@ -323,7 +392,7 @@ async function saveHomepageSettings(
         senateMessage,
 
       updated_at:
-        new Date().toISOString()
+        updatedAt
     },
 
     {
@@ -334,7 +403,18 @@ async function saveHomepageSettings(
         houseMessage,
 
       updated_at:
-        new Date().toISOString()
+        updatedAt
+    },
+
+    {
+      setting_key:
+        "congress_control_message",
+
+      setting_value:
+        congressMessage,
+
+      updated_at:
+        updatedAt
     }
   ];
 
@@ -365,8 +445,12 @@ async function saveHomepageSettings(
     .house_control_message =
     houseMessage;
 
+  state.settings
+    .congress_control_message =
+    congressMessage;
+
   msg(
-    "Homepage forecasts saved."
+    "Website forecast messages saved."
   );
 }
 
@@ -635,7 +719,7 @@ function renderPolls() {
 
             <td>
               <button
-                class="btn light"
+                 class="btn light"
                 type="button"
                 onclick="editPoll('${poll.id}')"
               >
@@ -996,7 +1080,7 @@ function editRace(id = "") {
 
   $("#raceFeatured").checked =
     Boolean(race.featured);
-
+  
   $("#raceStatus").value =
     race.status || "draft";
 
@@ -1356,8 +1440,7 @@ async function savePoll(event) {
   closeModal("pollModal");
 
   await reloadAll();
-
-  msg(
+ msg(
     "Race poll saved."
   );
 }
