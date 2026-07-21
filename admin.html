@@ -57,31 +57,50 @@
       <button
         class="active"
         data-panel="dashboardPanel"
+        type="button"
       >
         Dashboard
       </button>
 
-      <button data-panel="websitePanel">
+      <button
+        data-panel="websitePanel"
+        type="button"
+      >
         Website
       </button>
 
-      <button data-panel="racesPanel">
+      <button
+        data-panel="racesPanel"
+        type="button"
+      >
         Races
       </button>
 
-      <button data-panel="candidatesPanel">
+      <button
+        data-panel="candidatesPanel"
+        type="button"
+      >
         Candidates
       </button>
 
-      <button data-panel="pollsPanel">
+      <button
+        data-panel="pollsPanel"
+        type="button"
+      >
         Race Polls
       </button>
 
-      <button data-panel="genericBallotPanel">
+      <button
+        data-panel="genericBallotPanel"
+        type="button"
+      >
         Generic Ballot
       </button>
 
-      <button id="logout">
+      <button
+        id="logout"
+        type="button"
+      >
         Log out
       </button>
 
@@ -195,8 +214,7 @@
             <h2>Website settings</h2>
 
             <p>
-              Change the control forecasts shown on the
-              homepage.
+              Change homepage headlines and forecast totals.
             </p>
           </div>
 
@@ -243,11 +261,194 @@
 
             <div class="field full">
 
+              <label for="homepageCongress">
+                Generic ballot headline
+              </label>
+
+              <input
+                id="homepageCongress"
+                required
+                maxlength="160"
+                placeholder="Democrats currently lead the national vote"
+              >
+
+            </div>
+
+            <div class="field full">
+              <hr>
+
+              <h3>
+                Senate forecast totals
+              </h3>
+            </div>
+
+            <div class="field">
+
+              <label for="senateRepublicanSeats">
+                Republican seats
+              </label>
+
+              <input
+                id="senateRepublicanSeats"
+                type="number"
+                min="0"
+                max="100"
+                required
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="senateTossupSeats">
+                Toss-up seats
+              </label>
+
+              <input
+                id="senateTossupSeats"
+                type="number"
+                min="0"
+                max="100"
+                required
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="senateDemocraticSeats">
+                Democratic seats
+              </label>
+
+              <input
+                id="senateDemocraticSeats"
+                type="number"
+                min="0"
+                max="100"
+                required
+              >
+
+            </div>
+
+            <div class="field full">
+              <hr>
+
+              <h3>
+                House forecast totals
+              </h3>
+            </div>
+
+            <div class="field">
+
+              <label for="houseRepublicanSeats">
+                Republican seats
+              </label>
+
+              <input
+                id="houseRepublicanSeats"
+                type="number"
+                min="0"
+                max="435"
+                required
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="houseTossupSeats">
+                Toss-up seats
+              </label>
+
+              <input
+                id="houseTossupSeats"
+                type="number"
+                min="0"
+                max="435"
+                required
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="houseDemocraticSeats">
+                Democratic seats
+              </label>
+
+              <input
+                id="houseDemocraticSeats"
+                type="number"
+                min="0"
+                max="435"
+                required
+              >
+
+            </div>
+
+            <div class="field full">
+              <hr>
+
+              <h3>
+                Governor forecast totals
+              </h3>
+            </div>
+
+            <div class="field">
+
+              <label for="governorRepublicanSeats">
+                Republican governorships
+              </label>
+
+              <input
+                id="governorRepublicanSeats"
+                type="number"
+                min="0"
+                max="50"
+                required
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="governorTossupSeats">
+                Toss-up governorships
+              </label>
+
+              <input
+                id="governorTossupSeats"
+                type="number"
+                min="0"
+                max="50"
+                required
+              >
+
+            </div>
+
+            <div class="field">
+
+              <label for="governorDemocraticSeats">
+                Democratic governorships
+              </label>
+
+              <input
+                id="governorDemocraticSeats"
+                type="number"
+                min="0"
+                max="50"
+                required
+              >
+
+            </div>
+
+            <div class="field full">
+
               <button
                 class="btn green"
                 type="submit"
               >
-                Save homepage settings
+                Save website settings
               </button>
 
             </div>
@@ -257,8 +458,7 @@
         </div>
 
       </section>
-
-      <!-- Races -->
+            <!-- Races -->
 
       <section
         id="racesPanel"
@@ -321,7 +521,7 @@
             <h2>Candidates</h2>
 
             <p>
-              Add candidates and set their forecast odds.
+              Add candidates, win odds, and expected vote shares.
             </p>
           </div>
 
@@ -345,6 +545,7 @@
                 <th>Race</th>
                 <th>Party</th>
                 <th>Win odds</th>
+                <th>Projected vote</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -370,8 +571,8 @@
             <h2>Race poll database</h2>
 
             <p>
-              Published race polls feed each race’s public
-              weighted polling average.
+              Published polls feed each race's public weighted
+              polling average.
             </p>
           </div>
 
@@ -519,12 +720,18 @@
   </div>
     <!-- Race modal -->
 
-  <div id="raceModal" class="modal">
+  <div
+    id="raceModal"
+    class="modal"
+  >
 
     <div class="modalCard">
 
       <div class="modalHead">
-        <h2>Edit race</h2>
+
+        <h2>
+          Edit race
+        </h2>
 
         <button
           class="close"
@@ -534,6 +741,7 @@
         >
           ×
         </button>
+
       </div>
 
       <form
@@ -580,6 +788,7 @@
           <input
             id="raceState"
             required
+            maxlength="2"
             placeholder="PA"
           >
 
@@ -605,8 +814,12 @@
             Forecast rating
           </label>
 
-          <select id="raceRating">
-            <option>Toss-up</option>
+          <select
+            id="raceRating"
+          >
+            <option>
+              Toss-up
+            </option>
 
             <option>
               Tilt Democratic
@@ -668,6 +881,7 @@
             id="raceMargin"
             type="number"
             step=".1"
+            value="0"
           >
 
         </div>
@@ -678,7 +892,9 @@
             Status
           </label>
 
-          <select id="raceStatus">
+          <select
+            id="raceStatus"
+          >
             <option value="draft">
               Draft
             </option>
@@ -710,7 +926,9 @@
             Race summary
           </label>
 
-          <textarea id="raceSummary"></textarea>
+          <textarea
+            id="raceSummary"
+          ></textarea>
 
         </div>
 
@@ -733,12 +951,18 @@
 
   <!-- Candidate modal -->
 
-  <div id="candidateModal" class="modal">
+  <div
+    id="candidateModal"
+    class="modal"
+  >
 
     <div class="modalCard">
 
       <div class="modalHead">
-        <h2>Edit candidate</h2>
+
+        <h2>
+          Edit candidate
+        </h2>
 
         <button
           class="close"
@@ -748,6 +972,7 @@
         >
           ×
         </button>
+
       </div>
 
       <form
@@ -792,7 +1017,9 @@
             Party
           </label>
 
-          <select id="candidateParty">
+          <select
+            id="candidateParty"
+          >
             <option value="D">
               Democratic
             </option>
@@ -820,6 +1047,7 @@
             min="0"
             max="100"
             step=".1"
+            value="50"
           >
 
         </div>
@@ -836,6 +1064,7 @@
             min="0"
             max="100"
             step=".1"
+            value="50"
           >
 
         </div>
@@ -883,15 +1112,20 @@
     </div>
 
   </div>
+    <!-- Race poll modal -->
 
-  <!-- Race poll modal -->
-
-  <div id="pollModal" class="modal">
+  <div
+    id="pollModal"
+    class="modal"
+  >
 
     <div class="modalCard">
 
       <div class="modalHead">
-        <h2>Edit race poll</h2>
+
+        <h2>
+          Edit race poll
+        </h2>
 
         <button
           class="close"
@@ -901,6 +1135,7 @@
         >
           ×
         </button>
+
       </div>
 
       <form
@@ -945,10 +1180,20 @@
             Voter population
           </label>
 
-          <select id="pollPopulation">
-            <option>LV</option>
-            <option>RV</option>
-            <option>A</option>
+          <select
+            id="pollPopulation"
+          >
+            <option>
+              LV
+            </option>
+
+            <option>
+              RV
+            </option>
+
+            <option>
+              A
+            </option>
           </select>
 
         </div>
@@ -991,6 +1236,7 @@
             id="pollSample"
             type="number"
             min="100"
+            value="800"
             required
           >
 
@@ -1025,6 +1271,7 @@
             min="0"
             max="100"
             step=".1"
+            value="48"
           >
 
         </div>
@@ -1041,6 +1288,7 @@
             min="0"
             max="100"
             step=".1"
+            value="48"
           >
 
         </div>
@@ -1051,7 +1299,9 @@
             Status
           </label>
 
-          <select id="pollStatus">
+          <select
+            id="pollStatus"
+          >
             <option value="draft">
               Draft
             </option>
@@ -1090,6 +1340,7 @@
     <div class="modalCard">
 
       <div class="modalHead">
+
         <h2>
           Edit generic ballot poll
         </h2>
@@ -1102,6 +1353,7 @@
         >
           ×
         </button>
+
       </div>
 
       <form
@@ -1133,10 +1385,20 @@
             Voter population
           </label>
 
-          <select id="genericBallotPopulation">
-            <option>LV</option>
-            <option>RV</option>
-            <option>A</option>
+          <select
+            id="genericBallotPopulation"
+          >
+            <option>
+              LV
+            </option>
+
+            <option>
+              RV
+            </option>
+
+            <option>
+              A
+            </option>
           </select>
 
         </div>
@@ -1179,6 +1441,7 @@
             id="genericBallotSample"
             type="number"
             min="100"
+            value="800"
             required
           >
 
@@ -1213,6 +1476,7 @@
             min="0"
             max="100"
             step=".1"
+            value="48"
             required
           >
 
@@ -1230,6 +1494,7 @@
             min="0"
             max="100"
             step=".1"
+            value="48"
             required
           >
 
@@ -1241,7 +1506,9 @@
             Status
           </label>
 
-          <select id="genericBallotStatus">
+          <select
+            id="genericBallotStatus"
+          >
             <option value="draft">
               Draft
             </option>
@@ -1269,8 +1536,7 @@
     </div>
 
   </div>
-
-  <script
+    <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
