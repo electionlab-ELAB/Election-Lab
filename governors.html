@@ -1,25 +1,38 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
   <title>2026 Governors Forecast | ElectionLab</title>
 
   <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
+<body data-race-type="governor">
 
   <header class="topbar">
     <nav class="nav">
 
       <a class="brand" href="index.html">
-        <img src="electionlab-logo.png" alt="ElectionLab logo">
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
         <span>ElectionLab</span>
       </a>
 
-      <button class="menuBtn">☰</button>
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
       <div class="navlinks">
         <a href="index.html">Home</a>
@@ -44,12 +57,98 @@
       </p>
     </section>
 
+    <section class="section mapSection">
+
+      <div class="sectionHeading">
+        <div>
+          <div class="kicker">Election Map</div>
+          <h2>2026 Governor Forecast Map</h2>
+        </div>
+
+        <p class="mapInstructions">
+          Select a state to view its race forecast.
+        </p>
+      </div>
+
+      <div class="mapCard">
+
+        <div
+          id="governorMap"
+          class="forecastMap"
+          aria-label="2026 governor election forecast map"
+        >
+          <div class="loading">Loading governor map…</div>
+        </div>
+
+        <div class="mapLegend" aria-label="Forecast rating legend">
+
+          <div class="legendItem">
+            <span class="legendColor safeDem"></span>
+            <span>Safe Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor likelyDem"></span>
+            <span>Likely Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor leanDem"></span>
+            <span>Lean Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor tiltDem"></span>
+            <span>Tilt Democratic</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor tossup"></span>
+            <span>Tossup</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor tiltRep"></span>
+            <span>Tilt Republican</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor leanRep"></span>
+            <span>Lean Republican</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor likelyRep"></span>
+            <span>Likely Republican</span>
+          </div>
+
+          <div class="legendItem">
+            <span class="legendColor safeRep"></span>
+            <span>Safe Republican</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
     <section class="section">
+
+      <div class="sectionHeading">
+        <div>
+          <div class="kicker">Race Ratings</div>
+          <h2>Governor Races</h2>
+        </div>
+      </div>
 
       <div class="toolbar">
         <input
           id="raceSearch"
+          type="search"
           placeholder="Search state, race, or candidate…"
+          aria-label="Search governor races"
+          autocomplete="off"
         >
       </div>
 
@@ -65,6 +164,7 @@
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="public.js"></script>
+  <script src="maps.js"></script>
 
 </body>
 </html>
