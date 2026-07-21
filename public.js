@@ -1058,12 +1058,307 @@ async function loadRace() {
   }
 }
 
+
+async function loadGenericBallot() {
+  const homepageBox =
+    document.querySelector("#genericBallotPolls");
+
+  const table =
+    document.querySelector("#genericBallotTable");
+
+  const hasGenericBallotSection =
+    homepageBox ||
+    table ||
+    document.querySelector("#genericMargin");
+
+  if (!hasGenericBallotSection) return;
+
+  if (!configured) {
+    if (homepageBox) {
+      homepageBox.innerHTML =
+        '<div class="empty">Connect Supabase to load generic ballot polls.</div>';
+    }
+
+    if (table) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            Connect Supabase to load generic ballot polls.
+          </td>
+        </tr>
+      `;
+    }
+
+    return;
+  }
+
+  try {
+    const { data, error } = await sb
+      .from("polls")
+      .select("*")
+      .eq("poll_type", "generic_ballot")
+      .eq("status", "published")
+      .order("end_date", {
+        ascending: false
+      });
+
+    if (error) throw error;
+
+    const polls = data || [];
+    const average = weightedAverage(polls);
+
+    const marginBox =
+      document.querySelector("#genericMargin");
+
+    const leaderBox =
+      document.querySelector("#genericLeader");
+
+    const countBox =
+      document.querySelector("#genericPollCount");
+
+    const demBox =
+      document.querySelector("#genericDemAverage");
+
+    const repBox =
+      document.querySelector("#genericRepAverage");
+
+    const demStatus =
+      document.querySelector("#genericDemStatus");
+
+    const repStatus =
+      document.querySelector("#genericRepStatus");
+
+    if (average) {
+      const democraticLead =
+        average.margin >= 0;
+
+      const marginText =
+        `${democraticLead ? "D +" : "R +"}${Math.abs(
+          average.margin
+        ).toFixed(1)}`;
+
+      const pollCountText =
+        `${polls.length} published poll${
+          polls.length === 1 ? "" : "s"
+        }`;
+
+      if (marginBox) {
+        marginBox.textContent = marginText;
+      }
+
+      if (leaderBox) {
+        leaderBox.textContent =
+          democraticLead
+            ? "Democrats lead"
+            : "Republicans lead";
+      }
+
+      if (countBox) {
+        countBox.textContent = pollCountText;
+      }
+
+      if (demBox) {
+        demBox.textContent =
+          `${average.dem.toFixed(1)}%`;
+      }
+
+      if (repBox) {
+        repBox.textContent =
+          `${average.rep.toFixed(1)}%`;
+      }
+
+      if (demStatus) {
+        demStatus.textContent =
+          `Average of ${polls.length} published poll${
+            polls.length === 1 ? "" : "s"
+          }.`;
+      }
+
+      if (repStatus) {
+        repStatus.textContent =
+          `Average of ${polls.length} published poll${
+            polls.length === 1 ? "" : "s"
+          }.`;
+      }
+
+      if (homepageBox) {
+        homepageBox.innerHTML = `
+          <div
+            class="bigProb"
+            style="font-size:48px;color:var(--ink)"
+          >
+            ${marginText}
+          </div>
+
+          <div class="controlBar">
+            <span
+              class="dem"
+              style="width:${Math.max(
+                0,
+                Math.min(100, average.dem)
+              )}%"
+            ></span>
+
+            <span
+              class="rep"
+              style="width:${Math.max(
+                0,
+                Math.min(100, average.rep)
+              )}%"
+            ></span>
+          </div>
+
+          <div class="raceMeta">
+            <b>D ${average.dem.toFixed(1)}%</b>
+            <b>R ${average.rep.toFixed(1)}%</b>
+          </div>
+
+          <p class="subtle">
+            Based on ${pollCountText}.
+          </p>
+        `;
+      }
+    } else {
+      if (marginBox) {
+        marginBox.textContent = "—";
+      }
+
+      if (leaderBox) {
+        leaderBox.textContent =
+          "No average yet";
+      }
+
+      if (countBox) {
+        countBox.textContent =
+          "Add published polls to begin";
+      }
+
+      if (demBox) {
+        demBox.textContent = "—%";
+      }
+
+      if (repBox) {
+        repBox.textContent = "—%";
+      }
+
+      if (demStatus) {
+        demStatus.textContent =
+          "No published polls yet.";
+      }
+
+      if (repStatus) {
+        repStatus.textContent =
+          "No published polls yet.";
+      }
+
+      if (homepageBox) {
+        homepageBox.innerHTML =
+          '<div class="empty">No published generic ballot polls yet.</div>';
+      }
+    }
+
+    if (table) {
+      table.innerHTML =
+        polls.length
+          ? polls
+              .map(poll => {
+                const pollMargin =
+                  Number(poll.dem_pct || 0) -
+                  Number(poll.rep_pct || 0);
+
+                return `
+                  <tr>
+                    <td>
+                      <b>
+                        ${escapeHtml(
+                          poll.pollster ||
+                            "Unknown pollster"
+                        )}
+                      </b>
+                    </td>
+
+                    <td>
+                      ${fmtDate(
+                        poll.start_date
+                      )}–${fmtDate(
+                        poll.end_date
+                      )}
+                    </td>
+
+                    <td>
+                      ${poll.sample_size || "—"}
+                      ${escapeHtml(
+                        poll.population || ""
+                      )}
+                    </td>
+
+                    <td>
+                      ${Number(
+                        poll.dem_pct || 0
+                      ).toFixed(1)}
+                    </td>
+
+                    <td>
+                      ${Number(
+                        poll.rep_pct || 0
+                      ).toFixed(1)}
+                    </td>
+
+                    <td>
+                      <b>
+                        ${
+                          pollMargin >= 0
+                            ? "D +"
+                            : "R +"
+                        }${Math.abs(
+                          pollMargin
+                        ).toFixed(1)}
+                      </b>
+                    </td>
+                  </tr>
+                `;
+              })
+              .join("")
+          : `
+            <tr>
+              <td colspan="6" class="empty">
+                No generic ballot polls have been published.
+              </td>
+            </tr>
+          `;
+    }
+  } catch (error) {
+    console.error(
+      "Generic ballot failed:",
+      error
+    );
+
+    if (homepageBox) {
+      homepageBox.innerHTML =
+        `<div class="empty">${escapeHtml(
+          error.message
+        )}</div>`;
+    }
+
+    if (table) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            ${escapeHtml(error.message)}
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
 document.addEventListener(
   "DOMContentLoaded",
   () => {
     const tasks = [
       loadHomepageSettings,
       loadHome,
+      loadGenericBallot,
       loadRaceGrid,
       loadHouseHexMap,
       loadRace
@@ -1093,40 +1388,3 @@ document.addEventListener(
     });
   }
 );
-async function loadGenericBallot() {
-  const box = document.querySelector("#genericBallotPolls");
-
-  if (!box || !configured) return;
-
-  try {
-    const { data: polls, error } = await sb
-      .from("polls")
-      .select("*")
-      .eq("poll_type", "generic_ballot")
-      .eq("status", "published")
-      .order("end_date", { ascending: false });
-
-    if (error) throw error;
-
-    const average = weightedAverage(polls || []);
-
-    box.innerHTML = average
-      ? `
-        <div class="bigProb">
-          ${average.margin >= 0 ? "D +" : "R +"}
-          ${Math.abs(average.margin).toFixed(1)}
-        </div>
-
-        <div class="raceMeta">
-          <b>D ${average.dem.toFixed(1)}%</b>
-          <b>R ${average.rep.toFixed(1)}%</b>
-        </div>
-      `
-      : `<div class="empty">No published generic-ballot polls yet.</div>`;
-  } catch (error) {
-    console.error("Generic ballot failed:", error);
-
-    box.innerHTML =
-      `<div class="empty">${escapeHtml(error.message)}</div>`;
-  }
-}
