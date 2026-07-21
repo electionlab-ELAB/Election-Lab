@@ -232,7 +232,7 @@ function raceCard(race) {
                         ).toFixed(0)}%
                       </strong>
                     </div>
-                  `
+                                  `
                          )
                 .join("")
             : `
@@ -465,8 +465,7 @@ async function loadRaceGrid() {
             const searchable = [
               race.title || "",
               race.state || "",
-
-              ...(race.candidates || []).map(
+      ...(race.candidates || []).map(
                 candidate =>
                          candidate.name || ""
               )
@@ -700,7 +699,7 @@ async function loadRace() {
       new URLSearchParams(
         location.search
       ).get("id");
-
+    
     if (!slug) {
       root.innerHTML =
      '<div class="empty">No race was selected.</div>';
@@ -934,7 +933,7 @@ async function loadRace() {
                   <p class="subtle">
                     No published polls yet.
                   </p>
-                `
+                   `
             }
           </div>
    </div>
@@ -1108,9 +1107,8 @@ async function loadGenericBallot() {
 
   try {
     const { data, error } = await sb
-      .from("polls")
+      .from("generic_ballot_polls")
       .select("*")
-      .eq("poll_type", "generic_ballot")
       .eq("status", "published")
       .order("end_date", {
         ascending: false
@@ -1169,7 +1167,7 @@ async function loadGenericBallot() {
 
       if (countBox) {
         countBox.textContent = pollCountText;
-      }
+            }
 
       if (demBox) {
          demBox.textContent =
