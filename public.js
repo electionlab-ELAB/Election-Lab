@@ -53,31 +53,42 @@ async function loadHomepageSettings() {
     document.querySelector("#houseControlMessage") ||
     document.querySelector("#senateForecastText") ||
     document.querySelector("#houseForecastText") ||
-    document.querySelector("[data-setting='senate_control_message']") ||
-    document.querySelector("[data-setting='house_control_message']");
+    document.querySelector(
+      "[data-setting='senate_control_message']"
+    ) ||
+    document.querySelector(
+      "[data-setting='house_control_message']"
+    );
 
   if (!hasHomepageSettings) return;
 
-  const settings =
-    await getPublicSettings();
+  try {
+    const settings =
+      await getPublicSettings();
 
-  setTextForSelectors(
-    [
-      "#senateControlMessage",
-      "#senateForecastText",
-      "[data-setting='senate_control_message']"
-    ],
-    settings.senate_control_message
-  );
+    setTextForSelectors(
+      [
+        "#senateControlMessage",
+        "#senateForecastText",
+        "[data-setting='senate_control_message']"
+      ],
+      settings.senate_control_message
+    );
 
-  setTextForSelectors(
-    [
-      "#houseControlMessage",
-      "#houseForecastText",
-      "[data-setting='house_control_message']"
-    ],
-    settings.house_control_message
-  );
+    setTextForSelectors(
+      [
+        "#houseControlMessage",
+        "#houseForecastText",
+        "[data-setting='house_control_message']"
+      ],
+      settings.house_control_message
+    );
+  } catch (error) {
+    console.error(
+      "Homepage settings failed:",
+      error
+    );
+  }
 }
 
 async function loadHome() {
@@ -109,21 +120,27 @@ async function loadHome() {
       count.textContent = races.length;
     }
 
+    const racesToShow =
+      featured.length
+        ? featured
+        : races.slice(0, 6);
+
     box.innerHTML =
-      (
-        featured.length
-          ? featured
-          : races.slice(0, 6)
-      )
+      racesToShow
         .map(race => raceCard(race))
         .join("") ||
       '<div class="empty">No published races yet.</div>';
 
     renderElectionMap(races);
   } catch (error) {
+    console.error("Homepage failed:", error);
+
     box.innerHTML =
       '<div class="empty">' +
-      escapeHtml(error.message) +
+      escapeHtml(
+        error.message ||
+          "Unable to load published races."
+      ) +
       "</div>";
   }
 }
@@ -154,47 +171,61 @@ function raceCard(race) {
     >
       <div class="raceMeta">
         <span>
-          ${escapeHtml(race.state)}
+          ${escapeHtml(race.state || "")}
           ·
           ${escapeHtml(label)}
         </span>
 
         <span
-          class="badge ${ratingClass(race.rating)}"
+          class="badge ${ratingClass(
+            race.rating
+          )}"
         >
-          ${escapeHtml(race.rating)}
+          ${escapeHtml(
+            race.rating || "Toss-up"
+          )}
         </span>
       </div>
 
       <h3>
-        ${escapeHtml(race.title)}
+        ${escapeHtml(race.title || "Untitled race")}
       </h3>
 
       <div class="candidates">
-        ${candidates
-          .slice(0, 3)
-          .map(
-            candidate => `
-              <div class="candidateLine">
-                <span>
-                  <i
-                    class="partyDot party-${escapeHtml(
-                      candidate.party
-                    )}"
-                  ></i>
+        ${
+          candidates.length
+            ? candidates
+                .slice(0, 3)
+                .map(
+                  candidate => `
+                    <div class="candidateLine">
+                      <span>
+                        <i
+                          class="partyDot party-${escapeHtml(
+                            candidate.party || ""
+                          )}"
+                        ></i>
 
-                  ${escapeHtml(candidate.name)}
-                </span>
+                        ${escapeHtml(
+                          candidate.name || ""
+                        )}
+                      </span>
 
-                <strong>
-                  ${Number(
-                    candidate.win_probability || 0
-                  ).toFixed(0)}%
-                </strong>
-              </div>
+                      <strong>
+                        ${Number(
+                          candidate.win_probability || 0
+                        ).toFixed(0)}%
+                      </strong>
+                    </div>
+                  `
+                )
+                .join("")
+            : `
+              <p class="subtle">
+                No candidates added yet.
+              </p>
             `
-          )
-          .join("")}
+        }
       </div>
 
       <div class="raceMeta">
@@ -226,6 +257,13 @@ function mapRatingClass(race) {
 
   const party =
     margin >= 0 ? "dem" : "rep";
+
+  if (
+    rating.includes("toss") ||
+    rating.includes("tied")
+  ) {
+    return "map-tossup";
+  }
 
   if (rating.includes("safe")) {
     return `map-${party}-safe`;
@@ -332,6 +370,9 @@ function renderElectionMap(races) {
 
     if (!stateRaces.length) {
       element.classList.add("map-no-race");
+      element.style.cursor = "";
+      element.onclick = null;
+
       return;
     }
 
@@ -407,11 +448,12 @@ async function loadRaceGrid() {
         const filtered =
           races.filter(race => {
             const searchable = [
-              race.title,
-              race.state,
+              race.title || "",
+              race.state || "",
 
               ...(race.candidates || []).map(
-                candidate => candidate.name
+                candidate =>
+                  candidate.name || ""
               )
             ]
               .join(" ")
@@ -420,17 +462,208 @@ async function loadRaceGrid() {
             return searchable.includes(query);
           });
 
-        box.innerHTML =
-          filtered
-            .map(race => raceCard(race))
-            .join("") ||
-          '<div class="empty">No matches.</div>';
+        displayRaces(filtered);
       };
     }
   } catch (error) {
+    console.error(
+      "Race grid failed:",
+      error
+    );
+
     box.innerHTML =
       '<div class="empty">' +
-      escapeHtml(error.message) +
+      escapeHtml(
+        error.message ||
+          "Unable to load races."
+      ) +
+      "</div>";
+  }
+}
+
+function houseDistrictLabel(race) {
+  const title =
+    String(race.title || "").trim();
+
+  const state =
+    normalizeStateCode(race.state);
+
+  const stateDistrictMatch =
+    title.match(
+      /\b([A-Z]{2})[-\s](\d{1,2}|AL)\b/i
+    );
+
+  if (stateDistrictMatch) {
+    return (
+      stateDistrictMatch[1].toUpperCase() +
+      "-" +
+      stateDistrictMatch[2].toUpperCase()
+    );
+  }
+
+  const districtMatch =
+    title.match(
+      /\b(?:district\s*)?(\d{1,2})(?:st|nd|rd|th)?\b/i
+    );
+
+  if (districtMatch && state) {
+    return `${state}-${districtMatch[1]}`;
+  }
+
+  return state || "House";
+}
+
+function houseRaceSortValue(race) {
+  const label =
+    houseDistrictLabel(race);
+
+  const districtMatch =
+    label.match(/-(\d+)$/);
+
+  return {
+    state:
+      normalizeStateCode(race.state),
+
+    district:
+      districtMatch
+        ? Number(districtMatch[1])
+        : 0
+  };
+}
+
+async function loadHouseHexMap() {
+  const map =
+    document.querySelector("#houseHexMap");
+
+  if (!map) return;
+
+  if (!configured) {
+    map.innerHTML =
+      '<div class="empty">Connect Supabase to load the House map.</div>';
+
+    return;
+  }
+
+  try {
+    const races =
+      await getPublishedRaces("house");
+
+    const sortedRaces =
+      [...races].sort((a, b) => {
+        const first =
+          houseRaceSortValue(a);
+
+        const second =
+          houseRaceSortValue(b);
+
+        const stateComparison =
+          first.state.localeCompare(
+            second.state
+          );
+
+        if (stateComparison !== 0) {
+          return stateComparison;
+        }
+
+        return (
+          first.district -
+          second.district
+        );
+      });
+
+    if (!sortedRaces.length) {
+      map.innerHTML =
+        '<div class="empty">No published House races yet.</div>';
+
+      return;
+    }
+
+    map.innerHTML =
+      sortedRaces
+        .map(race => {
+          const district =
+            houseDistrictLabel(race);
+
+          const rating =
+            String(
+              race.rating || "Toss-up"
+            );
+
+          const candidates =
+            [...(race.candidates || [])].sort(
+              (a, b) =>
+                Number(
+                  b.win_probability || 0
+                ) -
+                Number(
+                  a.win_probability || 0
+                )
+            );
+
+          const leader =
+            candidates[0];
+
+          const description = [
+            race.title,
+            rating,
+
+            leader
+              ? `${leader.name} ${Number(
+                  leader.win_probability || 0
+                ).toFixed(0)}%`
+              : ""
+          ]
+            .filter(Boolean)
+            .join(" — ");
+
+          return `
+            <button
+              class="houseHex ${mapRatingClass(
+                race
+              )}"
+              type="button"
+              title="${escapeHtml(description)}"
+              aria-label="${escapeHtml(description)}"
+              data-race-slug="${escapeHtml(
+                race.slug || ""
+              )}"
+            >
+              <span class="houseHexLabel">
+                ${escapeHtml(district)}
+              </span>
+
+              <span class="houseHexRating">
+                ${escapeHtml(rating)}
+              </span>
+            </button>
+          `;
+        })
+        .join("");
+
+    map
+      .querySelectorAll("[data-race-slug]")
+      .forEach(button => {
+        button.onclick = () => {
+          const slug =
+            button.dataset.raceSlug;
+
+          location.href =
+            "race.html?id=" +
+            encodeURIComponent(slug);
+        };
+      });
+  } catch (error) {
+    console.error(
+      "House map failed:",
+      error
+    );
+
+    map.innerHTML =
+      '<div class="empty">' +
+      escapeHtml(
+        error.message ||
+          "Unable to load the House map."
+      ) +
       "</div>";
   }
 }
@@ -447,312 +680,416 @@ async function loadRace() {
     return;
   }
 
-  const slug =
-    new URLSearchParams(location.search).get("id");
+  try {
+    const slug =
+      new URLSearchParams(
+        location.search
+      ).get("id");
 
-  const { data: race, error } = await sb
-    .from("races")
-    .select("*,candidates(*)")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .maybeSingle();
+    if (!slug) {
+      root.innerHTML =
+        '<div class="empty">No race was selected.</div>';
 
-  if (error || !race) {
-    root.innerHTML =
-      '<div class="empty">Published race not found.</div>';
+      return;
+    }
 
-    return;
-  }
+    const { data: race, error } = await sb
+      .from("races")
+      .select("*,candidates(*)")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
 
-  const polls =
-    await getPublishedPolls(race.id);
+    if (error) {
+      throw error;
+    }
 
-  const average =
-    weightedAverage(polls);
+    if (!race) {
+      root.innerHTML =
+        '<div class="empty">Published race not found.</div>';
 
-  const candidates =
-    [...(race.candidates || [])].sort(
-      (a, b) =>
-        Number(b.win_probability || 0) -
-        Number(a.win_probability || 0)
-    );
+      return;
+    }
 
-  const office =
-    raceOffice(race);
+    const polls =
+      await getPublishedPolls(race.id);
 
-  const label =
-    officeLabel(office);
+    const average =
+      weightedAverage(polls);
 
-  const margin =
-    Number(race.projected_margin || 0);
+    const candidates =
+      [...(race.candidates || [])].sort(
+        (a, b) =>
+          Number(
+            b.win_probability || 0
+          ) -
+          Number(
+            a.win_probability || 0
+          )
+      );
 
-  document.title =
-    `${race.title} | ElectionLab`;
+    const office =
+      raceOffice(race);
 
-  root.innerHTML = `
-    <div class="hero">
-      <div class="heroGrid">
+    const label =
+      officeLabel(office);
 
-        <div>
-          <div class="kicker">
-            2026 ${escapeHtml(label)} Forecast
+    const margin =
+      Number(
+        race.projected_margin || 0
+      );
+
+    document.title =
+      `${race.title} | ElectionLab`;
+
+    root.innerHTML = `
+      <div class="hero">
+        <div class="heroGrid">
+
+          <div>
+            <div class="kicker">
+              2026 ${escapeHtml(label)} Forecast
+            </div>
+
+            <h1>
+              ${escapeHtml(
+                race.title || "Election Forecast"
+              )}
+            </h1>
+
+            <p>
+              ${escapeHtml(
+                race.summary ||
+                  "ElectionLab's published forecast and polling average."
+              )}
+            </p>
+
+            <span
+              class="badge ${ratingClass(
+                race.rating
+              )}"
+            >
+              ${escapeHtml(
+                race.rating || "Toss-up"
+              )}
+            </span>
           </div>
 
-          <h1>
-            ${escapeHtml(race.title)}
-          </h1>
-
-          <p>
-            ${escapeHtml(
-              race.summary ||
-                "ElectionLab's published forecast and polling average."
-            )}
-          </p>
-
-          <span
-            class="badge ${ratingClass(race.rating)}"
-          >
-            ${escapeHtml(race.rating)}
-          </span>
-        </div>
-
-        <div class="probCard">
-          <div class="bigProb">
-            ${Number(
-              candidates[0]?.win_probability || 0
-            ).toFixed(0)}%
-          </div>
-
-          <b>
-            ${escapeHtml(
-              candidates[0]?.name ||
-                "Leading candidate"
-            )}
-          </b>
-
-          <div>chance to win</div>
-        </div>
-
-      </div>
-    </div>
-
-    <section class="section">
-      <div class="grid2">
-
-        <div class="card">
-          <h2>Forecast</h2>
-
-          ${
-            candidates
-              .map(
-                candidate => `
-                  <div class="candidateLine">
-                    <span>
-                      <i
-                        class="partyDot party-${escapeHtml(
-                          candidate.party
-                        )}"
-                      ></i>
-
-                      <b>
-                        ${escapeHtml(candidate.name)}
-                      </b>
-
-                      <small class="subtle">
-                        ${escapeHtml(
-                          partyName(candidate.party)
-                        )}
-                      </small>
-                    </span>
-
-                    <strong>
-                      ${Number(
-                        candidate.win_probability || 0
-                      ).toFixed(0)}%
-                    </strong>
-                  </div>
-                `
-              )
-              .join("") ||
-            '<p class="subtle">No candidates have been added yet.</p>'
-          }
-
-          <p class="subtle">
-            Projected margin:
+          <div class="probCard">
+            <div class="bigProb">
+              ${Number(
+                candidates[0]
+                  ?.win_probability || 0
+              ).toFixed(0)}%
+            </div>
 
             <b>
-              ${margin >= 0 ? "D +" : "R +"}
-              ${Math.abs(margin).toFixed(1)}
+              ${escapeHtml(
+                candidates[0]?.name ||
+                  "Leading candidate"
+              )}
             </b>
-          </p>
-        </div>
 
-        <div class="card">
-          <h2>Polling average</h2>
+            <div>
+              chance to win
+            </div>
+          </div>
 
-          ${
-            average
-              ? `
-                <div
-                  class="bigProb"
-                  style="font-size:48px;color:var(--ink)"
-                >
-                  ${average.margin >= 0 ? "D +" : "R +"}
-                  ${Math.abs(
-                    average.margin
-                  ).toFixed(1)}
-                </div>
-
-                <div class="controlBar">
-                  <span
-                    class="dem"
-                    style="width:${Math.max(
-                      0,
-                      Math.min(100, average.dem)
-                    )}%"
-                  ></span>
-
-                  <span
-                    class="rep"
-                    style="width:${Math.max(
-                      0,
-                      Math.min(100, average.rep)
-                    )}%"
-                  ></span>
-                </div>
-
-                <div class="raceMeta">
-                  <b>
-                    D ${average.dem.toFixed(1)}%
-                  </b>
-
-                  <b>
-                    R ${average.rep.toFixed(1)}%
-                  </b>
-                </div>
-              `
-              : `
-                <p class="subtle">
-                  No published polls yet.
-                </p>
-              `
-          }
-        </div>
-
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="sectionHead">
-        <div>
-          <h2>Recent polls</h2>
-
-          <p>
-            Weighted by recency, sample size,
-            voter population, and quality.
-          </p>
         </div>
       </div>
 
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Pollster</th>
-              <th>Dates</th>
-              <th>Sample</th>
-              <th>Dem</th>
-              <th>Rep</th>
-              <th>Margin</th>
-            </tr>
-          </thead>
+      <section class="section">
+        <div class="grid2">
 
-          <tbody>
+          <div class="card">
+            <h2>Forecast</h2>
+
             ${
-              polls
-                .map(poll => {
-                  const pollMargin =
-                    Number(poll.dem_pct) -
-                    Number(poll.rep_pct);
+              candidates.length
+                ? candidates
+                    .map(
+                      candidate => `
+                        <div class="candidateLine">
+                          <span>
+                            <i
+                              class="partyDot party-${escapeHtml(
+                                candidate.party || ""
+                              )}"
+                            ></i>
 
-                  return `
+                            <b>
+                              ${escapeHtml(
+                                candidate.name || ""
+                              )}
+                            </b>
+
+                            <small class="subtle">
+                              ${escapeHtml(
+                                partyName(
+                                  candidate.party
+                                )
+                              )}
+                            </small>
+                          </span>
+
+                          <strong>
+                            ${Number(
+                              candidate.win_probability || 0
+                            ).toFixed(0)}%
+                          </strong>
+                        </div>
+                      `
+                    )
+                    .join("")
+                : `
+                  <p class="subtle">
+                    No candidates have been added yet.
+                  </p>
+                `
+            }
+
+            <p class="subtle">
+              Projected margin:
+
+              <b>
+                ${margin >= 0 ? "D +" : "R +"}
+                ${Math.abs(
+                  margin
+                ).toFixed(1)}
+              </b>
+            </p>
+          </div>
+
+          <div class="card">
+            <h2>Polling average</h2>
+
+            ${
+              average
+                ? `
+                  <div
+                    class="bigProb"
+                    style="font-size:48px;color:var(--ink)"
+                  >
+                    ${
+                      average.margin >= 0
+                        ? "D +"
+                        : "R +"
+                    }
+
+                    ${Math.abs(
+                      average.margin
+                    ).toFixed(1)}
+                  </div>
+
+                  <div class="controlBar">
+                    <span
+                      class="dem"
+                      style="width:${Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          average.dem
+                        )
+                      )}%"
+                    ></span>
+
+                    <span
+                      class="rep"
+                      style="width:${Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          average.rep
+                        )
+                      )}%"
+                    ></span>
+                  </div>
+
+                  <div class="raceMeta">
+                    <b>
+                      D ${average.dem.toFixed(1)}%
+                    </b>
+
+                    <b>
+                      R ${average.rep.toFixed(1)}%
+                    </b>
+                  </div>
+                `
+                : `
+                  <p class="subtle">
+                    No published polls yet.
+                  </p>
+                `
+            }
+          </div>
+
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="sectionHead">
+          <div>
+            <h2>Recent polls</h2>
+
+            <p>
+              Weighted by recency,
+              sample size,
+              voter population,
+              and quality.
+            </p>
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pollster</th>
+                <th>Dates</th>
+                <th>Sample</th>
+                <th>Dem</th>
+                <th>Rep</th>
+                <th>Margin</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${
+                polls.length
+                  ? polls
+                      .map(poll => {
+                        const pollMargin =
+                          Number(
+                            poll.dem_pct || 0
+                          ) -
+                          Number(
+                            poll.rep_pct || 0
+                          );
+
+                        return `
+                          <tr>
+                            <td>
+                              <b>
+                                ${escapeHtml(
+                                  poll.pollster ||
+                                    "Unknown pollster"
+                                )}
+                              </b>
+                            </td>
+
+                            <td>
+                              ${fmtDate(
+                                poll.start_date
+                              )}–${fmtDate(
+                                poll.end_date
+                              )}
+                            </td>
+
+                            <td>
+                              ${
+                                poll.sample_size ||
+                                "—"
+                              }
+
+                              ${escapeHtml(
+                                poll.population ||
+                                  ""
+                              )}
+                            </td>
+
+                            <td>
+                              ${Number(
+                                poll.dem_pct || 0
+                              ).toFixed(1)}
+                            </td>
+
+                            <td>
+                              ${Number(
+                                poll.rep_pct || 0
+                              ).toFixed(1)}
+                            </td>
+
+                            <td>
+                              <b>
+                                ${
+                                  pollMargin >= 0
+                                    ? "D +"
+                                    : "R +"
+                                }
+
+                                ${Math.abs(
+                                  pollMargin
+                                ).toFixed(1)}
+                              </b>
+                            </td>
+                          </tr>
+                        `;
+                      })
+                      .join("")
+                  : `
                     <tr>
-                      <td>
-                        <b>
-                          ${escapeHtml(
-                            poll.pollster
-                          )}
-                        </b>
-                      </td>
-
-                      <td>
-                        ${fmtDate(
-                          poll.start_date
-                        )}–${fmtDate(
-                          poll.end_date
-                        )}
-                      </td>
-
-                      <td>
-                        ${poll.sample_size || "—"}
-                        ${escapeHtml(
-                          poll.population || ""
-                        )}
-                      </td>
-
-                      <td>
-                        ${Number(
-                          poll.dem_pct
-                        ).toFixed(1)}
-                      </td>
-
-                      <td>
-                        ${Number(
-                          poll.rep_pct
-                        ).toFixed(1)}
-                      </td>
-
-                      <td>
-                        <b>
-                          ${
-                            pollMargin >= 0
-                              ? "D +"
-                              : "R +"
-                          }
-
-                          ${Math.abs(
-                            pollMargin
-                          ).toFixed(1)}
-                        </b>
+                      <td
+                        colspan="6"
+                        class="empty"
+                      >
+                        No polls published.
                       </td>
                     </tr>
-                  `;
-                })
-                .join("") ||
-              `
-                <tr>
-                  <td
-                    colspan="6"
-                    class="empty"
-                  >
-                    No polls published.
-                  </td>
-                </tr>
-              `
-            }
-          </tbody>
-        </table>
-      </div>
-    </section>
-  `;
+                  `
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  } catch (error) {
+    console.error(
+      "Race page failed:",
+      error
+    );
+
+    root.innerHTML =
+      '<div class="empty">' +
+      escapeHtml(
+        error.message ||
+          "Unable to load this race."
+      ) +
+      "</div>";
+  }
 }
+
 document.addEventListener(
   "DOMContentLoaded",
   () => {
-    loadHomepageSettings();
-    loadHome();
-    loadRaceGrid();
-    loadHouseHexMap();
-    loadRace();
+    const tasks = [
+      loadHomepageSettings,
+      loadHome,
+      loadRaceGrid,
+      loadHouseHexMap,
+      loadRace
+    ];
+
+    tasks.forEach(task => {
+      try {
+        const result = task();
+
+        if (
+          result &&
+          typeof result.catch === "function"
+        ) {
+          result.catch(error => {
+            console.error(
+              `${task.name} failed:`,
+              error
+            );
+          });
+        }
+      } catch (error) {
+        console.error(
+          `${task.name} failed:`,
+          error
+        );
+      }
+    });
   }
 );
