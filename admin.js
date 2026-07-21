@@ -2,6 +2,7 @@ let state = {
   races: [],
   polls: [],
   candidates: [],
+  settings: {},
   currentRaceId: null
 };
 
@@ -11,8 +12,20 @@ const $$ = selector => [
   ...document.querySelectorAll(selector)
 ];
 
+const DEFAULT_SETTINGS = {
+  senate_control_message:
+    "Republicans are favored to retain control of the Senate",
+  house_control_message:
+    "Republicans are favored to retain control of the House"
+};
+
 function msg(text, type = "success") {
   const notice = $("#adminMessage");
+
+  if (!notice) {
+    console.log(text);
+    return;
+  }
 
   notice.className = `notice ${type}`;
   notice.textContent = text;
@@ -44,41 +57,76 @@ async function requireAdmin() {
     return false;
   }
 
-  const { data } = await sb
+  const { data, error } = await sb
     .from("admins")
     .select("user_id")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
-  if (!data) {
+  if (error || !data) {
     await sb.auth.signOut();
     location.href = "login.html";
     return false;
   }
 
-  $("#adminEmail").textContent = session.user.email;
+  const emailBox = $("#adminEmail");
+
+  if (emailBox) {
+    emailBox.textContent = session.user.email;
+  }
 
   return true;
 }
 
+async function loadSettings() {
+  const { data, error } = await sb
+    .from("site_settings")
+    .select("setting_key, setting_value");
+
+  if (error) {
+    console.warn(
+      "Could not load site settings:",
+      error.message
+    );
+
+    return { ...DEFAULT_SETTINGS };
+  }
+
+  return {
+    ...DEFAULT_SETTINGS,
+    ...(data || []).reduce((settings, row) => {
+      settings[row.setting_key] =
+        row.setting_value;
+
+      return settings;
+    }, {})
+  };
+}
+
 async function reloadAll() {
-  const [raceResult, candidateResult, pollResult] =
-    await Promise.all([
-      sb
-        .from("races")
-        .select("*")
-        .order("state"),
+  const [
+    raceResult,
+    candidateResult,
+    pollResult,
+    settingsResult
+  ] = await Promise.all([
+    sb
+      .from("races")
+      .select("*")
+      .order("state"),
 
-      sb
-        .from("candidates")
-        .select("*")
-        .order("name"),
+    sb
+      .from("candidates")
+      .select("*")
+      .order("name"),
 
-      sb
-        .from("polls")
-        .select("*")
-        .order("end_date", { ascending: false })
-    ]);
+    sb
+      .from("polls")
+      .select("*")
+      .order("end_date", { ascending: false }),
+
+    loadSettings()
+  ]);
 
   if (
     raceResult.error ||
@@ -95,8 +143,10 @@ async function reloadAll() {
   state.races = raceResult.data || [];
   state.candidates = candidateResult.data || [];
   state.polls = pollResult.data || [];
+  state.settings = settingsResult;
 
   renderDashboard();
+  renderWebsiteSettings();
   renderRaces();
   renderCandidates();
   renderPolls();
@@ -104,23 +154,130 @@ async function reloadAll() {
 }
 
 function renderDashboard() {
-  $("#statRaces").textContent =
-    state.races.length;
+  const statRaces = $("#statRaces");
+  const statPublished = $("#statPublished");
+  const statCandidates = $("#statCandidates");
+  const statPolls = $("#statPolls");
 
-  $("#statPublished").textContent =
-    state.races.filter(
-      race => race.status === "published"
-    ).length;
+  if (statRaces) {
+    statRaces.textContent =
+      state.races.length;
+  }
 
-  $("#statCandidates").textContent =
-    state.candidates.length;
+  if (statPublished) {
+    statPublished.textContent =
+      state.races.filter(
+        race => race.status === "published"
+      ).length;
+  }
 
-  $("#statPolls").textContent =
-    state.polls.length;
+  if (statCandidates) {
+    statCandidates.textContent =
+      state.candidates.length;
+  }
+
+  if (statPolls) {
+    statPolls.textContent =
+      state.polls.length;
+  }
+}
+
+function renderWebsiteSettings() {
+  const senateInput =
+    $("#homepageSenate");
+
+  const houseInput =
+    $("#homepageHouse");
+
+  if (senateInput) {
+    senateInput.value =
+      state.settings.senate_control_message ||
+      DEFAULT_SETTINGS.senate_control_message;
+  }
+
+  if (houseInput) {
+    houseInput.value =
+      state.settings.house_control_message ||
+      DEFAULT_SETTINGS.house_control_message;
+  }
+}
+
+async function saveHomepageSettings(event) {
+  event.preventDefault();
+
+  const senateInput =
+    $("#homepageSenate");
+
+  const houseInput =
+    $("#homepageHouse");
+
+  if (!senateInput || !houseInput) {
+    msg(
+      "The homepage settings inputs could not be found.",
+      "error"
+    );
+    return;
+  }
+
+  const senateMessage =
+    senateInput.value.trim();
+
+  const houseMessage =
+    houseInput.value.trim();
+
+  if (!senateMessage || !houseMessage) {
+    msg(
+      "Both homepage control messages are required.",
+      "error"
+    );
+    return;
+  }
+
+  const rows = [
+    {
+      setting_key:
+        "senate_control_message",
+      setting_value:
+        senateMessage,
+      updated_at:
+        new Date().toISOString()
+    },
+    {
+      setting_key:
+        "house_control_message",
+      setting_value:
+        houseMessage,
+      updated_at:
+        new Date().toISOString()
+    }
+  ];
+
+  const { error } = await sb
+    .from("site_settings")
+    .upsert(rows, {
+      onConflict: "setting_key"
+    });
+
+  if (error) {
+    msg(error.message, "error");
+    return;
+  }
+
+  state.settings.senate_control_message =
+    senateMessage;
+
+  state.settings.house_control_message =
+    houseMessage;
+
+  msg("Homepage forecasts saved.");
 }
 
 function renderRaces() {
-  $("#racesBody").innerHTML =
+  const body = $("#racesBody");
+
+  if (!body) return;
+
+  body.innerHTML =
     state.races
       .map(race => {
         const margin =
@@ -190,7 +347,11 @@ function renderRaces() {
 }
 
 function renderCandidates() {
-  $("#candidatesBody").innerHTML =
+  const body = $("#candidatesBody");
+
+  if (!body) return;
+
+  body.innerHTML =
     state.candidates
       .map(candidate => {
         const race = state.races.find(
@@ -246,7 +407,11 @@ function renderCandidates() {
 }
 
 function renderPolls() {
-  $("#pollsBody").innerHTML =
+  const body = $("#pollsBody");
+
+  if (!body) return;
+
+  body.innerHTML =
     state.polls
       .map(poll => {
         const race = state.races.find(
@@ -335,16 +500,34 @@ function populateRaceSelects() {
       })
       .join("");
 
-  $("#candidateRace").innerHTML = options;
-  $("#pollRace").innerHTML = options;
-}
+  const candidateRace =
+    $("#candidateRace");
 
+  const pollRace =
+    $("#pollRace");
+
+  if (candidateRace) {
+    candidateRace.innerHTML = options;
+  }
+
+  if (pollRace) {
+    pollRace.innerHTML = options;
+  }
+}
 function openModal(id) {
-  $("#" + id).classList.add("open");
+  const modal = $("#" + id);
+
+  if (modal) {
+    modal.classList.add("open");
+  }
 }
 
 function closeModal(id) {
-  $("#" + id).classList.remove("open");
+  const modal = $("#" + id);
+
+  if (modal) {
+    modal.classList.remove("open");
+  }
 }
 
 function editRace(id = "") {
@@ -388,25 +571,40 @@ async function saveRace(event) {
   event.preventDefault();
 
   const id = $("#raceId").value;
-
   const office = $("#raceOffice").value;
 
   const row = {
     office,
-    state: $("#raceState").value.trim(),
-    title: $("#raceTitle").value.trim(),
-    slug: $("#raceSlug")
-      .value
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "-"),
-    rating: $("#raceRating").value,
+    state:
+      $("#raceState").value.trim(),
+
+    title:
+      $("#raceTitle").value.trim(),
+
+    slug:
+      $("#raceSlug")
+        .value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-"),
+
+    rating:
+      $("#raceRating").value,
+
     projected_margin:
       Number($("#raceMargin").value),
-    featured: $("#raceFeatured").checked,
-    status: $("#raceStatus").value,
-    summary: $("#raceSummary").value.trim(),
-    updated_at: new Date().toISOString()
+
+    featured:
+      $("#raceFeatured").checked,
+
+    status:
+      $("#raceStatus").value,
+
+    summary:
+      $("#raceSummary").value.trim(),
+
+    updated_at:
+      new Date().toISOString()
   };
 
   const query = id
@@ -435,13 +633,11 @@ async function saveRace(event) {
 }
 
 async function deleteRace(id) {
-  if (
-    !confirm(
-      "Delete this race and all attached candidates and polls?"
-    )
-  ) {
-    return;
-  }
+  const confirmed = confirm(
+    "Delete this race and all attached candidates and polls?"
+  );
+
+  if (!confirmed) return;
 
   const { error } = await sb
     .from("races")
@@ -500,16 +696,22 @@ async function saveCandidate(event) {
   const row = {
     race_id:
       $("#candidateRace").value,
+
     name:
       $("#candidateName").value.trim(),
+
     party:
       $("#candidateParty").value,
+
     incumbent:
       $("#candidateIncumbent").checked,
+
     win_probability:
       Number($("#candidateProb").value),
+
     expected_vote_share:
       Number($("#candidateVote").value),
+
     photo_url:
       $("#candidatePhoto").value.trim() ||
       null
@@ -607,22 +809,31 @@ async function savePoll(event) {
   const row = {
     race_id:
       $("#pollRace").value,
+
     pollster:
       $("#pollster").value.trim(),
+
     start_date:
       $("#pollStart").value,
+
     end_date:
       $("#pollEnd").value,
+
     sample_size:
       Number($("#pollSample").value),
+
     population:
       $("#pollPopulation").value,
+
     dem_pct:
       Number($("#pollDem").value),
+
     rep_pct:
       Number($("#pollRep").value),
+
     quality_weight:
       Number($("#pollQuality").value),
+
     status:
       $("#pollStatus").value
   };
@@ -683,36 +894,70 @@ document.addEventListener(
       button => {
         button.onclick = () => {
           $$(".sidebar button").forEach(
-            item =>
-              item.classList.remove("active")
+            item => {
+              item.classList.remove("active");
+            }
           );
 
           button.classList.add("active");
 
           $$(".adminPanel").forEach(
-            panel =>
-              panel.classList.remove("active")
+            panel => {
+              panel.classList.remove("active");
+            }
           );
 
-          $("#" + button.dataset.panel)
-            .classList.add("active");
+          const targetPanel =
+            $("#" + button.dataset.panel);
+
+          if (targetPanel) {
+            targetPanel.classList.add("active");
+          }
         };
       }
     );
 
-    $("#logout").onclick = async () => {
-      await sb.auth.signOut();
-      location.href = "login.html";
-    };
+    const logoutButton =
+      $("#logout");
 
-    $("#raceForm").onsubmit =
-      saveRace;
+    if (logoutButton) {
+      logoutButton.onclick = async () => {
+        await sb.auth.signOut();
+        location.href = "login.html";
+      };
+    }
 
-    $("#candidateForm").onsubmit =
-      saveCandidate;
+    const raceForm =
+      $("#raceForm");
 
-    $("#pollForm").onsubmit =
-      savePoll;
+    const candidateForm =
+      $("#candidateForm");
+
+    const pollForm =
+      $("#pollForm");
+
+    const homepageSettingsForm =
+      $("#homepageSettingsForm");
+
+    if (raceForm) {
+      raceForm.onsubmit =
+        saveRace;
+    }
+
+    if (candidateForm) {
+      candidateForm.onsubmit =
+        saveCandidate;
+    }
+
+    if (pollForm) {
+      pollForm.onsubmit =
+        savePoll;
+    }
+
+    if (homepageSettingsForm) {
+      homepageSettingsForm.onsubmit =
+        saveHomepageSettings;
+    }
 
     try {
       await reloadAll();
