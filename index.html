@@ -1,4 +1,175 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>ElectionLab | 2026 Election Forecasts</title><link rel="stylesheet" href="styles.css"></head><body><header class="topbar"><nav class="nav"><a class="brand" href="index.html"><img src="electionlab-logo.png"><span>ElectionLab</span></a><button class="menuBtn">☰</button><div class="navlinks"><a class="active" href="index.html">Home</a><a class="" href="senate.html">Senate</a><a class="" href="house.html">House</a><a class="" href="governors.html">Governors</a><a class="" href="polls.html">Polling</a></div></nav></header>
-<main class="page"><section class="hero"><div class="heroGrid"><div><div class="kicker">2026 Midterm Elections</div><h1>Forecasting the races that will shape Congress.</h1><p>ElectionLab combines polling averages, political fundamentals, and transparent judgment to track the 2026 Senate, House, and gubernatorial elections.</p></div><div class="probCard"><div class="bigProb" id="raceCount">—</div><b>published Senate races</b><div>tracked by ElectionLab</div></div></div></section>
-<section class="section"><div class="sectionHead"><div><h2>Featured Senate races</h2><p>Your published and featured races appear here automatically.</p></div><a class="linkBtn" href="senate.html">View Senate forecast →</a></div><div class="grid3" id="featuredRaces"><div class="loading">Loading forecasts…</div></div></section></main>
-<footer class="footer"><div class="footerInner"><div><b>ElectionLab</b><br>Independent 2026 election forecasting.</div><div>Forecasts are probabilities, not certainties.</div></div></footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="common.js"></script><script src="public.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>ElectionLab | 2026 Election Forecasts</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <header class="topbar">
+    <nav class="nav">
+
+      <a class="brand" href="index.html">
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
+        <span>ElectionLab</span>
+      </a>
+
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+
+      <div class="navlinks">
+        <a class="active" href="index.html">Home</a>
+        <a href="senate.html">Senate</a>
+        <a href="house.html">House</a>
+        <a href="governors.html">Governors</a>
+        <a href="polls.html">Polling</a>
+      </div>
+
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="hero">
+
+      <div class="heroGrid">
+
+        <div>
+          <div class="kicker">2026 Midterm Elections</div>
+
+          <h1>
+            Forecasting the races that will shape Congress.
+          </h1>
+
+          <p>
+            ElectionLab combines polling averages, political fundamentals,
+            and transparent judgment to track the 2026 Senate, House, and
+            gubernatorial elections.
+          </p>
+        </div>
+
+        <div class="controlForecasts">
+
+          <a
+            class="controlForecastCard"
+            href="senate.html"
+          >
+            <div class="controlForecastLabel">
+              Senate Control
+            </div>
+
+            <div
+              class="controlForecastMessage"
+              id="senateControlMessage"
+            >
+              Republicans are favored to win the Senate
+            </div>
+
+            <div class="controlForecastLink">
+              View Senate forecast →
+            </div>
+          </a>
+
+          <a
+            class="controlForecastCard"
+            href="house.html"
+          >
+            <div class="controlForecastLabel">
+              House Control
+            </div>
+
+            <div
+              class="controlForecastMessage"
+              id="houseControlMessage"
+            >
+              Democrats are favored to win the House
+            </div>
+
+            <div class="controlForecastLink">
+              View House forecast →
+            </div>
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+          <h2>Featured Senate races</h2>
+
+          <p>
+            Published and featured races appear here automatically.
+          </p>
+        </div>
+
+        <a
+          class="linkBtn"
+          href="senate.html"
+        >
+          View Senate forecast →
+        </a>
+
+      </div>
+
+      <div
+        class="grid3"
+        id="featuredRaces"
+      >
+        <div class="loading">
+          Loading forecasts…
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+
+    <div class="footerInner">
+
+      <div>
+        <b>ElectionLab</b>
+        <br>
+        Independent 2026 election forecasting.
+      </div>
+
+      <div>
+        Forecasts are probabilities, not certainties.
+      </div>
+
+    </div>
+
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="public.js"></script>
+
+</body>
+</html>
