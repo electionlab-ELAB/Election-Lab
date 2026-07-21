@@ -8,9 +8,14 @@
     content="width=device-width, initial-scale=1"
   >
 
-  <title>2026 Governors Forecast | ElectionLab</title>
+  <title>
+    2026 Governors Forecast | ElectionLab
+  </title>
 
-  <link rel="stylesheet" href="styles.css">
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
 </head>
 
 <body data-race-type="governor">
@@ -18,12 +23,18 @@
   <header class="topbar">
     <nav class="nav">
 
-      <a class="brand" href="index.html">
+      <a
+        class="brand"
+        href="index.html"
+      >
         <img
           src="electionlab-logo.png"
           alt="ElectionLab logo"
         >
-        <span>ElectionLab</span>
+
+        <span>
+          ElectionLab
+        </span>
       </a>
 
       <button
@@ -36,11 +47,30 @@
       </button>
 
       <div class="navlinks">
-        <a href="index.html">Home</a>
-        <a href="senate.html">Senate</a>
-        <a href="house.html">House</a>
-        <a class="active" href="governors.html">Governors</a>
-        <a href="polls.html">Polling</a>
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a href="house.html">
+          House
+        </a>
+
+        <a
+          class="active"
+          href="governors.html"
+        >
+          Governors
+        </a>
+
+        <a href="polls.html">
+          Polling
+        </a>
+
       </div>
 
     </nav>
@@ -49,13 +79,76 @@
   <main class="page">
 
     <section class="hero">
-      <div class="kicker">ElectionLab Forecast</div>
+      <div class="heroGrid">
 
-      <h1>2026 Governors</h1>
+        <div>
+          <div class="kicker">
+            ElectionLab Forecast
+          </div>
 
-      <p>
-        Race-by-race probabilities, ratings, candidates, and polling averages.
-      </p>
+          <h1>
+            2026 Governors
+          </h1>
+
+          <p>
+            Race-by-race probabilities, ratings,
+            candidates, polling averages, and the
+            projected balance of governorships.
+          </p>
+        </div>
+
+        <div
+          class="forecastCounter"
+          data-counter-office="governor"
+        >
+
+          <div class="forecastCounterTitle">
+            Projected Governors
+          </div>
+
+          <div class="forecastCounterRow republican">
+            <span>
+              Republicans
+            </span>
+
+            <strong
+              data-counter-value="republican"
+            >
+              27
+            </strong>
+          </div>
+
+          <div class="forecastCounterRow tossup">
+            <span>
+              Toss-ups
+            </span>
+
+            <strong
+              data-counter-value="tossup"
+            >
+              0
+            </strong>
+          </div>
+
+          <div class="forecastCounterRow democratic">
+            <span>
+              Democrats
+            </span>
+
+            <strong
+              data-counter-value="democratic"
+            >
+              23
+            </strong>
+          </div>
+
+          <div class="forecastCounterNote">
+            50 governorships total
+          </div>
+
+        </div>
+
+      </div>
     </section>
 
     <section class="section mapSection">
@@ -63,8 +156,13 @@
       <div class="sectionHeading">
 
         <div>
-          <div class="kicker">Election Map</div>
-          <h2>2026 Governor Forecast Map</h2>
+          <div class="kicker">
+            Election Map
+          </div>
+
+          <h2>
+            2026 Governor Forecast Map
+          </h2>
         </div>
 
         <p class="mapInstructions">
@@ -85,20 +183,74 @@
           </div>
         </div>
 
+        <div class="mapLegend">
+
+          <span>
+            <i class="legendDot map-dem-safe"></i>
+            Safe D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-likely"></i>
+            Likely D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-lean"></i>
+            Lean D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-tilt"></i>
+            Tilt D
+          </span>
+
+          <span>
+            <i class="legendDot map-tossup"></i>
+            Toss-up
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-tilt"></i>
+            Tilt R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-lean"></i>
+            Lean R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-likely"></i>
+            Likely R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-safe"></i>
+            Safe R
+          </span>
+
+        </div>
+
       </div>
 
     </section>
-
-    <section class="section">
+        <section class="section">
 
       <div class="raceSectionHeader">
 
         <div>
-          <div class="kicker">Race Ratings</div>
-          <h2>Governor Races</h2>
+          <div class="kicker">
+            Race Ratings
+          </div>
+
+          <h2>
+            Governor Races
+          </h2>
         </div>
 
         <div class="toolbar raceToolbar">
+
           <input
             id="raceSearch"
             type="search"
@@ -106,13 +258,14 @@
             aria-label="Search governor races"
             autocomplete="off"
           >
+
         </div>
 
       </div>
 
       <div
-        class="grid3"
         id="raceGrid"
+        class="grid3"
       >
         <div class="loading">
           Loading governor races…
@@ -123,7 +276,32 @@
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <footer class="footer">
+
+    <div class="footerInner">
+
+      <div>
+        <b>
+          ElectionLab
+        </b>
+
+        <p class="subtle">
+          Independent election forecasts and polling analysis.
+        </p>
+      </div>
+
+      <div class="subtle">
+        Forecasts express uncertainty, not certainty.
+      </div>
+
+    </div>
+
+  </footer>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="public.js"></script>
