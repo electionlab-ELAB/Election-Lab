@@ -1,1 +1,221 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>2026 Polling Averages | ElectionLab</title><link rel="stylesheet" href="styles.css"></head><body><header class="topbar"><nav class="nav"><a class="brand" href="index.html"><img src="electionlab-logo.png"><span>ElectionLab</span></a><button class="menuBtn">☰</button><div class="navlinks"><a class="" href="index.html">Home</a><a class="" href="senate.html">Senate</a><a class="" href="house.html">House</a><a class="" href="governors.html">Governors</a><a class="active" href="polls.html">Polling</a></div></nav></header><main class="page"><section class="hero"><div class="kicker">2026 Forecast</div><h1>2026 Polling Averages</h1><p>The public polling database will expand after the Senate CMS is connected.</p></section><section class="section card"><h2>Coming next</h2><p class="subtle">The Senate CMS is the first fully working module. This section will reuse the same candidate, poll, draft, and publishing system.</p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="common.js"></script><script src="public.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    2026 Generic Ballot | ElectionLab
+  </title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <header class="topbar">
+    <nav class="nav">
+
+      <a class="brand" href="index.html">
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
+
+        <span>ElectionLab</span>
+      </a>
+
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+
+      <div class="navlinks">
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a href="house.html">
+          House
+        </a>
+
+        <a href="governors.html">
+          Governors
+        </a>
+
+        <a
+          class="active"
+          href="polls.html"
+        >
+          Generic Ballot
+        </a>
+      </div>
+
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="hero">
+      <div class="heroGrid">
+
+        <div>
+          <div class="kicker">
+            2026 Congressional Forecast
+          </div>
+
+          <h1>
+            National Generic Ballot
+          </h1>
+
+          <p>
+            ElectionLab's average of national polls asking
+            voters which party they plan to support for
+            Congress.
+          </p>
+        </div>
+
+        <div class="probCard">
+          <div class="bigProb">
+            —
+          </div>
+
+          <b>
+            No average yet
+          </b>
+
+          <div>
+            Add published polls to begin
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid2">
+
+        <div class="card">
+          <div class="kicker">
+            Democratic average
+          </div>
+
+          <div
+            class="bigProb"
+            style="color:var(--blue)"
+          >
+            —%
+          </div>
+
+          <p class="subtle">
+            No published polls yet.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="kicker">
+            Republican average
+          </div>
+
+          <div
+            class="bigProb"
+            style="color:var(--red)"
+          >
+            —%
+          </div>
+
+          <p class="subtle">
+            No published polls yet.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+
+      <div class="sectionHead">
+        <div>
+          <div class="kicker">
+            National polling
+          </div>
+
+          <h2>
+            Generic Ballot Polls
+          </h2>
+
+          <p>
+            Published national congressional ballot polls
+            will appear below.
+          </p>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table>
+
+          <thead>
+            <tr>
+              <th>Pollster</th>
+              <th>Dates</th>
+              <th>Sample</th>
+              <th>Dem</th>
+              <th>Rep</th>
+              <th>Margin</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td
+                colspan="6"
+                class="empty"
+              >
+                No generic ballot polls have been published.
+              </td>
+            </tr>
+          </tbody>
+
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div>
+      <b>ElectionLab</b>
+
+      <p class="subtle">
+        Independent election forecasts and polling analysis.
+      </p>
+    </div>
+
+    <div class="subtle">
+      Polling averages express uncertainty, not certainty.
+    </div>
+  </footer>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="public.js"></script>
+
+</body>
+</html>
