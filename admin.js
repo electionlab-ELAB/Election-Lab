@@ -256,7 +256,10 @@ function ensureCongressSettingsInput() {
   const form =
     $("#homepageSettingsForm");
 
-  if (!form || $("#homepageCongress")) {
+  if (
+    !form ||
+    $("#homepageCongress")
+  ) {
     return;
   }
 
@@ -358,6 +361,7 @@ async function saveHomepageSettings(
 
     return;
   }
+
   const senateMessage =
     senateInput.value.trim();
 
@@ -453,7 +457,6 @@ async function saveHomepageSettings(
     "Website forecast messages saved."
   );
 }
-
 function renderRaces() {
   const body =
     $("#racesBody");
@@ -719,7 +722,7 @@ function renderPolls() {
 
             <td>
               <button
-                 class="btn light"
+                class="btn light"
                 type="button"
                 onclick="editPoll('${poll.id}')"
               >
@@ -749,7 +752,6 @@ function renderPolls() {
       </tr>
     `;
 }
-
 function genericBallotAverage(
   polls
 ) {
@@ -1033,6 +1035,7 @@ function populateRaceSelects() {
       options;
   }
 }
+
 function openModal(id) {
   const modal =
     $("#" + id);
@@ -1050,7 +1053,6 @@ function closeModal(id) {
     modal.classList.remove("open");
   }
 }
-
 function editRace(id = "") {
   const race =
     state.races.find(
@@ -1080,7 +1082,7 @@ function editRace(id = "") {
 
   $("#raceFeatured").checked =
     Boolean(race.featured);
-  
+
   $("#raceStatus").value =
     race.status || "draft";
 
@@ -1440,7 +1442,8 @@ async function savePoll(event) {
   closeModal("pollModal");
 
   await reloadAll();
- msg(
+
+  msg(
     "Race poll saved."
   );
 }
@@ -1472,7 +1475,6 @@ async function deletePoll(id) {
 
   msg("Race poll deleted.");
 }
-
 function editGenericBallotPoll(
   id = ""
 ) {
@@ -1587,7 +1589,8 @@ async function saveGenericBallotPoll(
         )
         .insert(row);
 
-  const { error } = await query;
+  const { error } =
+    await query;
 
   if (error) {
     msg(
@@ -1646,13 +1649,17 @@ async function deleteGenericBallotPoll(
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
-    if (!$("#adminApp")) return;
+    if (!$("#adminApp")) {
+      return;
+    }
 
     try {
       const allowed =
         await requireAdmin();
 
-      if (!allowed) return;
+      if (!allowed) {
+        return;
+      }
     } catch (error) {
       console.error(
         "Admin authentication failed:",
