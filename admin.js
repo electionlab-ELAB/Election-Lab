@@ -2,11 +2,13 @@ let state = {
   races: [],
   polls: [],
   candidates: [],
+  genericBallotPolls: [],
   settings: {},
   currentRaceId: null
 };
 
-const $ = selector => document.querySelector(selector);
+const $ = selector =>
+  document.querySelector(selector);
 
 const $$ = selector => [
   ...document.querySelectorAll(selector)
@@ -15,36 +17,52 @@ const $$ = selector => [
 const DEFAULT_SETTINGS = {
   senate_control_message:
     "Republicans are favored to retain control of the Senate",
+
   house_control_message:
     "Republicans are favored to retain control of the House"
 };
 
 function msg(text, type = "success") {
-  const notice = $("#adminMessage");
+  const notice =
+    $("#adminMessage");
 
   if (!notice) {
     console.log(text);
     return;
   }
 
-  notice.className = `notice ${type}`;
-  notice.textContent = text;
-  notice.style.display = "block";
+  notice.className =
+    `notice ${type}`;
+
+  notice.textContent =
+    text;
+
+  notice.style.display =
+    "block";
 
   setTimeout(() => {
-    notice.style.display = "none";
+    notice.style.display =
+      "none";
   }, 5000);
 }
 
 function adminOfficeLabel(office) {
-  if (office === "governor") return "Governor";
-  if (office === "house") return "U.S. House";
+  if (office === "governor") {
+    return "Governor";
+  }
+
+  if (office === "house") {
+    return "U.S. House";
+  }
+
   return "U.S. Senate";
 }
 
 async function requireAdmin() {
   if (!configured) {
-    location.href = "login.html";
+    location.href =
+      "login.html";
+
     return false;
   }
 
@@ -53,7 +71,9 @@ async function requireAdmin() {
   } = await sb.auth.getSession();
 
   if (!session) {
-    location.href = "login.html";
+    location.href =
+      "login.html";
+
     return false;
   }
 
@@ -65,14 +85,19 @@ async function requireAdmin() {
 
   if (error || !data) {
     await sb.auth.signOut();
-    location.href = "login.html";
+
+    location.href =
+      "login.html";
+
     return false;
   }
 
-  const emailBox = $("#adminEmail");
+  const emailBox =
+    $("#adminEmail");
 
   if (emailBox) {
-    emailBox.textContent = session.user.email;
+    emailBox.textContent =
+      session.user.email;
   }
 
   return true;
@@ -81,7 +106,9 @@ async function requireAdmin() {
 async function loadSettings() {
   const { data, error } = await sb
     .from("site_settings")
-    .select("setting_key, setting_value");
+    .select(
+      "setting_key, setting_value"
+    );
 
   if (error) {
     console.warn(
@@ -89,17 +116,23 @@ async function loadSettings() {
       error.message
     );
 
-    return { ...DEFAULT_SETTINGS };
+    return {
+      ...DEFAULT_SETTINGS
+    };
   }
 
   return {
     ...DEFAULT_SETTINGS,
-    ...(data || []).reduce((settings, row) => {
-      settings[row.setting_key] =
-        row.setting_value;
 
-      return settings;
-    }, {})
+    ...(data || []).reduce(
+      (settings, row) => {
+        settings[row.setting_key] =
+          row.setting_value;
+
+        return settings;
+      },
+      {}
+    )
   };
 }
 
@@ -108,6 +141,7 @@ async function reloadAll() {
     raceResult,
     candidateResult,
     pollResult,
+    genericBallotResult,
     settingsResult
   ] = await Promise.all([
     sb
@@ -123,7 +157,18 @@ async function reloadAll() {
     sb
       .from("polls")
       .select("*")
-      .order("end_date", { ascending: false }),
+      .order(
+        "end_date",
+        { ascending: false }
+      ),
+
+    sb
+      .from("generic_ballot_polls")
+      .select("*")
+      .order(
+        "end_date",
+        { ascending: false }
+      ),
 
     loadSettings()
   ]);
@@ -131,33 +176,53 @@ async function reloadAll() {
   if (
     raceResult.error ||
     candidateResult.error ||
-    pollResult.error
+    pollResult.error ||
+    genericBallotResult.error
   ) {
     throw (
       raceResult.error ||
       candidateResult.error ||
-      pollResult.error
+      pollResult.error ||
+      genericBallotResult.error
     );
   }
 
-  state.races = raceResult.data || [];
-  state.candidates = candidateResult.data || [];
-  state.polls = pollResult.data || [];
-  state.settings = settingsResult;
+  state.races =
+    raceResult.data || [];
+
+  state.candidates =
+    candidateResult.data || [];
+
+  state.polls =
+    pollResult.data || [];
+
+  state.genericBallotPolls =
+    genericBallotResult.data || [];
+
+  state.settings =
+    settingsResult;
 
   renderDashboard();
   renderWebsiteSettings();
   renderRaces();
   renderCandidates();
   renderPolls();
+  renderGenericBallotPolls();
   populateRaceSelects();
 }
 
 function renderDashboard() {
-  const statRaces = $("#statRaces");
-  const statPublished = $("#statPublished");
-  const statCandidates = $("#statCandidates");
-  const statPolls = $("#statPolls");
+  const statRaces =
+    $("#statRaces");
+
+  const statPublished =
+    $("#statPublished");
+
+  const statCandidates =
+    $("#statCandidates");
+
+  const statPolls =
+    $("#statPolls");
 
   if (statRaces) {
     statRaces.textContent =
@@ -167,7 +232,9 @@ function renderDashboard() {
   if (statPublished) {
     statPublished.textContent =
       state.races.filter(
-        race => race.status === "published"
+        race =>
+          race.status ===
+          "published"
       ).length;
   }
 
@@ -191,18 +258,24 @@ function renderWebsiteSettings() {
 
   if (senateInput) {
     senateInput.value =
-      state.settings.senate_control_message ||
-      DEFAULT_SETTINGS.senate_control_message;
+      state.settings
+        .senate_control_message ||
+      DEFAULT_SETTINGS
+        .senate_control_message;
   }
 
   if (houseInput) {
     houseInput.value =
-      state.settings.house_control_message ||
-      DEFAULT_SETTINGS.house_control_message;
+      state.settings
+        .house_control_message ||
+      DEFAULT_SETTINGS
+        .house_control_message;
   }
 }
 
-async function saveHomepageSettings(event) {
+async function saveHomepageSettings(
+  event
+) {
   event.preventDefault();
 
   const senateInput =
@@ -211,11 +284,15 @@ async function saveHomepageSettings(event) {
   const houseInput =
     $("#homepageHouse");
 
-  if (!senateInput || !houseInput) {
+  if (
+    !senateInput ||
+    !houseInput
+  ) {
     msg(
       "The homepage settings inputs could not be found.",
       "error"
     );
+
     return;
   }
 
@@ -225,11 +302,15 @@ async function saveHomepageSettings(event) {
   const houseMessage =
     houseInput.value.trim();
 
-  if (!senateMessage || !houseMessage) {
+  if (
+    !senateMessage ||
+    !houseMessage
+  ) {
     msg(
       "Both homepage control messages are required.",
       "error"
     );
+
     return;
   }
 
@@ -237,16 +318,21 @@ async function saveHomepageSettings(event) {
     {
       setting_key:
         "senate_control_message",
+
       setting_value:
         senateMessage,
+
       updated_at:
         new Date().toISOString()
     },
+
     {
       setting_key:
         "house_control_message",
+
       setting_value:
         houseMessage,
+
       updated_at:
         new Date().toISOString()
     }
@@ -254,26 +340,39 @@ async function saveHomepageSettings(event) {
 
   const { error } = await sb
     .from("site_settings")
-    .upsert(rows, {
-      onConflict: "setting_key"
-    });
+    .upsert(
+      rows,
+      {
+        onConflict:
+          "setting_key"
+      }
+    );
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
-  state.settings.senate_control_message =
+  state.settings
+    .senate_control_message =
     senateMessage;
 
-  state.settings.house_control_message =
+  state.settings
+    .house_control_message =
     houseMessage;
 
-  msg("Homepage forecasts saved.");
+  msg(
+    "Homepage forecasts saved."
+  );
 }
 
 function renderRaces() {
-  const body = $("#racesBody");
+  const body =
+    $("#racesBody");
 
   if (!body) return;
 
@@ -281,46 +380,75 @@ function renderRaces() {
     state.races
       .map(race => {
         const margin =
-          Number(race.projected_margin || 0);
+          Number(
+            race.projected_margin || 0
+          );
 
         return `
           <tr>
             <td>
-              <b>${escapeHtml(race.title)}</b>
+              <b>
+                ${escapeHtml(
+                  race.title || ""
+                )}
+              </b>
+
               <br>
-              <small>${escapeHtml(race.slug)}</small>
+
+              <small>
+                ${escapeHtml(
+                  race.slug || ""
+                )}
+              </small>
             </td>
 
             <td>
               ${escapeHtml(
-                adminOfficeLabel(race.office)
+                adminOfficeLabel(
+                  race.office
+                )
               )}
             </td>
 
             <td>
-              ${escapeHtml(race.rating)}
+              ${escapeHtml(
+                race.rating ||
+                  "Toss-up"
+              )}
             </td>
 
             <td>
-              ${margin >= 0 ? "D +" : "R +"}
-              ${Math.abs(margin).toFixed(1)}
+              ${
+                margin >= 0
+                  ? "D +"
+                  : "R +"
+              }
+
+              ${Math.abs(
+                margin
+              ).toFixed(1)}
             </td>
 
             <td>
               <span
                 class="badge ${
-                  race.status === "published"
+                  race.status ===
+                  "published"
                     ? "green"
                     : "gold"
                 }"
               >
-                ${escapeHtml(race.status)}
+                ${escapeHtml(
+                  race.status ||
+                    "draft"
+                )}
               </span>
             </td>
 
             <td>
               <button
                 class="btn light"
+                type="button"
                 onclick="editRace('${race.id}')"
               >
                 Edit
@@ -328,6 +456,7 @@ function renderRaces() {
 
               <button
                 class="btn red"
+                type="button"
                 onclick="deleteRace('${race.id}')"
               >
                 Delete
@@ -339,7 +468,10 @@ function renderRaces() {
       .join("") ||
     `
       <tr>
-        <td colspan="6" class="empty">
+        <td
+          colspan="6"
+          class="empty"
+        >
           No races yet.
         </td>
       </tr>
@@ -347,40 +479,54 @@ function renderRaces() {
 }
 
 function renderCandidates() {
-  const body = $("#candidatesBody");
+  const body =
+    $("#candidatesBody");
 
   if (!body) return;
 
   body.innerHTML =
     state.candidates
       .map(candidate => {
-        const race = state.races.find(
-          item => item.id === candidate.race_id
-        );
+        const race =
+          state.races.find(
+            item =>
+              item.id ===
+              candidate.race_id
+          );
 
         return `
           <tr>
             <td>
-              <b>${escapeHtml(candidate.name)}</b>
+              <b>
+                ${escapeHtml(
+                  candidate.name || ""
+                )}
+              </b>
             </td>
 
             <td>
-              ${escapeHtml(race?.title || "—")}
+              ${escapeHtml(
+                race?.title || "—"
+              )}
             </td>
 
             <td>
-              ${escapeHtml(candidate.party)}
+              ${escapeHtml(
+                candidate.party || ""
+              )}
             </td>
 
             <td>
               ${Number(
-                candidate.win_probability || 0
+                candidate
+                  .win_probability || 0
               ).toFixed(1)}%
             </td>
 
             <td>
               <button
                 class="btn light"
+                type="button"
                 onclick="editCandidate('${candidate.id}')"
               >
                 Edit
@@ -388,6 +534,7 @@ function renderCandidates() {
 
               <button
                 class="btn red"
+                type="button"
                 onclick="deleteCandidate('${candidate.id}')"
               >
                 Delete
@@ -399,7 +546,10 @@ function renderCandidates() {
       .join("") ||
     `
       <tr>
-        <td colspan="5" class="empty">
+        <td
+          colspan="5"
+          class="empty"
+        >
           No candidates yet.
         </td>
       </tr>
@@ -407,57 +557,86 @@ function renderCandidates() {
 }
 
 function renderPolls() {
-  const body = $("#pollsBody");
+  const body =
+    $("#pollsBody");
 
   if (!body) return;
 
   body.innerHTML =
     state.polls
       .map(poll => {
-        const race = state.races.find(
-          item => item.id === poll.race_id
-        );
+        const race =
+          state.races.find(
+            item =>
+              item.id ===
+              poll.race_id
+          );
 
         return `
           <tr>
             <td>
-              <b>${escapeHtml(poll.pollster)}</b>
+              <b>
+                ${escapeHtml(
+                  poll.pollster || ""
+                )}
+              </b>
             </td>
 
             <td>
-              ${escapeHtml(race?.title || "—")}
+              ${escapeHtml(
+                race?.title || "—"
+              )}
             </td>
 
             <td>
-              ${fmtDate(poll.end_date)}
+              ${fmtDate(
+                poll.end_date
+              )}
             </td>
 
             <td>
-              ${poll.sample_size || "—"}
-              ${escapeHtml(poll.population || "")}
+              ${
+                poll.sample_size ||
+                "—"
+              }
+
+              ${escapeHtml(
+                poll.population || ""
+              )}
             </td>
 
             <td>
-              D ${Number(poll.dem_pct || 0).toFixed(1)}
+              D ${Number(
+                poll.dem_pct || 0
+              ).toFixed(1)}
+
               /
-              R ${Number(poll.rep_pct || 0).toFixed(1)}
+
+              R ${Number(
+                poll.rep_pct || 0
+              ).toFixed(1)}
             </td>
 
             <td>
               <span
                 class="badge ${
-                  poll.status === "published"
+                  poll.status ===
+                  "published"
                     ? "green"
                     : "gold"
                 }"
               >
-                ${escapeHtml(poll.status)}
+                ${escapeHtml(
+                  poll.status ||
+                    "draft"
+                )}
               </span>
             </td>
 
             <td>
               <button
                 class="btn light"
+                type="button"
                 onclick="editPoll('${poll.id}')"
               >
                 Edit
@@ -465,6 +644,7 @@ function renderPolls() {
 
               <button
                 class="btn red"
+                type="button"
                 onclick="deletePoll('${poll.id}')"
               >
                 Delete
@@ -476,8 +656,256 @@ function renderPolls() {
       .join("") ||
     `
       <tr>
-        <td colspan="7" class="empty">
-          No polls yet.
+        <td
+          colspan="7"
+          class="empty"
+        >
+          No race polls yet.
+        </td>
+      </tr>
+    `;
+}
+
+function genericBallotAverage(
+  polls
+) {
+  const published =
+    polls.filter(
+      poll =>
+        poll.status ===
+        "published"
+    );
+
+  if (!published.length) {
+    return null;
+  }
+
+  let demTotal = 0;
+  let repTotal = 0;
+  let totalWeight = 0;
+
+  published.forEach(poll => {
+    const sampleWeight =
+      Math.sqrt(
+        Math.max(
+          1,
+          Number(
+            poll.sample_size || 1
+          )
+        )
+      );
+
+    const qualityWeight =
+      Number(
+        poll.quality_weight || 1
+      );
+
+    const weight =
+      sampleWeight *
+      qualityWeight;
+
+    demTotal +=
+      Number(
+        poll.dem_pct || 0
+      ) * weight;
+
+    repTotal +=
+      Number(
+        poll.rep_pct || 0
+      ) * weight;
+
+    totalWeight +=
+      weight;
+  });
+
+  if (!totalWeight) {
+    return null;
+  }
+
+  const dem =
+    demTotal / totalWeight;
+
+  const rep =
+    repTotal / totalWeight;
+
+  return {
+    dem,
+    rep,
+    margin:
+      dem - rep
+  };
+}
+
+function renderGenericBallotPolls() {
+  const body =
+    $("#genericBallotBody");
+
+  if (!body) return;
+
+  const average =
+    genericBallotAverage(
+      state.genericBallotPolls
+    );
+
+  const demBox =
+    $("#genericAverageDem");
+
+  const repBox =
+    $("#genericAverageRep");
+
+  const marginBox =
+    $("#genericAverageMargin");
+
+  if (average) {
+    if (demBox) {
+      demBox.textContent =
+        `${average.dem.toFixed(1)}%`;
+    }
+
+    if (repBox) {
+      repBox.textContent =
+        `${average.rep.toFixed(1)}%`;
+    }
+
+    if (marginBox) {
+      marginBox.textContent =
+        `${
+          average.margin >= 0
+            ? "D +"
+            : "R +"
+        }${Math.abs(
+          average.margin
+        ).toFixed(1)} generic ballot average`;
+    }
+  } else {
+    if (demBox) {
+      demBox.textContent =
+        "—%";
+    }
+
+    if (repBox) {
+      repBox.textContent =
+        "—%";
+    }
+
+    if (marginBox) {
+      marginBox.textContent =
+        "Add published polls to calculate an average.";
+    }
+  }
+
+  body.innerHTML =
+    state.genericBallotPolls
+      .map(poll => {
+        const margin =
+          Number(
+            poll.dem_pct || 0
+          ) -
+          Number(
+            poll.rep_pct || 0
+          );
+
+        return `
+          <tr>
+            <td>
+              <b>
+                ${escapeHtml(
+                  poll.pollster || ""
+                )}
+              </b>
+            </td>
+
+            <td>
+              ${fmtDate(
+                poll.start_date
+              )}
+              –
+              ${fmtDate(
+                poll.end_date
+              )}
+            </td>
+
+            <td>
+              ${
+                poll.sample_size ||
+                "—"
+              }
+
+              ${escapeHtml(
+                poll.population || ""
+              )}
+            </td>
+
+            <td>
+              ${Number(
+                poll.dem_pct || 0
+              ).toFixed(1)}
+            </td>
+
+            <td>
+              ${Number(
+                poll.rep_pct || 0
+              ).toFixed(1)}
+            </td>
+
+            <td>
+              <b>
+                ${
+                  margin >= 0
+                    ? "D +"
+                    : "R +"
+                }
+
+                ${Math.abs(
+                  margin
+                ).toFixed(1)}
+              </b>
+            </td>
+
+            <td>
+              <span
+                class="badge ${
+                  poll.status ===
+                  "published"
+                    ? "green"
+                    : "gold"
+                }"
+              >
+                ${escapeHtml(
+                  poll.status ||
+                    "draft"
+                )}
+              </span>
+            </td>
+
+            <td>
+              <button
+                class="btn light"
+                type="button"
+                onclick="editGenericBallotPoll('${poll.id}')"
+              >
+                Edit
+              </button>
+
+              <button
+                class="btn red"
+                type="button"
+                onclick="deleteGenericBallotPoll('${poll.id}')"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      })
+      .join("") ||
+    `
+      <tr>
+        <td
+          colspan="8"
+          class="empty"
+        >
+          No generic ballot polls yet.
         </td>
       </tr>
     `;
@@ -489,12 +917,17 @@ function populateRaceSelects() {
     state.races
       .map(race => {
         const label =
-          adminOfficeLabel(race.office);
+          adminOfficeLabel(
+            race.office
+          );
 
         return `
           <option value="${race.id}">
-            ${escapeHtml(race.title)}
-            — ${escapeHtml(label)}
+            ${escapeHtml(
+              race.title || ""
+            )}
+            —
+            ${escapeHtml(label)}
           </option>
         `;
       })
@@ -507,15 +940,18 @@ function populateRaceSelects() {
     $("#pollRace");
 
   if (candidateRace) {
-    candidateRace.innerHTML = options;
+    candidateRace.innerHTML =
+      options;
   }
 
   if (pollRace) {
-    pollRace.innerHTML = options;
+    pollRace.innerHTML =
+      options;
   }
 }
 function openModal(id) {
-  const modal = $("#" + id);
+  const modal =
+    $("#" + id);
 
   if (modal) {
     modal.classList.add("open");
@@ -523,7 +959,8 @@ function openModal(id) {
 }
 
 function closeModal(id) {
-  const modal = $("#" + id);
+  const modal =
+    $("#" + id);
 
   if (modal) {
     modal.classList.remove("open");
@@ -532,7 +969,9 @@ function closeModal(id) {
 
 function editRace(id = "") {
   const race =
-    state.races.find(item => item.id === id) || {};
+    state.races.find(
+      item => item.id === id
+    ) || {};
 
   $("#raceId").value =
     race.id || "";
@@ -570,16 +1009,24 @@ function editRace(id = "") {
 async function saveRace(event) {
   event.preventDefault();
 
-  const id = $("#raceId").value;
-  const office = $("#raceOffice").value;
+  const id =
+    $("#raceId").value;
+
+  const office =
+    $("#raceOffice").value;
 
   const row = {
     office,
+
     state:
-      $("#raceState").value.trim(),
+      $("#raceState")
+        .value
+        .trim(),
 
     title:
-      $("#raceTitle").value.trim(),
+      $("#raceTitle")
+        .value
+        .trim(),
 
     slug:
       $("#raceSlug")
@@ -592,7 +1039,9 @@ async function saveRace(event) {
       $("#raceRating").value,
 
     projected_margin:
-      Number($("#raceMargin").value),
+      Number(
+        $("#raceMargin").value
+      ),
 
     featured:
       $("#raceFeatured").checked,
@@ -601,7 +1050,9 @@ async function saveRace(event) {
       $("#raceStatus").value,
 
     summary:
-      $("#raceSummary").value.trim(),
+      $("#raceSummary")
+        .value
+        .trim(),
 
     updated_at:
       new Date().toISOString()
@@ -619,7 +1070,11 @@ async function saveRace(event) {
   const { error } = await query;
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
@@ -628,14 +1083,17 @@ async function saveRace(event) {
   await reloadAll();
 
   msg(
-    `${adminOfficeLabel(office)} race saved.`
+    `${adminOfficeLabel(
+      office
+    )} race saved.`
   );
 }
 
 async function deleteRace(id) {
-  const confirmed = confirm(
-    "Delete this race and all attached candidates and polls?"
-  );
+  const confirmed =
+    confirm(
+      "Delete this race and all attached candidates and polls?"
+    );
 
   if (!confirmed) return;
 
@@ -645,7 +1103,11 @@ async function deleteRace(id) {
     .eq("id", id);
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
@@ -673,7 +1135,9 @@ function editCandidate(id = "") {
     candidate.party || "D";
 
   $("#candidateIncumbent").checked =
-    Boolean(candidate.incumbent);
+    Boolean(
+      candidate.incumbent
+    );
 
   $("#candidateProb").value =
     candidate.win_probability ?? 50;
@@ -698,7 +1162,9 @@ async function saveCandidate(event) {
       $("#candidateRace").value,
 
     name:
-      $("#candidateName").value.trim(),
+      $("#candidateName")
+        .value
+        .trim(),
 
     party:
       $("#candidateParty").value,
@@ -707,14 +1173,19 @@ async function saveCandidate(event) {
       $("#candidateIncumbent").checked,
 
     win_probability:
-      Number($("#candidateProb").value),
+      Number(
+        $("#candidateProb").value
+      ),
 
     expected_vote_share:
-      Number($("#candidateVote").value),
+      Number(
+        $("#candidateVote").value
+      ),
 
     photo_url:
-      $("#candidatePhoto").value.trim() ||
-      null
+      $("#candidatePhoto")
+        .value
+        .trim() || null
   };
 
   const query = id
@@ -729,7 +1200,11 @@ async function saveCandidate(event) {
   const { error } = await query;
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
@@ -741,7 +1216,11 @@ async function saveCandidate(event) {
 }
 
 async function deleteCandidate(id) {
-  if (!confirm("Delete this candidate?")) {
+  if (
+    !confirm(
+      "Delete this candidate?"
+    )
+  ) {
     return;
   }
 
@@ -751,7 +1230,11 @@ async function deleteCandidate(id) {
     .eq("id", id);
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
@@ -762,7 +1245,9 @@ async function deleteCandidate(id) {
 
 function editPoll(id = "") {
   const poll =
-    state.polls.find(item => item.id === id) || {};
+    state.polls.find(
+      item => item.id === id
+    ) || {};
 
   $("#pollId").value =
     poll.id || "";
@@ -811,7 +1296,9 @@ async function savePoll(event) {
       $("#pollRace").value,
 
     pollster:
-      $("#pollster").value.trim(),
+      $("#pollster")
+        .value
+        .trim(),
 
     start_date:
       $("#pollStart").value,
@@ -820,19 +1307,27 @@ async function savePoll(event) {
       $("#pollEnd").value,
 
     sample_size:
-      Number($("#pollSample").value),
+      Number(
+        $("#pollSample").value
+      ),
 
     population:
       $("#pollPopulation").value,
 
     dem_pct:
-      Number($("#pollDem").value),
+      Number(
+        $("#pollDem").value
+      ),
 
     rep_pct:
-      Number($("#pollRep").value),
+      Number(
+        $("#pollRep").value
+      ),
 
     quality_weight:
-      Number($("#pollQuality").value),
+      Number(
+        $("#pollQuality").value
+      ),
 
     status:
       $("#pollStatus").value
@@ -850,7 +1345,11 @@ async function savePoll(event) {
   const { error } = await query;
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
@@ -859,12 +1358,16 @@ async function savePoll(event) {
   await reloadAll();
 
   msg(
-    "Poll saved. Published polling averages recalculate automatically."
+    "Race poll saved."
   );
 }
 
 async function deletePoll(id) {
-  if (!confirm("Delete this poll?")) {
+  if (
+    !confirm(
+      "Delete this race poll?"
+    )
+  ) {
     return;
   }
 
@@ -874,13 +1377,187 @@ async function deletePoll(id) {
     .eq("id", id);
 
   if (error) {
-    msg(error.message, "error");
+    msg(
+      error.message,
+      "error"
+    );
+
     return;
   }
 
   await reloadAll();
 
-  msg("Poll deleted.");
+  msg("Race poll deleted.");
+}
+
+function editGenericBallotPoll(
+  id = ""
+) {
+  const poll =
+    state.genericBallotPolls.find(
+      item => item.id === id
+    ) || {};
+
+  $("#genericBallotId").value =
+    poll.id || "";
+
+  $("#genericBallotPollster").value =
+    poll.pollster || "";
+
+  $("#genericBallotPopulation").value =
+    poll.population || "LV";
+
+  $("#genericBallotStart").value =
+    poll.start_date || "";
+
+  $("#genericBallotEnd").value =
+    poll.end_date || "";
+
+  $("#genericBallotSample").value =
+    poll.sample_size || 800;
+
+  $("#genericBallotQuality").value =
+    poll.quality_weight ?? 1;
+
+  $("#genericBallotDem").value =
+    poll.dem_pct ?? 48;
+
+  $("#genericBallotRep").value =
+    poll.rep_pct ?? 48;
+
+  $("#genericBallotStatus").value =
+    poll.status || "draft";
+
+  openModal(
+    "genericBallotModal"
+  );
+}
+
+async function saveGenericBallotPoll(
+  event
+) {
+  event.preventDefault();
+
+  const id =
+    $("#genericBallotId").value;
+
+  const row = {
+    pollster:
+      $("#genericBallotPollster")
+        .value
+        .trim(),
+
+    population:
+      $("#genericBallotPopulation")
+        .value,
+
+    start_date:
+      $("#genericBallotStart")
+        .value,
+
+    end_date:
+      $("#genericBallotEnd")
+        .value,
+
+    sample_size:
+      Number(
+        $("#genericBallotSample")
+          .value
+      ),
+
+    quality_weight:
+      Number(
+        $("#genericBallotQuality")
+          .value
+      ),
+
+    dem_pct:
+      Number(
+        $("#genericBallotDem")
+          .value
+      ),
+
+    rep_pct:
+      Number(
+        $("#genericBallotRep")
+          .value
+      ),
+
+    status:
+      $("#genericBallotStatus")
+        .value,
+
+    updated_at:
+      new Date().toISOString()
+  };
+
+  const query = id
+    ? sb
+        .from(
+          "generic_ballot_polls"
+        )
+        .update(row)
+        .eq("id", id)
+    : sb
+        .from(
+          "generic_ballot_polls"
+        )
+        .insert(row);
+
+  const { error } = await query;
+
+  if (error) {
+    msg(
+      error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  closeModal(
+    "genericBallotModal"
+  );
+
+  await reloadAll();
+
+  msg(
+    "Generic ballot poll saved."
+  );
+}
+
+async function deleteGenericBallotPoll(
+  id
+) {
+  if (
+    !confirm(
+      "Delete this generic ballot poll?"
+    )
+  ) {
+    return;
+  }
+
+  const { error } = await sb
+    .from(
+      "generic_ballot_polls"
+    )
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    msg(
+      error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  await reloadAll();
+
+  msg(
+    "Generic ballot poll deleted."
+  );
 }
 
 document.addEventListener(
@@ -888,43 +1565,69 @@ document.addEventListener(
   async () => {
     if (!$("#adminApp")) return;
 
-    if (!(await requireAdmin())) return;
+    try {
+      const allowed =
+        await requireAdmin();
 
-    $$(".sidebar button[data-panel]").forEach(
-      button => {
-        button.onclick = () => {
-          $$(".sidebar button").forEach(
-            item => {
-              item.classList.remove("active");
-            }
-          );
+      if (!allowed) return;
+    } catch (error) {
+      console.error(
+        "Admin authentication failed:",
+        error
+      );
 
-          button.classList.add("active");
+      location.href =
+        "login.html";
 
-          $$(".adminPanel").forEach(
-            panel => {
-              panel.classList.remove("active");
-            }
-          );
+      return;
+    }
 
-          const targetPanel =
-            $("#" + button.dataset.panel);
-
-          if (targetPanel) {
-            targetPanel.classList.add("active");
+    $$(
+      ".sidebar button[data-panel]"
+    ).forEach(button => {
+      button.onclick = () => {
+        $$(".sidebar button").forEach(
+          item => {
+            item.classList.remove(
+              "active"
+            );
           }
-        };
-      }
-    );
+        );
+
+        button.classList.add(
+          "active"
+        );
+
+        $$(".adminPanel").forEach(
+          panel => {
+            panel.classList.remove(
+              "active"
+            );
+          }
+        );
+
+        const targetPanel =
+          $("#" + button.dataset.panel);
+
+        if (targetPanel) {
+          targetPanel.classList.add(
+            "active"
+          );
+        }
+      };
+    });
 
     const logoutButton =
       $("#logout");
 
     if (logoutButton) {
-      logoutButton.onclick = async () => {
-        await sb.auth.signOut();
-        location.href = "login.html";
-      };
+      logoutButton.onclick =
+        async () => {
+          await sb.auth.signOut();
+
+          location.href =
+            "login.html";
+        };
     }
 
     const raceForm =
@@ -938,6 +1641,9 @@ document.addEventListener(
 
     const homepageSettingsForm =
       $("#homepageSettingsForm");
+
+    const genericBallotForm =
+      $("#genericBallotForm");
 
     if (raceForm) {
       raceForm.onsubmit =
@@ -959,22 +1665,54 @@ document.addEventListener(
         saveHomepageSettings;
     }
 
+    if (genericBallotForm) {
+      genericBallotForm.onsubmit =
+        saveGenericBallotPoll;
+    }
+
     try {
       await reloadAll();
     } catch (error) {
-      msg(error.message, "error");
+      console.error(
+        "Admin data failed to load:",
+        error
+      );
+
+      msg(
+        error.message ||
+          "Unable to load admin data.",
+        "error"
+      );
     }
   }
 );
 
-window.editRace = editRace;
-window.deleteRace = deleteRace;
+window.editRace =
+  editRace;
 
-window.editCandidate = editCandidate;
-window.deleteCandidate = deleteCandidate;
+window.deleteRace =
+  deleteRace;
 
-window.editPoll = editPoll;
-window.deletePoll = deletePoll;
+window.editCandidate =
+  editCandidate;
 
-window.openModal = openModal;
-window.closeModal = closeModal;
+window.deleteCandidate =
+  deleteCandidate;
+
+window.editPoll =
+  editPoll;
+
+window.deletePoll =
+  deletePoll;
+
+window.editGenericBallotPoll =
+  editGenericBallotPoll;
+
+window.deleteGenericBallotPoll =
+  deleteGenericBallotPoll;
+
+window.openModal =
+  openModal;
+
+window.closeModal =
+  closeModal;
