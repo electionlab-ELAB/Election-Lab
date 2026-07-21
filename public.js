@@ -756,3 +756,12 @@ document.addEventListener(
     loadRace();
   }
 );
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    loadHomepageSettings();
+    loadHome();
+    loadRaceGrid();
+    loadRace();
+  }
+);
