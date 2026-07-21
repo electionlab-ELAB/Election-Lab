@@ -746,22 +746,13 @@ async function loadRace() {
     </section>
   `;
 }
-
 document.addEventListener(
   "DOMContentLoaded",
   () => {
     loadHomepageSettings();
     loadHome();
     loadRaceGrid();
-    loadRace();
-  }
-);
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-    loadHomepageSettings();
-    loadHome();
-    loadRaceGrid();
+    loadHouseHexMap();
     loadRace();
   }
 );
