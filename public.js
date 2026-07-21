@@ -1093,3 +1093,40 @@ document.addEventListener(
     });
   }
 );
+async function loadGenericBallot() {
+  const box = document.querySelector("#genericBallotPolls");
+
+  if (!box || !configured) return;
+
+  try {
+    const { data: polls, error } = await sb
+      .from("polls")
+      .select("*")
+      .eq("poll_type", "generic_ballot")
+      .eq("status", "published")
+      .order("end_date", { ascending: false });
+
+    if (error) throw error;
+
+    const average = weightedAverage(polls || []);
+
+    box.innerHTML = average
+      ? `
+        <div class="bigProb">
+          ${average.margin >= 0 ? "D +" : "R +"}
+          ${Math.abs(average.margin).toFixed(1)}
+        </div>
+
+        <div class="raceMeta">
+          <b>D ${average.dem.toFixed(1)}%</b>
+          <b>R ${average.rep.toFixed(1)}%</b>
+        </div>
+      `
+      : `<div class="empty">No published generic-ballot polls yet.</div>`;
+  } catch (error) {
+    console.error("Generic ballot failed:", error);
+
+    box.innerHTML =
+      `<div class="empty">${escapeHtml(error.message)}</div>`;
+  }
+}
