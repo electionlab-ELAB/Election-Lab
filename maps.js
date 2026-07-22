@@ -1,23 +1,25 @@
 /*
   ElectionLab Maps
   ----------------
-  - Real U.S. state maps for Senate and Governors
-  - U.S.-shaped 435-seat hex map for the House
-  - Correct state-to-race navigation
+  Clean rebuild:
+  - Senate state map
+  - Governor state map
+  - House district hex cartogram
+  - Visible error messages instead of endless loading
 */
 
-const MAP_DEPENDENCIES = {
+const MAP_ASSETS = {
   d3:
     "https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js",
 
   topojson:
     "https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js",
 
-  atlas:
+  states:
     "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"
 };
 
-const STATE_FIPS_TO_CODE = {
+const STATE_FIPS = {
   "01": "AL",
   "02": "AK",
   "04": "AZ",
@@ -125,66 +127,81 @@ const STATE_NAMES = {
   WY: "Wyoming"
 };
 
-const MAP_RATING_CLASSES = [
-  "map-dem-safe",
-  "map-dem-likely",
-  "map-dem-lean",
-  "map-dem-tilt",
-  "map-tossup",
-  "map-rep-tilt",
-  "map-rep-lean",
-  "map-rep-likely",
-  "map-rep-safe",
-  "map-no-race",
-  "map-not-up",
-  "map-unrated"
-];
-
 document.addEventListener(
   "DOMContentLoaded",
-  async () => {
-    const pageType =
-      document.body.dataset.raceType;
-
-    try {
-      if (
-        pageType === "senate"
-      ) {
-        await initializeStateMap(
-          "senateMap",
-          "senate"
-        );
-      }
-
-      if (
-        pageType === "governor"
-      ) {
-        await initializeStateMap(
-          "governorMap",
-          "governor"
-        );
-      }
-
-      if (
-        pageType === "house"
-      ) {
-        await initializeHouseMap();
-      }
-    } catch (error) {
-      console.error(
-        "Election map failed:",
-        error
-      );
-
-      showMapError(
-        pageType,
-        error
-      );
-    }
-  }
+  startElectionMap
 );
 
-function loadScriptOnce(
+async function startElectionMap() {
+  const pageType =
+    String(
+      document.body.dataset.raceType || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  try {
+    if (pageType === "house") {
+      await initializeHouseMap();
+      return;
+    }
+
+    if (pageType === "senate") {
+      await initializeStateMap(
+        "senateMap",
+        "senate"
+      );
+      return;
+    }
+
+    if (pageType === "governor") {
+      await initializeStateMap(
+        "governorMap",
+        "governor"
+      );
+    }
+  } catch (error) {
+    console.error(
+      "ElectionLab map error:",
+      error
+    );
+
+    showMapError(
+      pageType,
+      error
+    );
+  }
+}
+
+function withTimeout(
+  promise,
+  milliseconds,
+  message
+) {
+  return Promise.race([
+    promise,
+
+    new Promise(
+      (
+        resolve,
+        reject
+      ) => {
+        window.setTimeout(
+          () => {
+            reject(
+              new Error(
+                message
+              )
+            );
+          },
+          milliseconds
+        );
+      }
+    )
+  ]);
+}
+
+function loadExternalScript(
   src,
   globalName
 ) {
@@ -202,7 +219,10 @@ function loadScriptOnce(
 
   if (existing) {
     return new Promise(
-      (resolve, reject) => {
+      (
+        resolve,
+        reject
+      ) => {
         if (
           globalName &&
           window[globalName]
@@ -214,20 +234,33 @@ function loadScriptOnce(
         existing.addEventListener(
           "load",
           resolve,
-          { once: true }
+          {
+            once: true
+          }
         );
 
         existing.addEventListener(
           "error",
-          reject,
-          { once: true }
+          () => {
+            reject(
+              new Error(
+                `Could not load ${src}`
+              )
+            );
+          },
+          {
+            once: true
+          }
         );
       }
     );
   }
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
       const script =
         document.createElement(
           "script"
@@ -236,15 +269,27 @@ function loadScriptOnce(
       script.src = src;
       script.async = true;
 
-      script.onload = resolve;
+      script.addEventListener(
+        "load",
+        resolve,
+        {
+          once: true
+        }
+      );
 
-      script.onerror = () => {
-        reject(
-          new Error(
-            `Unable to load ${src}`
-          )
-        );
-      };
+      script.addEventListener(
+        "error",
+        () => {
+          reject(
+            new Error(
+              `Could not load ${src}`
+            )
+          );
+        },
+        {
+          once: true
+        }
+      );
 
       document.head.appendChild(
         script
@@ -253,67 +298,62 @@ function loadScriptOnce(
   );
 }
 
-async function loadMapDependencies() {
-  await loadScriptOnce(
-    MAP_DEPENDENCIES.d3,
-    "d3"
+async function loadStateMapLibraries() {
+  await withTimeout(
+    loadExternalScript(
+      MAP_ASSETS.d3,
+      "d3"
+    ),
+    10000,
+    "D3 took too long to load."
   );
 
-  await loadScriptOnce(
-    MAP_DEPENDENCIES.topojson,
-    "topojson"
+  await withTimeout(
+    loadExternalScript(
+      MAP_ASSETS.topojson,
+      "topojson"
+    ),
+    10000,
+    "TopoJSON took too long to load."
   );
 }
-async function getStateAtlas() {
+
+async function fetchStateAtlas() {
   const response =
-    await fetch(
-      MAP_DEPENDENCIES.atlas
+    await withTimeout(
+      fetch(
+        MAP_ASSETS.states
+      ),
+      10000,
+      "The U.S. map data took too long to load."
     );
 
   if (!response.ok) {
     throw new Error(
-      "Unable to download the U.S. map data."
+      "The U.S. map data could not be downloaded."
     );
   }
 
   return response.json();
 }
 
-function stateCodeFromFeature(
-  feature
-) {
-  return (
-    STATE_FIPS_TO_CODE[
-      String(
-        feature.id
-      ).padStart(
-        2,
-        "0"
-      )
-    ] || ""
-  );
-}
-
 function normalizeOffice(
-  value
+  office
 ) {
-  const office =
+  const normalized =
     String(
-      value || ""
+      office || ""
     )
       .trim()
       .toLowerCase();
 
-  if (
-    office === "governors"
-  ) {
-    return "governor";
-  }
-
-  return office;
+  return normalized ===
+    "governors"
+    ? "governor"
+    : normalized;
 }
 
-async function getMapRaces(
+async function fetchMapRaces(
   office
 ) {
   const normalizedOffice =
@@ -322,30 +362,16 @@ async function getMapRaces(
     );
 
   if (
-    typeof getPublishedRaces ===
-    "function"
-  ) {
-    const races =
-      await getPublishedRaces(
-        normalizedOffice
-      );
-
-    return races || [];
-  }
-
-  if (
-    typeof sb === "undefined"
+    typeof sb === "undefined" ||
+    !sb
   ) {
     throw new Error(
-      "Supabase is not available."
+      "Supabase has not been initialized."
     );
   }
 
-  const {
-    data,
-    error
-  } =
-    await sb
+  const request =
+    sb
       .from("races")
       .select(
         "*,candidates(*)"
@@ -359,51 +385,58 @@ async function getMapRaces(
         normalizedOffice
       );
 
-  if (error) {
-    throw error;
+  const result =
+    await withTimeout(
+      request,
+      12000,
+      `Published ${normalizedOffice} races took too long to load.`
+    );
+
+  if (result.error) {
+    throw result.error;
   }
 
-  return data || [];
+  return Array.isArray(
+    result.data
+  )
+    ? result.data
+    : [];
 }
 
-function raceByState(
-  races
+function escapeMapHtml(
+  value
 ) {
-  return races.reduce(
-    (
-      lookup,
-      race
-    ) => {
-      const state =
-        String(
-          race.state || ""
-        )
-          .trim()
-          .toUpperCase();
-
-      if (
-        /^[A-Z]{2}$/.test(
-          state
-        )
-      ) {
-        lookup[
-          state
-        ] = race;
-      }
-
-      return lookup;
-    },
-    {}
-  );
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 }
 
-function mapClassForRace(
+function raceMapClass(
   race,
   office
 ) {
   if (!race) {
-    return office ===
-      "senate"
+    return office === "senate"
       ? "map-not-up"
       : "map-no-race";
   }
@@ -415,10 +448,16 @@ function mapClassForRace(
       .trim()
       .toLowerCase();
 
+  if (
+    rating.includes("toss") ||
+    rating.includes("tied")
+  ) {
+    return "map-tossup";
+  }
+
   const margin =
     Number(
-      race.projected_margin ||
-        0
+      race.projected_margin || 0
     );
 
   const party =
@@ -426,69 +465,142 @@ function mapClassForRace(
       ? "dem"
       : "rep";
 
-  if (
-    rating.includes(
-      "toss"
-    ) ||
-    rating.includes(
-      "tied"
-    )
-  ) {
-    return "map-tossup";
-  }
-
-  if (
-    rating.includes(
-      "safe"
-    )
-  ) {
+  if (rating.includes("safe")) {
     return `map-${party}-safe`;
   }
 
   if (
-    rating.includes(
-      "likely"
-    ) ||
-    rating.includes(
-      "likley"
-    )
+    rating.includes("likely") ||
+    rating.includes("likley")
   ) {
     return `map-${party}-likely`;
   }
 
-  if (
-    rating.includes(
-      "lean"
-    )
-  ) {
+  if (rating.includes("lean")) {
     return `map-${party}-lean`;
   }
 
-  if (
-    rating.includes(
-      "tilt"
-    )
-  ) {
+  if (rating.includes("tilt")) {
     return `map-${party}-tilt`;
   }
 
   return "map-tossup";
 }
-
-function readableRating(
-  race,
-  office
+function raceByState(
+  races
 ) {
-  if (!race) {
-    return office ===
-      "senate"
-      ? "Not up in 2026"
-      : "No published forecast";
+  return races.reduce(
+    (
+      lookup,
+      race
+    ) => {
+      const state =
+        normalizeStateCode(
+          race
+        );
+
+      if (state) {
+        lookup[state] =
+          race;
+      }
+
+      return lookup;
+    },
+    {}
+  );
+}
+
+function normalizeStateCode(
+  race
+) {
+  const rawState =
+    String(
+      race?.state || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  if (
+    STATE_NAMES[
+      rawState
+    ]
+  ) {
+    return rawState;
   }
 
+  const combined =
+    [
+      race?.state,
+      race?.title,
+      race?.slug
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toUpperCase();
+
+  const districtMatch =
+    combined.match(
+      /\b([A-Z]{2})[-_\s](?:AL|\d{1,2})\b/
+    );
+
+  if (
+    districtMatch &&
+    STATE_NAMES[
+      districtMatch[1]
+    ]
+  ) {
+    return districtMatch[1];
+  }
+
+  const stateNameToCode = {};
+
+  Object.entries(
+    STATE_NAMES
+  ).forEach(
+    (
+      [
+        code,
+        name
+      ]
+    ) => {
+      stateNameToCode[
+        name.toUpperCase()
+      ] = code;
+    }
+  );
+
+  for (
+    const [
+      name,
+      code
+    ] of Object.entries(
+      stateNameToCode
+    )
+  ) {
+    if (
+      combined.includes(
+        name
+      )
+    ) {
+      return code;
+    }
+  }
+
+  return "";
+}
+
+function featureStateCode(
+  feature
+) {
   return (
-    race.rating ||
-    "Toss-up"
+    STATE_FIPS[
+      String(
+        feature.id
+      ).padStart(
+        2,
+        "0"
+      )
+    ] || ""
   );
 }
 
@@ -507,19 +619,19 @@ async function initializeStateMap(
 
   container.innerHTML = `
     <div class="loading">
-      Loading U.S. map…
+      Loading U.S. map...
     </div>
   `;
 
-  await loadMapDependencies();
+  await loadStateMapLibraries();
 
   const [
     atlas,
     races
   ] =
     await Promise.all([
-      getStateAtlas(),
-      getMapRaces(
+      fetchStateAtlas(),
+      fetchMapRaces(
         office
       )
     ]);
@@ -538,6 +650,23 @@ function renderStateMap(
   races,
   office
 ) {
+  if (
+    !window.d3 ||
+    !window.topojson
+  ) {
+    throw new Error(
+      "The map libraries did not load correctly."
+    );
+  }
+
+  if (
+    !atlas?.objects?.states
+  ) {
+    throw new Error(
+      "The U.S. state map data is invalid."
+    );
+  }
+
   const states =
     topojson.feature(
       atlas,
@@ -556,11 +685,8 @@ function renderStateMap(
         second
     );
 
-  const width =
-    975;
-
-  const height =
-    610;
+  const width = 975;
+  const height = 610;
 
   const projection =
     d3
@@ -578,7 +704,7 @@ function renderStateMap(
       projection
     );
 
-  const raceLookup =
+  const lookup =
     raceByState(
       races
     );
@@ -609,19 +735,16 @@ function renderStateMap(
       .attr(
         "aria-label",
         `${
-          office ===
-          "senate"
+          office === "senate"
             ? "Senate"
             : "Governor"
         } forecast map`
       );
 
-  const stateGroup =
-    svg.append(
+  svg
+    .append(
       "g"
-    );
-
-  stateGroup
+    )
     .selectAll(
       "path"
     )
@@ -632,21 +755,25 @@ function renderStateMap(
       "path"
     )
     .attr(
+      "d",
+      path
+    )
+    .attr(
       "class",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
         const race =
-          raceLookup[
+          lookup[
             code
           ];
 
         return [
           "usMapState",
-          mapClassForRace(
+          raceMapClass(
             race,
             office
           ),
@@ -654,27 +781,19 @@ function renderStateMap(
             ? "hasRace"
             : ""
         ]
-          .filter(
-            Boolean
-          )
-          .join(
-            " "
-          );
+          .filter(Boolean)
+          .join(" ");
       }
-    )
-    .attr(
-      "d",
-      path
     )
     .attr(
       "tabindex",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        return raceLookup[
+        return lookup[
           code
         ]
           ? 0
@@ -685,31 +804,27 @@ function renderStateMap(
       "role",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        return raceLookup[
+        return lookup[
           code
         ]
           ? "link"
           : "img";
       }
-    );
-    stateGroup
-    .selectAll(
-      "path"
     )
     .attr(
       "aria-label",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
         const race =
-          raceLookup[
+          lookup[
             code
           ];
 
@@ -719,19 +834,19 @@ function renderStateMap(
           ] || code;
 
         if (!race) {
-          return `${stateName}: ${readableRating(
-            null,
-            office
-          )}`;
+          return office ===
+            "senate"
+            ? `${stateName}: not up in 2026`
+            : `${stateName}: no published forecast`;
         }
 
         return `${stateName}: ${
           race.title ||
           "Published race"
-        }, ${readableRating(
-          race,
-          office
-        )}`;
+        }, ${
+          race.rating ||
+          "Toss-up"
+        }`;
       }
     )
     .on(
@@ -741,27 +856,29 @@ function renderStateMap(
         feature
       ) => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        showStateTooltip(
+        showMapTooltip(
           event,
-          code,
-          raceLookup[
+          lookup[
             code
           ],
+          STATE_NAMES[
+            code
+          ] || code,
           office
         );
       }
     )
     .on(
       "mousemove",
-      moveStateTooltip
+      moveMapTooltip
     )
     .on(
       "mouseleave",
-      hideStateTooltip
+      hideMapTooltip
     )
     .on(
       "click",
@@ -770,15 +887,14 @@ function renderStateMap(
         feature
       ) => {
         event.preventDefault();
-        event.stopPropagation();
 
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        openRaceFromMap(
-          raceLookup[
+        openRacePage(
+          lookup[
             code
           ]
         );
@@ -800,15 +916,14 @@ function renderStateMap(
         }
 
         event.preventDefault();
-        event.stopPropagation();
 
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        openRaceFromMap(
-          raceLookup[
+        openRacePage(
+          lookup[
             code
           ]
         );
@@ -851,7 +966,7 @@ function renderStateMap(
     svg,
     states.features,
     path,
-    raceLookup,
+    lookup,
     office
   );
 
@@ -862,13 +977,12 @@ function addStateLabels(
   svg,
   features,
   path,
-  raceLookup,
+  lookup,
   office
 ) {
-  const labelOffsets = {
+  const offsets = {
     CT: [-8, 6],
     DE: [7, 8],
-    DC: [12, 10],
     FL: [10, 10],
     HI: [12, 6],
     LA: [-2, 8],
@@ -891,7 +1005,7 @@ function addStateLabels(
     .data(
       features.filter(
         feature =>
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           ) !== "DC"
       )
@@ -903,13 +1017,13 @@ function addStateLabels(
       "class",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        const ratingClass =
-          mapClassForRace(
-            raceLookup[
+        const mapClass =
+          raceMapClass(
+            lookup[
               code
             ],
             office
@@ -920,9 +1034,10 @@ function addStateLabels(
             "map-dem-tilt",
             "map-rep-tilt",
             "map-no-race",
+            "map-not-up",
             "map-unrated"
           ].includes(
-            ratingClass
+            mapClass
           );
 
         return darkText
@@ -934,19 +1049,21 @@ function addStateLabels(
       "x",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        const centroid =
+        const [
+          x
+        ] =
           path.centroid(
             feature
           );
 
         return (
-          centroid[0] +
+          x +
           (
-            labelOffsets[
+            offsets[
               code
             ]?.[0] ||
             0
@@ -958,19 +1075,22 @@ function addStateLabels(
       "y",
       feature => {
         const code =
-          stateCodeFromFeature(
+          featureStateCode(
             feature
           );
 
-        const centroid =
+        const [
+          ,
+          y
+        ] =
           path.centroid(
             feature
           );
 
         return (
-          centroid[1] +
+          y +
           (
-            labelOffsets[
+            offsets[
               code
             ]?.[1] ||
             0
@@ -980,23 +1100,22 @@ function addStateLabels(
     )
     .text(
       feature =>
-        stateCodeFromFeature(
+        featureStateCode(
           feature
         )
     );
 }
 
-function openRaceFromMap(
+function openRacePage(
   race
 ) {
   if (
-    !race ||
-    !race.slug
+    !race?.slug
   ) {
     return;
   }
 
-  location.href =
+  window.location.href =
     "race.html?id=" +
     encodeURIComponent(
       race.slug
@@ -1032,10 +1151,11 @@ function ensureMapTooltip() {
     tooltip
   );
 }
-function showStateTooltip(
+
+function showMapTooltip(
   event,
-  stateCode,
   race,
+  fallbackTitle,
   office
 ) {
   const tooltip =
@@ -1047,150 +1167,27 @@ function showStateTooltip(
     return;
   }
 
-  const stateName =
-    STATE_NAMES[
-      stateCode
-    ] || stateCode;
-
   const title =
     race?.title ||
-    stateName;
+    fallbackTitle;
 
-  const rating =
-    readableRating(
-      race,
-      office
-    );
+  let status = "";
 
-  const leader =
-    race
-      ? leadingCandidateText(
-          race
-        )
-      : "";
-
-  tooltip.innerHTML = `
-    <strong>
-      ${escapeMapHtml(
-        title
-      )}
-    </strong>
-
-    <span>
-      ${escapeMapHtml(
-        rating
-      )}
-    </span>
-
-    ${
-      leader
-        ? `
-          <span>
-            ${escapeMapHtml(
-              leader
-            )}
-          </span>
-        `
-        : ""
-    }
-  `;
-
-  tooltip.classList.add(
-    "visible"
-  );
-
-  moveStateTooltip(
-    event
-  );
-}
-
-function moveStateTooltip(
-  event
-) {
-  const tooltip =
-    document.getElementById(
-      "mapTooltip"
-    );
-
-  if (!tooltip) {
-    return;
+  if (race) {
+    status =
+      race.rating ||
+      "Toss-up";
+  } else {
+    status =
+      office === "senate"
+        ? "Not up in 2026"
+        : "No published forecast";
   }
 
-  const padding = 14;
-
-  const tooltipWidth =
-    tooltip.offsetWidth ||
-    190;
-
-  const tooltipHeight =
-    tooltip.offsetHeight ||
-    70;
-
-  let left =
-    event.clientX +
-    padding;
-
-  let top =
-    event.clientY +
-    padding;
-
-  if (
-    left +
-      tooltipWidth >
-    window.innerWidth -
-      12
-  ) {
-    left =
-      event.clientX -
-      tooltipWidth -
-      padding;
-  }
-
-  if (
-    top +
-      tooltipHeight >
-    window.innerHeight -
-      12
-  ) {
-    top =
-      event.clientY -
-      tooltipHeight -
-      padding;
-  }
-
-  tooltip.style.left =
-    `${Math.max(
-      8,
-      left
-    )}px`;
-
-  tooltip.style.top =
-    `${Math.max(
-      8,
-      top
-    )}px`;
-}
-
-function hideStateTooltip() {
-  const tooltip =
-    document.getElementById(
-      "mapTooltip"
-    );
-
-  if (tooltip) {
-    tooltip.classList.remove(
-      "visible"
-    );
-  }
-}
-
-function leadingCandidateText(
-  race
-) {
   const candidates =
     [
       ...(
-        race.candidates ||
+        race?.candidates ||
         []
       )
     ].sort(
@@ -1211,579 +1208,270 @@ function leadingCandidateText(
   const leader =
     candidates[0];
 
-  if (!leader) {
-    return "";
+  tooltip.innerHTML = `
+    <strong>
+      ${escapeMapHtml(
+        title
+      )}
+    </strong>
+
+    <span>
+      ${escapeMapHtml(
+        status
+      )}
+    </span>
+
+    ${
+      leader
+        ? `
+          <span>
+            ${escapeMapHtml(
+              leader.name ||
+              "Leading candidate"
+            )}: ${Number(
+              leader.win_probability ||
+              0
+            ).toFixed(0)}%
+          </span>
+        `
+        : ""
+    }
+  `;
+
+  tooltip.classList.add(
+    "visible"
+  );
+
+  moveMapTooltip(
+    event
+  );
+}
+
+function moveMapTooltip(
+  event
+) {
+  const tooltip =
+    document.getElementById(
+      "mapTooltip"
+    );
+
+  if (!tooltip) {
+    return;
   }
 
-  return `${
-    leader.name ||
-    "Leading candidate"
-  }: ${Number(
-    leader.win_probability ||
-      0
-  ).toFixed(0)}% chance`;
+  const gap = 14;
+
+  let left =
+    event.clientX +
+    gap;
+
+  let top =
+    event.clientY +
+    gap;
+
+  const width =
+    tooltip.offsetWidth ||
+    190;
+
+  const height =
+    tooltip.offsetHeight ||
+    70;
+
+  if (
+    left +
+      width >
+    window.innerWidth -
+      12
+  ) {
+    left =
+      event.clientX -
+      width -
+      gap;
+  }
+
+  if (
+    top +
+      height >
+    window.innerHeight -
+      12
+  ) {
+    top =
+      event.clientY -
+      height -
+      gap;
+  }
+
+  tooltip.style.left =
+    `${Math.max(
+      8,
+      left
+    )}px`;
+
+  tooltip.style.top =
+    `${Math.max(
+      8,
+      top
+    )}px`;
 }
 
-function escapeMapHtml(
-  value
-) {
-  return String(
-    value || ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
+function hideMapTooltip() {
+  const tooltip =
+    document.getElementById(
+      "mapTooltip"
     );
-}
 
+  tooltip?.classList.remove(
+    "visible"
+  );
+}
 /* =========================================================
-   HOUSE HEX MAP
+   HOUSE DISTRICT MAP
    ========================================================= */
 
-const HOUSE_HEX_WIDTH =
-  24;
-
-const HOUSE_HEX_HEIGHT =
-  28;
-
-const HOUSE_HEX_X_GAP =
-  20;
-
-const HOUSE_HEX_Y_GAP =
-  24;
-
 const HOUSE_MAP_WIDTH =
-  1180;
+  1120;
 
 const HOUSE_MAP_HEIGHT =
-  660;
+  610;
+
+const HOUSE_HEX_WIDTH =
+  22;
+
+const HOUSE_HEX_HEIGHT =
+  25;
+
+const HOUSE_HEX_X_STEP =
+  18;
+
+const HOUSE_HEX_Y_STEP =
+  21;
 
 /*
-  Each state has one fixed anchor point and a preferred
-  number of district columns.
+  State cluster positions.
 
-  Districts are kept together by state, while the overall
-  arrangement follows the shape of the United States.
+  Each state is placed in its approximate geographic
+  location. Districts are arranged compactly inside
+  each state cluster.
 */
 
-const HOUSE_STATE_LAYOUT = {
-  WA: {
-    x: 65,
-    y: 55,
-    columns: 5
-  },
+const HOUSE_LAYOUT = {
+  WA: { x: 45, y: 55, cols: 5 },
+  OR: { x: 42, y: 120, cols: 3 },
+  CA: { x: 38, y: 200, cols: 7 },
 
-  OR: {
-    x: 58,
-    y: 132,
-    columns: 3
-  },
+  ID: { x: 170, y: 105, cols: 2 },
+  NV: { x: 145, y: 220, cols: 2 },
+  MT: { x: 245, y: 55, cols: 2 },
+  WY: { x: 255, y: 145, cols: 1 },
+  UT: { x: 220, y: 225, cols: 2 },
+  AZ: { x: 200, y: 320, cols: 3 },
 
-  CA: {
-    x: 45,
-    y: 215,
-    columns: 6
-  },
+  ND: { x: 350, y: 60, cols: 1 },
+  SD: { x: 355, y: 125, cols: 1 },
+  NE: { x: 348, y: 195, cols: 2 },
+  CO: { x: 300, y: 260, cols: 3 },
+  NM: { x: 295, y: 350, cols: 2 },
+  KS: { x: 382, y: 260, cols: 2 },
+  OK: { x: 382, y: 345, cols: 3 },
+  TX: { x: 335, y: 430, cols: 8 },
 
-  ID: {
-    x: 177,
-    y: 108,
-    columns: 2
-  },
+  MN: { x: 445, y: 65, cols: 3 },
+  IA: { x: 445, y: 180, cols: 2 },
+  MO: { x: 450, y: 265, cols: 3 },
+  AR: { x: 462, y: 350, cols: 2 },
+  LA: { x: 466, y: 440, cols: 3 },
 
-  NV: {
-    x: 152,
-    y: 224,
-    columns: 2
-  },
+  WI: { x: 535, y: 100, cols: 3 },
+  IL: { x: 535, y: 210, cols: 4 },
+  MS: { x: 545, y: 395, cols: 2 },
 
-  MT: {
-    x: 250,
-    y: 58,
-    columns: 2
-  },
+  MI: { x: 630, y: 90, cols: 4 },
+  IN: { x: 625, y: 230, cols: 3 },
+  KY: { x: 625, y: 310, cols: 3 },
+  TN: { x: 630, y: 375, cols: 5 },
+  AL: { x: 635, y: 450, cols: 3 },
 
-  WY: {
-    x: 260,
-    y: 150,
-    columns: 1
-  },
+  OH: { x: 720, y: 200, cols: 4 },
+  WV: { x: 748, y: 290, cols: 2 },
+  GA: { x: 730, y: 435, cols: 4 },
+  FL: { x: 735, y: 525, cols: 8 },
 
-  UT: {
-    x: 225,
-    y: 235,
-    columns: 2
-  },
+  PA: { x: 805, y: 170, cols: 5 },
+  VA: { x: 810, y: 300, cols: 5 },
+  NC: { x: 815, y: 375, cols: 6 },
+  SC: { x: 805, y: 455, cols: 3 },
 
-  AZ: {
-    x: 205,
-    y: 335,
-    columns: 3
-  },
+  NY: { x: 910, y: 85, cols: 6 },
+  VT: { x: 1005, y: 45, cols: 1 },
+  NH: { x: 1040, y: 48, cols: 1 },
+  ME: { x: 1070, y: 40, cols: 2 },
 
-  ND: {
-    x: 360,
-    y: 63,
-    columns: 1
-  },
+  MA: { x: 1015, y: 115, cols: 4 },
+  RI: { x: 1080, y: 160, cols: 1 },
+  CT: { x: 1015, y: 178, cols: 3 },
 
-  SD: {
-    x: 363,
-    y: 132,
-    columns: 1
-  },
+  NJ: { x: 945, y: 225, cols: 3 },
+  DE: { x: 955, y: 295, cols: 1 },
+  MD: { x: 875, y: 280, cols: 4 },
 
-  NE: {
-    x: 355,
-    y: 205,
-    columns: 2
-  },
-
-  CO: {
-    x: 305,
-    y: 270,
-    columns: 3
-  },
-
-  NM: {
-    x: 302,
-    y: 365,
-    columns: 2
-  },
-
-  KS: {
-    x: 390,
-    y: 275,
-    columns: 2
-  },
-
-  OK: {
-    x: 395,
-    y: 360,
-    columns: 3
-  },
-
-  TX: {
-    x: 345,
-    y: 445,
-    columns: 8
-  },
-
-  MN: {
-    x: 460,
-    y: 65,
-    columns: 3
-  },
-
-  IA: {
-    x: 462,
-    y: 185,
-    columns: 2
-  },
-
-  MO: {
-    x: 468,
-    y: 275,
-    columns: 3
-  },
-
-  AR: {
-    x: 480,
-    y: 370,
-    columns: 2
-  },
-
-  LA: {
-    x: 482,
-    y: 468,
-    columns: 3
-  },
-
-  WI: {
-    x: 552,
-    y: 102,
-    columns: 3
-  },
-
-  IL: {
-    x: 555,
-    y: 215,
-    columns: 4
-  },
-
-  MS: {
-    x: 560,
-    y: 408,
-    columns: 2
-  },
-
-  MI: {
-    x: 650,
-    y: 95,
-    columns: 4
-  },
-
-  IN: {
-    x: 642,
-    y: 242,
-    columns: 3
-  },
-
-  KY: {
-    x: 640,
-    y: 325,
-    columns: 3
-  },
-
-  TN: {
-    x: 652,
-    y: 395,
-    columns: 5
-  },
-
-  AL: {
-    x: 657,
-    y: 472,
-    columns: 3
-  },
-
-  OH: {
-    x: 742,
-    y: 212,
-    columns: 4
-  },
-
-  WV: {
-    x: 770,
-    y: 305,
-    columns: 2
-  },
-
-  GA: {
-    x: 752,
-    y: 455,
-    columns: 4
-  },
-
-  FL: {
-    x: 760,
-    y: 552,
-    columns: 8
-  },
-
-  PA: {
-    x: 835,
-    y: 180,
-    columns: 5
-  },
-
-  VA: {
-    x: 845,
-    y: 318,
-    columns: 5
-  },
-
-  NC: {
-    x: 850,
-    y: 390,
-    columns: 6
-  },
-
-  SC: {
-    x: 830,
-    y: 475,
-    columns: 3
-  },
-
-  NY: {
-    x: 945,
-    y: 90,
-    columns: 6
-  },
-
-  VT: {
-    x: 1034,
-    y: 47,
-    columns: 1
-  },
-
-  NH: {
-    x: 1070,
-    y: 50,
-    columns: 1
-  },
-
-  ME: {
-    x: 1110,
-    y: 40,
-    columns: 2
-  },
-
-  MA: {
-    x: 1048,
-    y: 120,
-    columns: 4
-  },
-
-  RI: {
-    x: 1120,
-    y: 168,
-    columns: 1
-  },
-
-  CT: {
-    x: 1050,
-    y: 184,
-    columns: 3
-  },
-
-  NJ: {
-    x: 975,
-    y: 238,
-    columns: 3
-  },
-
-  DE: {
-    x: 988,
-    y: 308,
-    columns: 1
-  },
-
-  MD: {
-    x: 910,
-    y: 290,
-    columns: 4
-  },
-
-  AK: {
-    x: 70,
-    y: 550,
-    columns: 1
-  },
-
-  HI: {
-    x: 170,
-    y: 580,
-    columns: 2
-  }
+  AK: { x: 65, y: 520, cols: 1 },
+  HI: { x: 155, y: 550, cols: 2 }
 };
-function normalizeHouseStateCode(
-  race
-) {
-  const rawState =
-    String(
-      race?.state || ""
-    )
-      .trim()
-      .toUpperCase();
-
-  if (
-    HOUSE_STATE_LAYOUT[
-      rawState
-    ]
-  ) {
-    return rawState;
-  }
-
-  const combined =
-    [
-      race?.state,
-      race?.title,
-      race?.slug
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toUpperCase();
-
-  const directMatch =
-    combined.match(
-      /\b([A-Z]{2})[-_\s](?:\d{1,2}|AL)\b/
-    );
-
-  if (
-    directMatch &&
-    HOUSE_STATE_LAYOUT[
-      directMatch[1]
-    ]
-  ) {
-    return directMatch[1];
-  }
-
-  const stateNameToCode = {
-    ALABAMA: "AL",
-    ALASKA: "AK",
-    ARIZONA: "AZ",
-    ARKANSAS: "AR",
-    CALIFORNIA: "CA",
-    COLORADO: "CO",
-    CONNECTICUT: "CT",
-    DELAWARE: "DE",
-    FLORIDA: "FL",
-    GEORGIA: "GA",
-    HAWAII: "HI",
-    IDAHO: "ID",
-    ILLINOIS: "IL",
-    INDIANA: "IN",
-    IOWA: "IA",
-    KANSAS: "KS",
-    KENTUCKY: "KY",
-    LOUISIANA: "LA",
-    MAINE: "ME",
-    MARYLAND: "MD",
-    MASSACHUSETTS: "MA",
-    MICHIGAN: "MI",
-    MINNESOTA: "MN",
-    MISSISSIPPI: "MS",
-    MISSOURI: "MO",
-    MONTANA: "MT",
-    NEBRASKA: "NE",
-    NEVADA: "NV",
-    "NEW HAMPSHIRE": "NH",
-    "NEW JERSEY": "NJ",
-    "NEW MEXICO": "NM",
-    "NEW YORK": "NY",
-    "NORTH CAROLINA": "NC",
-    "NORTH DAKOTA": "ND",
-    OHIO: "OH",
-    OKLAHOMA: "OK",
-    OREGON: "OR",
-    PENNSYLVANIA: "PA",
-    "RHODE ISLAND": "RI",
-    "SOUTH CAROLINA": "SC",
-    "SOUTH DAKOTA": "SD",
-    TENNESSEE: "TN",
-    TEXAS: "TX",
-    UTAH: "UT",
-    VERMONT: "VT",
-    VIRGINIA: "VA",
-    WASHINGTON: "WA",
-    "WEST VIRGINIA": "WV",
-    WISCONSIN: "WI",
-    WYOMING: "WY"
-  };
-
-  for (
-    const [
-      stateName,
-      stateCode
-    ] of Object.entries(
-      stateNameToCode
-    )
-  ) {
-    if (
-      combined.includes(
-        stateName
-      )
-    ) {
-      return stateCode;
-    }
-  }
-
-  return "";
-}
 
 async function initializeHouseMap() {
-  const map =
+  const container =
     document.getElementById(
       "houseHexMap"
     );
 
-  if (!map) {
+  if (!container) {
     return;
   }
 
-  ensureHouseMapStyles();
+  addHouseMapStyles();
 
-  map.innerHTML = `
+  container.innerHTML = `
     <div class="loading">
-      Loading House map…
+      Loading House map...
     </div>
   `;
 
   const races =
-    await getMapRaces(
+    await fetchMapRaces(
       "house"
     );
 
-  renderHouseHexMap(
-    map,
+  renderHouseMap(
+    container,
     races
   );
 }
 
-function renderHouseHexMap(
-  map,
+function renderHouseMap(
+  container,
   races
 ) {
-  if (!races.length) {
-    map.innerHTML = `
+  if (
+    !Array.isArray(races) ||
+    !races.length
+  ) {
+    container.innerHTML = `
       <div class="empty">
-        No published House races yet.
+        No published House races were found.
       </div>
     `;
 
     return;
   }
 
-  const groupedRaces =
-    races.reduce(
-      (
-        groups,
-        race
-      ) => {
-        const state =
-          normalizeHouseStateCode(
-            race
-          );
-
-        if (
-          !state ||
-          !HOUSE_STATE_LAYOUT[
-            state
-          ]
-        ) {
-          console.warn(
-            "Skipped House race with unrecognized state:",
-            race
-          );
-
-          return groups;
-        }
-
-        if (
-          !groups[state]
-        ) {
-          groups[state] = [];
-        }
-
-        groups[state].push(
-          race
-        );
-
-        return groups;
-      },
-      {}
+  const grouped =
+    groupHouseRaces(
+      races
     );
 
-  const stateMarkup =
+  const statesMarkup =
     Object.entries(
-      HOUSE_STATE_LAYOUT
+      HOUSE_LAYOUT
     )
       .map(
         (
@@ -1795,19 +1483,18 @@ function renderHouseHexMap(
           const stateRaces =
             [
               ...(
-                groupedRaces[
-                  state
-                ] || []
+                grouped[state] ||
+                []
               )
             ].sort(
               (
                 first,
                 second
               ) =>
-                getHouseDistrictNumber(
+                getDistrictNumber(
                   first
                 ) -
-                getHouseDistrictNumber(
+                getDistrictNumber(
                   second
                 )
             );
@@ -1818,7 +1505,7 @@ function renderHouseHexMap(
             return "";
           }
 
-          return createHouseStateMarkup(
+          return buildHouseState(
             state,
             layout,
             stateRaces
@@ -1827,210 +1514,45 @@ function renderHouseHexMap(
       )
       .join("");
 
-  if (
-    !stateMarkup.trim()
-  ) {
-    map.innerHTML = `
+  if (!statesMarkup) {
+    container.innerHTML = `
       <div class="empty">
-        House races loaded, but none could be placed on the map.
+        House races loaded, but their states could not be recognized.
       </div>
     `;
 
     return;
   }
 
-  map.innerHTML = `
+  container.innerHTML = `
     <div class="houseMapViewport">
       <div
         class="houseMapCanvas"
-        role="img"
         aria-label="United States House forecast map"
       >
-        ${stateMarkup}
+        ${statesMarkup}
       </div>
     </div>
   `;
 
-  bindHouseMapButtons(
-    map
-  );
-
-  fitHouseMapToContainer();
-}
-
-function createHouseStateMarkup(
-  state,
-  layout,
-  races
-) {
-  const positions =
-    buildHouseStatePositions(
-      races.length,
-      layout.columns
-    );
-
-  const districts =
-    races
-      .map(
-        (
-          race,
-          index
-        ) =>
-          createHouseHexMarkup(
-            race,
-            positions[
-              index
-            ]
-          )
-      )
-      .join("");
-
-  return `
-    <section
-      class="houseStateCluster"
-      style="
-        left:${layout.x}px;
-        top:${layout.y}px;
-      "
-      aria-label="${escapeMapHtml(
-        STATE_NAMES[
-          state
-        ] || state
-      )}"
-    >
-      <div class="houseStateHeading">
-        ${escapeMapHtml(
-          state
-        )}
-      </div>
-
-      <div class="houseStateDistricts">
-        ${districts}
-      </div>
-    </section>
-  `;
-}
-
-function buildHouseStatePositions(
-  count,
-  requestedColumns
-) {
-  const positions = [];
-
-  const columns =
-    Math.max(
-      1,
-      Math.min(
-        Number(
-          requestedColumns || 1
-        ),
-        count
-      )
-    );
-
-  for (
-    let index = 0;
-    index < count;
-    index += 1
-  ) {
-    const row =
-      Math.floor(
-        index / columns
-      );
-
-    const column =
-      index % columns;
-
-    const stagger =
-      row % 2 === 1
-        ? HOUSE_HEX_X_GAP / 2
-        : 0;
-
-    positions.push({
-      left:
-        column *
-          HOUSE_HEX_X_GAP +
-        stagger,
-
-      top:
-        row *
-        HOUSE_HEX_Y_GAP
-    });
-  }
-
-  return positions;
-}
-
-function createHouseHexMarkup(
-  race,
-  position
-) {
-  const district =
-    houseDistrictLabel(
-      race
-    );
-
-  const description =
-    buildHouseRaceDescription(
-      race
-    );
-
-  const mapClass =
-    mapClassForRace(
-      race,
-      "house"
-    );
-
-  return `
-    <button
-      class="houseHex ${mapClass}"
-      type="button"
-      data-race-slug="${escapeMapHtml(
-        race.slug || ""
-      )}"
-      style="
-        left:${position.left}px;
-        top:${position.top}px;
-      "
-      title="${escapeMapHtml(
-        description
-      )}"
-      aria-label="${escapeMapHtml(
-        description
-      )}"
-    >
-      <span class="houseHexLabel">
-        ${escapeMapHtml(
-          district
-        )}
-      </span>
-    </button>
-  `;
-}
-function bindHouseMapButtons(
-  map
-) {
-  map
+  container
     .querySelectorAll(
-      "[data-race-slug]"
+      "[data-house-race]"
     )
     .forEach(
       button => {
         button.addEventListener(
           "click",
-          event => {
-            event.preventDefault();
-            event.stopPropagation();
-
+          () => {
             const slug =
               button.dataset
-                .raceSlug;
+                .houseRace;
 
             if (!slug) {
               return;
             }
 
-            location.href =
+            window.location.href =
               "race.html?id=" +
               encodeURIComponent(
                 slug
@@ -2039,45 +1561,197 @@ function bindHouseMapButtons(
         );
       }
     );
+
+  fitHouseMap();
 }
 
-function houseDistrictLabel(
+function groupHouseRaces(
+  races
+) {
+  return races.reduce(
+    (
+      groups,
+      race
+    ) => {
+      const state =
+        normalizeStateCode(
+          race
+        );
+
+      if (
+        !state ||
+        !HOUSE_LAYOUT[
+          state
+        ]
+      ) {
+        console.warn(
+          "House race skipped because its state was not recognized:",
+          race
+        );
+
+        return groups;
+      }
+
+      if (!groups[state]) {
+        groups[state] =
+          [];
+      }
+
+      groups[state].push(
+        race
+      );
+
+      return groups;
+    },
+    {}
+  );
+}
+
+function buildHouseState(
+  state,
+  layout,
+  races
+) {
+  const districtButtons =
+    races
+      .map(
+        (
+          race,
+          index
+        ) => {
+          const position =
+            getHouseHexPosition(
+              index,
+              layout.cols
+            );
+
+          const district =
+            getDistrictLabel(
+              race
+            );
+
+          const description =
+            getHouseDescription(
+              race
+            );
+
+          return `
+            <button
+              class="houseHex ${raceMapClass(
+                race,
+                "house"
+              )}"
+              type="button"
+              data-house-race="${escapeMapHtml(
+                race.slug || ""
+              )}"
+              style="
+                left:${position.left}px;
+                top:${position.top}px;
+              "
+              title="${escapeMapHtml(
+                description
+              )}"
+              aria-label="${escapeMapHtml(
+                description
+              )}"
+            >
+              <span>
+                ${escapeMapHtml(
+                  district
+                )}
+              </span>
+            </button>
+          `;
+        }
+      )
+      .join("");
+
+  return `
+    <div
+      class="houseState"
+      style="
+        left:${layout.x}px;
+        top:${layout.y}px;
+      "
+    >
+      <div class="houseStateName">
+        ${escapeMapHtml(
+          state
+        )}
+      </div>
+
+      <div class="houseStateSeats">
+        ${districtButtons}
+      </div>
+    </div>
+  `;
+}
+
+function getHouseHexPosition(
+  index,
+  requestedColumns
+) {
+  const columns =
+    Math.max(
+      1,
+      Number(
+        requestedColumns || 1
+      )
+    );
+
+  const row =
+    Math.floor(
+      index / columns
+    );
+
+  const column =
+    index % columns;
+
+  return {
+    left:
+      column *
+        HOUSE_HEX_X_STEP +
+      (
+        row % 2
+          ? HOUSE_HEX_X_STEP /
+            2
+          : 0
+      ),
+
+    top:
+      row *
+      HOUSE_HEX_Y_STEP
+  };
+}
+
+function getDistrictLabel(
   race
 ) {
-  const title =
-    String(
-      race?.title || ""
-    )
-      .trim()
-      .toUpperCase();
-
-  const slug =
-    String(
-      race?.slug || ""
-    )
-      .trim()
-      .toUpperCase();
-
   const state =
-    normalizeHouseStateCode(
+    normalizeStateCode(
       race
     );
 
   const combined =
-    `${title} ${slug}`;
+    [
+      race?.title,
+      race?.slug
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toUpperCase();
 
-  const districtMatch =
+  const fullMatch =
     combined.match(
       /\b([A-Z]{2})[-_\s](AL|\d{1,2})\b/
     );
 
-  if (
-    districtMatch
-  ) {
+  if (fullMatch) {
     return (
-      districtMatch[1] +
+      fullMatch[1] +
       "-" +
-      districtMatch[2]
+      fullMatch[2]
     );
   }
 
@@ -2102,11 +1776,11 @@ function houseDistrictLabel(
     : "HOUSE";
 }
 
-function getHouseDistrictNumber(
+function getDistrictNumber(
   race
 ) {
   const label =
-    houseDistrictLabel(
+    getDistrictLabel(
       race
     );
 
@@ -2130,7 +1804,7 @@ function getHouseDistrictNumber(
     : 0;
 }
 
-function buildHouseRaceDescription(
+function getHouseDescription(
   race
 ) {
   const candidates =
@@ -2159,7 +1833,7 @@ function buildHouseRaceDescription(
 
   const parts = [
     race?.title ||
-      houseDistrictLabel(
+      getDistrictLabel(
         race
       ),
 
@@ -2183,8 +1857,7 @@ function buildHouseRaceDescription(
     " — "
   );
 }
-
-function ensureHouseMapStyles() {
+function addHouseMapStyles() {
   if (
     document.getElementById(
       "electionLabHouseMapStyles"
@@ -2204,8 +1877,8 @@ function ensureHouseMapStyles() {
   style.textContent = `
     #houseHexMap {
       width: 100%;
-      box-sizing: border-box;
       padding: 12px;
+      box-sizing: border-box;
       overflow: hidden;
     }
 
@@ -2223,11 +1896,11 @@ function ensureHouseMapStyles() {
       transform-origin: top left;
     }
 
-    .houseStateCluster {
+    .houseState {
       position: absolute;
     }
 
-    .houseStateHeading {
+    .houseStateName {
       position: absolute;
       top: -15px;
       left: 0;
@@ -2237,12 +1910,12 @@ function ensureHouseMapStyles() {
       font-weight: 900;
       letter-spacing: 0.4px;
       color: #536273;
+      white-space: nowrap;
       pointer-events: none;
       user-select: none;
-      white-space: nowrap;
     }
 
-    .houseStateDistricts {
+    .houseStateSeats {
       position: relative;
     }
 
@@ -2275,6 +1948,7 @@ function ensureHouseMapStyles() {
         transform 120ms ease,
         filter 120ms ease;
       z-index: 2;
+      font-family: inherit;
     }
 
     .houseHex:hover,
@@ -2285,7 +1959,7 @@ function ensureHouseMapStyles() {
       outline: none;
     }
 
-    .houseHexLabel {
+    .houseHex span {
       font-size: 5.5px;
       line-height: 1;
       font-weight: 900;
@@ -2302,12 +1976,12 @@ function ensureHouseMapStyles() {
       pointer-events: none;
     }
 
-    .houseHex.map-tossup .houseHexLabel,
-    .houseHex.map-no-race .houseHexLabel,
-    .houseHex.map-not-up .houseHexLabel,
-    .houseHex.map-unrated .houseHexLabel,
-    .houseHex.map-dem-tilt .houseHexLabel,
-    .houseHex.map-rep-tilt .houseHexLabel {
+    .houseHex.map-tossup span,
+    .houseHex.map-no-race span,
+    .houseHex.map-not-up span,
+    .houseHex.map-unrated span,
+    .houseHex.map-dem-tilt span,
+    .houseHex.map-rep-tilt span {
       color: #172033;
       text-shadow: none;
     }
@@ -2327,24 +2001,24 @@ function ensureHouseMapStyles() {
   );
 }
 
-function fitHouseMapToContainer() {
-  const map =
+function fitHouseMap() {
+  const container =
     document.getElementById(
       "houseHexMap"
     );
 
   const viewport =
-    map?.querySelector(
+    container?.querySelector(
       ".houseMapViewport"
     );
 
   const canvas =
-    map?.querySelector(
+    container?.querySelector(
       ".houseMapCanvas"
     );
 
   if (
-    !map ||
+    !container ||
     !viewport ||
     !canvas
   ) {
@@ -2354,7 +2028,7 @@ function fitHouseMapToContainer() {
   const availableWidth =
     Math.max(
       280,
-      map.clientWidth -
+      container.clientWidth -
         24
     );
 
@@ -2386,15 +2060,11 @@ window.addEventListener(
     window
       .electionLabHouseResizeTimer =
       window.setTimeout(
-        fitHouseMapToContainer,
+        fitHouseMap,
         120
       );
   }
 );
-
-/* =========================================================
-   GENERAL MAP ERROR HANDLING
-   ========================================================= */
 
 function showMapError(
   pageType,
@@ -2404,8 +2074,7 @@ function showMapError(
     null;
 
   if (
-    pageType ===
-    "senate"
+    pageType === "senate"
   ) {
     container =
       document.getElementById(
@@ -2414,8 +2083,7 @@ function showMapError(
   }
 
   if (
-    pageType ===
-    "governor"
+    pageType === "governor"
   ) {
     container =
       document.getElementById(
@@ -2424,8 +2092,7 @@ function showMapError(
   }
 
   if (
-    pageType ===
-    "house"
+    pageType === "house"
   ) {
     container =
       document.getElementById(
