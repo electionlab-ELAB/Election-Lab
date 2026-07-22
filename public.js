@@ -36,6 +36,8 @@ const PUBLIC_DEFAULT_SETTINGS = {
     "23"
 };
 
+let racePollingChart = null;
+
 async function getPublicSettings() {
   if (!configured) {
     return {
@@ -275,7 +277,7 @@ async function loadHome() {
 
   if (!configured) {
     box.innerHTML =
-      '<div class="empty">The public design is ready. Connect Supabase to load your published races.</div>';
+      '<div class="empty">Connect Supabase to load published races.</div>';
 
     return;
   }
@@ -462,11 +464,6 @@ function raceCard(race) {
     </a>
   `;
 }
-function normalizeStateCode(value) {
-  return String(value || "")
-    .trim()
-    .toUpperCase();
-}
 
 async function loadRaceGrid() {
   const box =
@@ -531,9 +528,13 @@ async function loadRaceGrid() {
             const searchable = [
               race.title || "",
               race.state || "",
-              ...(race.candidates || []).map(
+              ...(
+                race.candidates ||
+                []
+              ).map(
                 candidate =>
-                  candidate.name || ""
+                  candidate.name ||
+                  ""
               )
             ]
               .join(" ")
@@ -562,356 +563,6 @@ async function loadRaceGrid() {
       "</div>";
   }
 }
-
-async function loadRace() {
-  const root =
-    document.querySelector(
-      "#raceRoot"
-    );
-
-  if (!root) {
-    return;
-  }
-
-  if (!configured) {
-    root.innerHTML =
-      '<div class="empty">Connect Supabase to load this race.</div>';
-
-    return;
-  }
-
-  try {
-    const slug =
-      new URLSearchParams(
-        location.search
-      ).get("id");
-
-    if (!slug) {
-      root.innerHTML =
-        '<div class="empty">No race was selected.</div>';
-
-      return;
-    }
-
-    const {
-      data: race,
-      error
-    } = await sb
-      .from("races")
-      .select(
-        "*,candidates(*)"
-      )
-      .eq("slug", slug)
-      .eq(
-        "status",
-        "published"
-      )
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!race) {
-      root.innerHTML =
-        '<div class="empty">Published race not found.</div>';
-
-      return;
-    }
-
-    const polls =
-      await getPublishedPolls(
-        race.id
-      );
-
-    const average =
-      weightedAverage(polls);
-
-    const candidates =
-      [
-        ...(
-          race.candidates ||
-          []
-        )
-      ].sort(
-        (a, b) =>
-          Number(
-            b.win_probability ||
-              0
-          ) -
-          Number(
-            a.win_probability ||
-              0
-          )
-      );
-
-    const office =
-      raceOffice(race);
-
-    const label =
-      officeLabel(office);
-
-    const margin =
-      Number(
-        race.projected_margin ||
-          0
-      );
-
-    document.title =
-      `${race.title} | ElectionLab`;
-
-    root.innerHTML = `
-      <div class="hero">
-        <div class="heroGrid">
-
-          <div>
-            <div class="kicker">
-              2026 ${escapeHtml(
-                label
-              )} Forecast
-            </div>
-
-            <h1>
-              ${escapeHtml(
-                race.title ||
-                  "Election Forecast"
-              )}
-            </h1>
-
-            <p>
-              ${escapeHtml(
-                race.summary ||
-                  "ElectionLab's published forecast and polling average."
-              )}
-            </p>
-
-            <span
-              class="badge ${ratingClass(
-                race.rating
-              )}"
-            >
-              ${escapeHtml(
-                race.rating ||
-                  "Toss-up"
-              )}
-            </span>
-          </div>
-
-          <div class="probCard">
-            <div class="bigProb">
-              ${Number(
-                candidates[0]
-                  ?.win_probability ||
-                  0
-              ).toFixed(0)}%
-            </div>
-
-            <b>
-              ${escapeHtml(
-                candidates[0]
-                  ?.name ||
-                  "Leading candidate"
-              )}
-            </b>
-
-            <div>
-              chance to win
-            </div>
-
-            ${
-              candidates[0]
-                ? `
-                  <div
-                    class="subtle"
-                    style="margin-top:8px"
-                  >
-                    ${Number(
-                      candidates[0]
-                        .expected_vote_share ||
-                        0
-                    ).toFixed(1)}%
-                    projected vote
-                  </div>
-                `
-                : ""
-            }
-          </div>
-
-        </div>
-      </div>
-
-      <section class="section">
-        <div class="grid2">
-
-          <div class="card">
-            <h2>
-              Forecast
-            </h2>
-
-            ${
-              candidates.length
-                ? candidates
-                    .map(
-                      candidate => `
-                        <div
-                          class="candidateLine"
-                        >
-                          <span>
-                            <i
-                              class="partyDot party-${escapeHtml(
-                                candidate.party ||
-                                  ""
-                              )}"
-                            ></i>
-
-                            <b>
-                              ${escapeHtml(
-                                candidate.name ||
-                                  ""
-                              )}
-                            </b>
-
-                            <small
-                              class="subtle"
-                            >
-                              ${escapeHtml(
-                                partyName(
-                                  candidate.party
-                                )
-                              )}
-                            </small>
-                          </span>
-
-                          <strong>
-                            ${Number(
-                              candidate
-                                .win_probability ||
-                                0
-                            ).toFixed(0)}%
-                            win
-                            ·
-                            ${Number(
-                              candidate
-                                .expected_vote_share ||
-                                0
-                            ).toFixed(1)}%
-                            vote
-                          </strong>
-                        </div>
-                      `
-                    )
-                    .join("")
-                : `
-                  <p class="subtle">
-                    No candidates have been added yet.
-                  </p>
-                `
-            }
-
-            <p class="subtle">
-              Projected margin:
-
-              <b>
-                ${
-                  margin >= 0
-                    ? "D +"
-                    : "R +"
-                }
-
-                ${Math.abs(
-                  margin
-                ).toFixed(1)}
-              </b>
-            </p>
-          </div>
-
-          <div class="card">
-            <h2>
-              Polling average
-            </h2>
-
-            ${
-              average
-                ? `
-                  <div
-                    class="bigProb"
-                    style="font-size:48px;color:var(--ink)"
-                  >
-                    ${
-                      average.margin >= 0
-                        ? "D +"
-                        : "R +"
-                    }
-
-                    ${Math.abs(
-                      average.margin
-                    ).toFixed(1)}
-                  </div>
-
-                  <div class="controlBar">
-                    <span
-                      class="dem"
-                      style="width:${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          average.dem
-                        )
-                      )}%"
-                    ></span>
-
-                    <span
-                      class="rep"
-                      style="width:${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          average.rep
-                        )
-                      )}%"
-                    ></span>
-                  </div>
-
-                  <div class="raceMeta">
-                    <b>
-                      D ${average.dem.toFixed(
-                        1
-                      )}%
-                    </b>
-
-                    <b>
-                      R ${average.rep.toFixed(
-                        1
-                      )}%
-                    </b>
-                  </div>
-                `
-                : `
-                  <p class="subtle">
-                    No published polls yet.
-                  </p>
-                `
-            }
-          </div>
-
-        </div>
-      </section>
-    `;
-  } catch (error) {
-    console.error(
-      "Race page failed:",
-      error
-    );
-
-    root.innerHTML =
-      '<div class="empty">' +
-      escapeHtml(
-        error.message ||
-          "Unable to load this race."
-      ) +
-      "</div>";
-  }
-}
 function recentPollsMarkup(polls) {
   return `
     <section class="section">
@@ -923,8 +574,8 @@ function recentPollsMarkup(polls) {
           </h2>
 
           <p>
-            Weighted by recency, sample size,
-            voter population, and quality.
+            Published polling used in the race average
+            and trend graph.
           </p>
         </div>
       </div>
@@ -994,13 +645,13 @@ function recentPollsMarkup(polls) {
                           <td>
                             ${Number(
                               poll.dem_pct || 0
-                            ).toFixed(1)}
+                            ).toFixed(1)}%
                           </td>
 
                           <td>
                             ${Number(
                               poll.rep_pct || 0
-                            ).toFixed(1)}
+                            ).toFixed(1)}%
                           </td>
 
                           <td>
@@ -1027,7 +678,7 @@ function recentPollsMarkup(polls) {
                       colspan="6"
                       class="empty"
                     >
-                      No polls published.
+                      No published polls yet.
                     </td>
                   </tr>
                 `
@@ -1041,11 +692,6 @@ function recentPollsMarkup(polls) {
     </section>
   `;
 }
-
-/*
-  This finalized version appears later in the file,
-  so it becomes the active loadRace function.
-*/
 
 async function loadRace() {
   const root =
@@ -1085,7 +731,10 @@ async function loadRace() {
       .select(
         "*,candidates(*)"
       )
-      .eq("slug", slug)
+      .eq(
+        "slug",
+        slug
+      )
       .eq(
         "status",
         "published"
@@ -1109,7 +758,9 @@ async function loadRace() {
       );
 
     const average =
-      weightedAverage(polls);
+      weightedAverage(
+        polls
+      );
 
     const candidates =
       [
@@ -1148,7 +799,7 @@ async function loadRace() {
       `${race.title} | ElectionLab`;
 
     root.innerHTML = `
-      <div class="hero">
+      <section class="hero">
 
         <div class="heroGrid">
 
@@ -1240,7 +891,7 @@ async function loadRace() {
 
         </div>
 
-      </div>
+      </section>
 
       <section class="section">
 
@@ -1357,34 +1008,7 @@ async function loadRace() {
                     ).toFixed(1)}
                   </div>
 
-                  <div class="controlBar">
-
-                    <span
-                      class="dem"
-                      style="width:${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          average.dem
-                        )
-                      )}%"
-                    ></span>
-
-                    <span
-                      class="rep"
-                      style="width:${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          average.rep
-                        )
-                      )}%"
-                    ></span>
-
-                  </div>
-
                   <div class="raceMeta">
-
                     <b>
                       D
                       ${average.dem.toFixed(
@@ -1398,7 +1022,6 @@ async function loadRace() {
                         1
                       )}%
                     </b>
-
                   </div>
                 `
                 : `
@@ -1414,8 +1037,65 @@ async function loadRace() {
 
       </section>
 
+      <section class="section">
+
+        <div class="sectionHead">
+
+          <div>
+            <div class="kicker">
+              Polling Trend
+            </div>
+
+            <h2>
+              Polling over time
+            </h2>
+
+            <p>
+              Each point represents a published poll,
+              ordered by its ending date.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          ${
+            polls.length
+              ? `
+                <div
+                  style="
+                    position:relative;
+                    width:100%;
+                    height:360px;
+                  "
+                >
+                  <canvas
+                    id="racePollingChart"
+                    aria-label="Polling trend chart"
+                    role="img"
+                  ></canvas>
+                </div>
+              `
+              : `
+                <div class="empty">
+                  Add published polls to create a trend graph.
+                </div>
+              `
+          }
+
+        </div>
+
+      </section>
+
       ${recentPollsMarkup(polls)}
     `;
+
+    if (polls.length) {
+      renderRacePollingChart(
+        polls
+      );
+    }
   } catch (error) {
     console.error(
       "Race page failed:",
@@ -1430,6 +1110,307 @@ async function loadRace() {
       ) +
       "</div>";
   }
+}
+function renderRacePollingChart(polls) {
+  const canvas =
+    document.querySelector(
+      "#racePollingChart"
+    );
+
+  if (
+    !canvas ||
+    typeof Chart ===
+      "undefined"
+  ) {
+    return;
+  }
+
+  const sortedPolls =
+    [...polls].sort(
+      (a, b) =>
+        new Date(
+          a.end_date || 0
+        ) -
+        new Date(
+          b.end_date || 0
+        )
+    );
+
+  const labels =
+    sortedPolls.map(
+      poll =>
+        fmtDate(
+          poll.end_date
+        )
+    );
+
+  const democraticData =
+    sortedPolls.map(
+      poll =>
+        Number(
+          poll.dem_pct || 0
+        )
+    );
+
+  const republicanData =
+    sortedPolls.map(
+      poll =>
+        Number(
+          poll.rep_pct || 0
+        )
+    );
+
+  if (racePollingChart) {
+    racePollingChart.destroy();
+  }
+
+  racePollingChart =
+    new Chart(
+      canvas,
+      {
+        type: "line",
+
+        data: {
+          labels,
+
+          datasets: [
+            {
+              label: "Democratic",
+
+              data:
+                democraticData,
+
+              borderColor:
+                "#1677ff",
+
+              backgroundColor:
+                "rgba(22,119,255,.12)",
+
+              pointBackgroundColor:
+                "#1677ff",
+
+              pointBorderColor:
+                "#ffffff",
+
+              pointBorderWidth:
+                2,
+
+              pointRadius:
+                4,
+
+              pointHoverRadius:
+                6,
+
+              borderWidth:
+                3,
+
+              tension:
+                0.28,
+
+              fill:
+                false
+            },
+
+            {
+              label: "Republican",
+
+              data:
+                republicanData,
+
+              borderColor:
+                "#ef4444",
+
+              backgroundColor:
+                "rgba(239,68,68,.12)",
+
+              pointBackgroundColor:
+                "#ef4444",
+
+              pointBorderColor:
+                "#ffffff",
+
+              pointBorderWidth:
+                2,
+
+              pointRadius:
+                4,
+
+              pointHoverRadius:
+                6,
+
+              borderWidth:
+                3,
+
+              tension:
+                0.28,
+
+              fill:
+                false
+            }
+          ]
+        },
+
+        options: {
+          responsive:
+            true,
+
+          maintainAspectRatio:
+            false,
+
+          interaction: {
+            mode:
+              "index",
+
+            intersect:
+              false
+          },
+
+          plugins: {
+            legend: {
+              position:
+                "top",
+
+              labels: {
+                usePointStyle:
+                  true,
+
+                boxWidth:
+                  10,
+
+                padding:
+                  18,
+
+                font: {
+                  weight:
+                    "700"
+                }
+              }
+            },
+
+            tooltip: {
+              callbacks: {
+                title(
+                  tooltipItems
+                ) {
+                  const index =
+                    tooltipItems[0]
+                      ?.dataIndex;
+
+                  const poll =
+                    sortedPolls[
+                      index
+                    ];
+
+                  if (!poll) {
+                    return "";
+                  }
+
+                  return (
+                    poll.pollster ||
+                    "Published poll"
+                  );
+                },
+
+                afterTitle(
+                  tooltipItems
+                ) {
+                  const index =
+                    tooltipItems[0]
+                      ?.dataIndex;
+
+                  const poll =
+                    sortedPolls[
+                      index
+                    ];
+
+                  if (!poll) {
+                    return "";
+                  }
+
+                  return [
+                    `${fmtDate(
+                      poll.start_date
+                    )} – ${fmtDate(
+                      poll.end_date
+                    )}`,
+
+                    `${
+                      poll.sample_size ||
+                      "—"
+                    } ${poll.population ||
+                      ""}`
+                  ];
+                },
+
+                label(context) {
+                  return (
+                    `${context.dataset.label}: ` +
+                    `${Number(
+                      context.raw || 0
+                    ).toFixed(1)}%`
+                  );
+                }
+              }
+            }
+          },
+
+          scales: {
+            x: {
+              grid: {
+                display:
+                  false
+              },
+
+              ticks: {
+                maxRotation:
+                  0,
+
+                autoSkip:
+                  true,
+
+                maxTicksLimit:
+                  8
+              }
+            },
+
+            y: {
+              suggestedMin:
+                Math.max(
+                  0,
+                  Math.floor(
+                    Math.min(
+                      ...democraticData,
+                      ...republicanData
+                    ) - 5
+                  )
+                ),
+
+              suggestedMax:
+                Math.min(
+                  100,
+                  Math.ceil(
+                    Math.max(
+                      ...democraticData,
+                      ...republicanData
+                    ) + 5
+                  )
+                ),
+
+              ticks: {
+                callback(value) {
+                  return `${value}%`;
+                }
+              },
+
+              grid: {
+                color:
+                  "rgba(104,117,141,.15)"
+              }
+            }
+          }
+        }
+      }
+    );
 }
 async function loadGenericBallot() {
   const homepageBox =
@@ -1754,13 +1735,13 @@ async function loadGenericBallot() {
                     <td>
                       ${Number(
                         poll.dem_pct || 0
-                      ).toFixed(1)}
+                      ).toFixed(1)}%
                     </td>
 
                     <td>
                       ${Number(
                         poll.rep_pct || 0
-                      ).toFixed(1)}
+                      ).toFixed(1)}%
                     </td>
 
                     <td>
