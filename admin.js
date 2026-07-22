@@ -3416,3 +3416,427 @@ window.downloadImportTemplate =
 
 window.handleSpreadsheetImport =
   handleSpreadsheetImport;
+let electionWorkbookPreviewRows = [];
+
+function renderElectionWorkbookPreview(rows) {
+  const previewCard =
+    $("#spreadsheetPreviewCard");
+
+  const summary =
+    $("#spreadsheetPreviewSummary");
+
+  const validationBox =
+    $("#spreadsheetValidationMessages");
+
+  const previewHead =
+    $("#spreadsheetPreviewHead");
+
+  const previewBody =
+    $("#spreadsheetPreviewBody");
+
+  const importButton =
+    $("#importElectionWorkbook");
+
+  if (
+    !previewCard ||
+    !summary ||
+    !validationBox ||
+    !previewHead ||
+    !previewBody
+  ) {
+    throw new Error(
+      "Spreadsheet preview elements could not be found."
+    );
+  }
+
+  const raceRows =
+    rows.filter(row =>
+      String(
+        row.record_type || ""
+      )
+        .trim()
+        .toLowerCase() ===
+      "race"
+    );
+
+  const candidateRows =
+    rows.filter(row =>
+      String(
+        row.record_type || ""
+      )
+        .trim()
+        .toLowerCase() ===
+      "candidate"
+    );
+
+  const pollRows =
+    rows.filter(row =>
+      String(
+        row.record_type || ""
+      )
+        .trim()
+        .toLowerCase() ===
+      "poll"
+    );
+
+  const genericRows =
+    rows.filter(row => {
+      const type =
+        String(
+          row.record_type || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      return (
+        type === "generic_ballot" ||
+        type === "generic-ballot" ||
+        type === "generic"
+      );
+    });
+
+  const invalidRows =
+    rows.filter(row => {
+      const type =
+        String(
+          row.record_type || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      return ![
+        "race",
+        "candidate",
+        "poll",
+        "generic_ballot",
+        "generic-ballot",
+        "generic"
+      ].includes(type);
+    });
+
+  summary.textContent =
+    `${raceRows.length} races, ` +
+    `${candidateRows.length} candidates, ` +
+    `${pollRows.length} race polls, and ` +
+    `${genericRows.length} generic ballot polls found.`;
+
+  if (invalidRows.length) {
+    validationBox.innerHTML = `
+      <div class="notice error">
+        ${invalidRows.length} row(s) have an invalid or missing
+        record_type. Those rows cannot be imported.
+      </div>
+    `;
+  } else {
+    validationBox.innerHTML = `
+      <div class="notice success">
+        Spreadsheet is ready to import.
+      </div>
+    `;
+  }
+
+  previewHead.innerHTML = `
+    <tr>
+      <th>Type</th>
+      <th>Race slug</th>
+      <th>Title / Name</th>
+      <th>Office / Party</th>
+      <th>Status</th>
+    </tr>
+  `;
+
+  previewBody.innerHTML =
+    rows
+      .slice(0, 100)
+      .map(row => {
+        const type =
+          String(
+            row.record_type || ""
+          ).trim();
+
+        const slug =
+          String(
+            row.race_slug ||
+            row.slug ||
+            ""
+          ).trim();
+
+        const name =
+          String(
+            row.title ||
+            row.candidate_name ||
+            row.name ||
+            row.pollster ||
+            ""
+          ).trim();
+
+        const officeOrParty =
+          String(
+            row.office ||
+            row.party ||
+            row.population ||
+            ""
+          ).trim();
+
+        const status =
+          String(
+            row.status ||
+            ""
+          ).trim();
+
+        return `
+          <tr>
+            <td>
+              ${escapeHtml(type || "—")}
+            </td>
+
+            <td>
+              ${escapeHtml(slug || "—")}
+            </td>
+
+            <td>
+              ${escapeHtml(name || "—")}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                officeOrParty || "—"
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(status || "—")}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+  if (rows.length > 100) {
+    previewBody.innerHTML += `
+      <tr>
+        <td
+          colspan="5"
+          class="empty"
+        >
+          Previewing the first 100 of
+          ${rows.length} rows.
+        </td>
+      </tr>
+    `;
+  }
+
+  previewCard.style.display =
+    "block";
+
+  if (importButton) {
+    importButton.disabled =
+      invalidRows.length > 0;
+  }
+}
+
+async function previewElectionWorkbookFile() {
+  const input =
+    $("#electionWorkbookFile");
+
+  const importButton =
+    $("#importElectionWorkbook");
+
+  if (
+    !input ||
+    !input.files ||
+    !input.files[0]
+  ) {
+    msg(
+      "Choose a spreadsheet file first.",
+      "error"
+    );
+
+    return;
+  }
+
+  try {
+    if (importButton) {
+      importButton.disabled =
+        true;
+    }
+
+    electionWorkbookPreviewRows =
+      await readSpreadsheetFile(
+        input.files[0]
+      );
+
+    if (
+      !electionWorkbookPreviewRows.length
+    ) {
+      throw new Error(
+        "The spreadsheet does not contain any rows."
+      );
+    }
+
+    renderElectionWorkbookPreview(
+      electionWorkbookPreviewRows
+    );
+
+    msg(
+      "Spreadsheet preview loaded."
+    );
+  } catch (error) {
+    console.error(
+      "Spreadsheet preview failed:",
+      error
+    );
+
+    electionWorkbookPreviewRows =
+      [];
+
+    if (importButton) {
+      importButton.disabled =
+        true;
+    }
+
+    msg(
+      error.message ||
+      "Unable to preview the spreadsheet.",
+      "error"
+    );
+  }
+}
+
+async function importPreviewedElectionWorkbook() {
+  const importButton =
+    $("#importElectionWorkbook");
+
+  if (
+    !electionWorkbookPreviewRows.length
+  ) {
+    msg(
+      "Preview the spreadsheet before importing it.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (
+    !confirm(
+      `Import ${electionWorkbookPreviewRows.length} spreadsheet rows?`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    if (importButton) {
+      importButton.disabled =
+        true;
+
+      importButton.textContent =
+        "Importing...";
+    }
+
+    const result =
+      await importSpreadsheetRows(
+        electionWorkbookPreviewRows
+      );
+
+    msg(
+      `Import complete: ` +
+      `${result.raceCount} races, ` +
+      `${result.candidateCount} candidates, ` +
+      `${result.pollCount} race polls, and ` +
+      `${result.genericCount} generic ballot polls saved.`
+    );
+
+    electionWorkbookPreviewRows =
+      [];
+
+    const input =
+      $("#electionWorkbookFile");
+
+    const previewCard =
+      $("#spreadsheetPreviewCard");
+
+    if (input) {
+      input.value = "";
+    }
+
+    if (previewCard) {
+      previewCard.style.display =
+        "none";
+    }
+  } catch (error) {
+    console.error(
+      "Spreadsheet import failed:",
+      error
+    );
+
+    msg(
+      error.message ||
+      "Unable to import the spreadsheet.",
+      "error"
+    );
+
+    if (importButton) {
+      importButton.disabled =
+        false;
+    }
+  } finally {
+    if (importButton) {
+      importButton.textContent =
+        "Import spreadsheet";
+    }
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    const previewButton =
+      $("#previewElectionWorkbook");
+
+    const importButton =
+      $("#importElectionWorkbook");
+
+    const downloadButton =
+      $("#downloadElectionWorkbookTemplate");
+
+    const fileInput =
+      $("#electionWorkbookFile");
+
+    if (previewButton) {
+      previewButton.onclick =
+        previewElectionWorkbookFile;
+    }
+
+    if (importButton) {
+      importButton.onclick =
+        importPreviewedElectionWorkbook;
+    }
+
+    if (downloadButton) {
+      downloadButton.onclick =
+        downloadImportTemplate;
+    }
+
+    if (fileInput) {
+      fileInput.onchange = () => {
+        electionWorkbookPreviewRows =
+          [];
+
+        if (importButton) {
+          importButton.disabled =
+            true;
+        }
+
+        const previewCard =
+          $("#spreadsheetPreviewCard");
+
+        if (previewCard) {
+          previewCard.style.display =
+            "none";
+        }
+      };
+    }
+  }
+);
