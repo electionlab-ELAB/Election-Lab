@@ -449,10 +449,7 @@ function readRequiredInteger(
 
   return value;
 }
-
-async function saveHomepageSettings(
-  event
-) {
+async function saveHomepageSettings(event) {
   event.preventDefault();
 
   try {
@@ -485,7 +482,7 @@ async function saveHomepageSettings(
       senate_tossup_seats:
         readRequiredInteger(
           "#senateTossupSeats",
-          "Senate toss-up seats",
+          "Senate Toss-up seats",
           100
         ),
 
@@ -506,7 +503,7 @@ async function saveHomepageSettings(
       house_tossup_seats:
         readRequiredInteger(
           "#houseTossupSeats",
-          "House toss-up seats",
+          "House Toss-up seats",
           435
         ),
 
@@ -520,99 +517,72 @@ async function saveHomepageSettings(
       governor_republican_seats:
         readRequiredInteger(
           "#governorRepublicanSeats",
-          "Republican governorships",
+          "Republican Governors",
           50
         ),
 
       governor_tossup_seats:
         readRequiredInteger(
           "#governorTossupSeats",
-          "Toss-up governorships",
+          "Toss-up Governors",
           50
         ),
 
       governor_democratic_seats:
         readRequiredInteger(
           "#governorDemocraticSeats",
-          "Democratic governorships",
+          "Democratic Governors",
           50
         )
     };
 
-    const senateTotal =
-      values
-        .senate_republican_seats +
-      values
-        .senate_tossup_seats +
-      values
-        .senate_democratic_seats;
-
-    const houseTotal =
-      values
-        .house_republican_seats +
-      values
-        .house_tossup_seats +
-      values
-        .house_democratic_seats;
-
-    const governorTotal =
-      values
-        .governor_republican_seats +
-      values
-        .governor_tossup_seats +
-      values
-        .governor_democratic_seats;
-
-    if (senateTotal !== 100) {
+    if (
+      values.senate_republican_seats +
+      values.senate_tossup_seats +
+      values.senate_democratic_seats !== 100
+    ) {
       throw new Error(
-        "Senate totals must add up to 100."
+        "Senate totals must equal 100."
       );
     }
 
-    if (houseTotal !== 435) {
+    if (
+      values.house_republican_seats +
+      values.house_tossup_seats +
+      values.house_democratic_seats !== 435
+    ) {
       throw new Error(
-        "House totals must add up to 435."
+        "House totals must equal 435."
       );
     }
 
-    if (governorTotal !== 50) {
+    if (
+      values.governor_republican_seats +
+      values.governor_tossup_seats +
+      values.governor_democratic_seats !== 50
+    ) {
       throw new Error(
-        "Governor totals must add up to 50."
+        "Governor totals must equal 50."
       );
     }
-
-    const updatedAt =
-      new Date().toISOString();
 
     const rows =
       Object.entries(values).map(
-        ([
-          settingKey,
-          settingValue
-        ]) => ({
-          setting_key:
-            settingKey,
-
-          setting_value:
-            String(
-              settingValue
-            ),
-
+        ([key, value]) => ({
+          setting_key: key,
+          setting_value: String(value),
           updated_at:
-            updatedAt
+            new Date().toISOString()
         })
       );
 
     const { error } =
       await sb
         .from("site_settings")
-        .upsert(
-          rows,
-          {
-            onConflict:
-              "setting_key"
-          }
-        );
+        .upsert(rows, {
+          onConflict:
+            "setting_key"
+        });
 
     if (error) {
       throw error;
@@ -620,143 +590,143 @@ async function saveHomepageSettings(
 
     state.settings = {
       ...state.settings,
-
       ...Object.fromEntries(
-        Object.entries(
-          values
-        ).map(
-          ([
-            key,
-            value
-          ]) => [
-            key,
-            String(value)
+        Object.entries(values).map(
+          ([k, v]) => [
+            k,
+            String(v)
           ]
         )
       )
     };
 
     msg(
-      "Website headlines and forecast totals saved."
+      "Website settings saved."
     );
-  } catch (error) {
+
+  } catch (err) {
+
     msg(
-      error.message ||
-        "Unable to save website settings.",
+      err.message ||
+      "Unable to save settings.",
       "error"
     );
   }
 }
+
 function renderRaces() {
+
   const body =
     $("#racesBody");
 
-  if (!body) {
-    return;
-  }
+  if (!body) return;
 
   body.innerHTML =
-    state.races
-      .map(race => {
-        const margin =
-          Number(
-            race.projected_margin || 0
-          );
+    state.races.map(race => {
 
-        return `
-          <tr>
-            <td>
-              <b>
-                ${escapeHtml(
-                  race.title || ""
-                )}
-              </b>
+      const margin =
+        Number(
+          race.projected_margin || 0
+        );
 
-              <br>
+      return `
+<tr>
 
-              <small>
-                ${escapeHtml(
-                  race.slug || ""
-                )}
-              </small>
-            </td>
+<td>
 
-            <td>
-              ${escapeHtml(
-                adminOfficeLabel(
-                  race.office
-                )
-              )}
-            </td>
+<b>${escapeHtml(
+race.title || ""
+)}</b>
 
-            <td>
-              ${escapeHtml(
-                race.rating ||
-                  "Toss-up"
-              )}
-            </td>
+<br>
 
-            <td>
-              ${
-                margin >= 0
-                  ? "D +"
-                  : "R +"
-              }
+<small>${escapeHtml(
+race.slug || ""
+)}</small>
 
-              ${Math.abs(
-                margin
-              ).toFixed(1)}
-            </td>
+</td>
 
-            <td>
-              <span
-                class="badge ${
-                  race.status ===
-                  "published"
-                    ? "green"
-                    : "gold"
-                }"
-              >
-                ${escapeHtml(
-                  race.status ||
-                    "draft"
-                )}
-              </span>
-            </td>
+<td>
 
-            <td>
-              <button
-                class="btn light"
-                type="button"
-                onclick="editRace('${race.id}')"
-              >
-                Edit
-              </button>
+${escapeHtml(
+adminOfficeLabel(
+race.office
+)
+)}
 
-              <button
-                class="btn red"
-                type="button"
-                onclick="deleteRace('${race.id}')"
-              >
-                Delete
-              </button>
-            </td>
-          </tr>
-        `;
-      })
-      .join("") ||
-    `
-      <tr>
-        <td
-          colspan="6"
-          class="empty"
-        >
-          No races yet.
-        </td>
-      </tr>
-    `;
+</td>
+
+<td>
+
+${escapeHtml(
+race.rating ||
+"Toss-up"
+)}
+
+</td>
+
+<td>
+
+${margin >= 0 ? "D +" : "R +"}
+${Math.abs(margin).toFixed(1)}
+
+</td>
+
+<td>
+
+<span class="badge ${
+race.status ===
+"published"
+? "green"
+: "gold"
+}">
+
+${escapeHtml(
+race.status ||
+"draft"
+)}
+
+</span>
+
+</td>
+
+<td>
+
+<button
+class="btn light"
+onclick="editRace('${race.id}')">
+
+Edit
+
+</button>
+
+<button
+class="btn red"
+onclick="deleteRace('${race.id}')">
+
+Delete
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+    }).join("") ||
+
+`<tr>
+
+<td colspan="6"
+class="empty">
+
+No races yet.
+
+</td>
+
+</tr>`;
 }
-
 function renderCandidates() {
   const body =
     $("#candidatesBody");
@@ -799,15 +769,13 @@ function renderCandidates() {
 
             <td>
               ${Number(
-                candidate
-                  .win_probability || 0
+                candidate.win_probability || 0
               ).toFixed(1)}%
             </td>
 
             <td>
               ${Number(
-                candidate
-                  .expected_vote_share || 0
+                candidate.expected_vote_share || 0
               ).toFixed(1)}%
             </td>
 
@@ -1028,7 +996,6 @@ function genericBallotAverage(
       dem - rep
   };
 }
-
 function renderGenericBallotPolls() {
   const body =
     $("#genericBallotBody");
@@ -1953,6 +1920,1310 @@ async function deleteGenericBallotPoll(
     "Generic ballot poll deleted."
   );
 }
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function fmtDate(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(
+      `${value}T12:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return escapeHtml(value);
+  }
+
+  return date.toLocaleDateString(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }
+  );
+}
+
+function normalizeHeader(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function normalizeBoolean(value) {
+  if (
+    value === true ||
+    value === 1
+  ) {
+    return true;
+  }
+
+  const text =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  return [
+    "true",
+    "yes",
+    "y",
+    "1",
+    "checked"
+  ].includes(text);
+}
+
+function normalizeNumber(
+  value,
+  fallback = null
+) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return fallback;
+  }
+
+  const cleaned =
+    String(value)
+      .replace(/%/g, "")
+      .replace(/,/g, "")
+      .trim();
+
+  const number =
+    Number(cleaned);
+
+  return Number.isFinite(number)
+    ? number
+    : fallback;
+}
+
+function normalizeDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (
+    value instanceof Date &&
+    !Number.isNaN(
+      value.getTime()
+    )
+  ) {
+    return value
+      .toISOString()
+      .slice(0, 10);
+  }
+
+  const text =
+    String(value).trim();
+
+  if (
+    /^\d{4}-\d{2}-\d{2}$/.test(
+      text
+    )
+  ) {
+    return text;
+  }
+
+  const parsed =
+    new Date(text);
+
+  if (
+    Number.isNaN(
+      parsed.getTime()
+    )
+  ) {
+    return null;
+  }
+
+  return parsed
+    .toISOString()
+    .slice(0, 10);
+}
+
+function normalizeSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function parseCsvLine(line) {
+  const values = [];
+  let current = "";
+  let quoted = false;
+
+  for (
+    let index = 0;
+    index < line.length;
+    index += 1
+  ) {
+    const character =
+      line[index];
+
+    if (character === '"') {
+      if (
+        quoted &&
+        line[index + 1] === '"'
+      ) {
+        current += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+
+      continue;
+    }
+
+    if (
+      character === "," &&
+      !quoted
+    ) {
+      values.push(current);
+      current = "";
+      continue;
+    }
+
+    current += character;
+  }
+
+  values.push(current);
+
+  return values;
+}
+
+function parseCsvText(text) {
+  const lines =
+    String(text || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .split("\n")
+      .filter(
+        line =>
+          line.trim() !== ""
+      );
+
+  if (lines.length < 2) {
+    throw new Error(
+      "The spreadsheet must contain a header row and at least one data row."
+    );
+  }
+
+  const headers =
+    parseCsvLine(lines[0])
+      .map(normalizeHeader);
+
+  return lines
+    .slice(1)
+    .map(line => {
+      const cells =
+        parseCsvLine(line);
+
+      return headers.reduce(
+        (row, header, index) => {
+          row[header] =
+            cells[index] ??
+            "";
+
+          return row;
+        },
+        {}
+      );
+    });
+}
+
+async function readSpreadsheetFile(
+  file
+) {
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+  if (extension === "csv") {
+    return parseCsvText(
+      await file.text()
+    );
+  }
+
+  if (
+    extension === "xlsx" ||
+    extension === "xls"
+  ) {
+    if (
+      typeof XLSX ===
+      "undefined"
+    ) {
+      throw new Error(
+        "Excel support is not loaded. Save the spreadsheet as a CSV file and import that instead."
+      );
+    }
+
+    const buffer =
+      await file.arrayBuffer();
+
+    const workbook =
+      XLSX.read(
+        buffer,
+        {
+          type: "array",
+          cellDates: true
+        }
+      );
+
+    const sheet =
+      workbook.Sheets[
+        workbook.SheetNames[0]
+      ];
+
+    if (!sheet) {
+      throw new Error(
+        "The Excel file does not contain a readable worksheet."
+      );
+    }
+
+    return XLSX.utils
+      .sheet_to_json(
+        sheet,
+        {
+          defval: "",
+          raw: false
+        }
+      )
+      .map(row => {
+        const normalized = {};
+
+        Object.entries(row)
+          .forEach(
+            ([key, value]) => {
+              normalized[
+                normalizeHeader(key)
+              ] = value;
+            }
+          );
+
+        return normalized;
+      });
+  }
+
+  throw new Error(
+    "Please choose a CSV, XLSX, or XLS spreadsheet."
+  );
+}
+
+function csvCell(value) {
+  const text =
+    String(value ?? "");
+
+  if (
+    text.includes(",") ||
+    text.includes('"') ||
+    text.includes("\n")
+  ) {
+    return `"${text.replace(
+      /"/g,
+      '""'
+    )}"`;
+  }
+
+  return text;
+}
+
+function downloadImportTemplate() {
+  const rows = [
+    [
+      "record_type",
+      "race_slug",
+      "office",
+      "state",
+      "title",
+      "rating",
+      "projected_margin",
+      "featured",
+      "status",
+      "summary",
+      "candidate_name",
+      "party",
+      "incumbent",
+      "win_probability",
+      "expected_vote_share",
+      "photo_url",
+      "pollster",
+      "start_date",
+      "end_date",
+      "sample_size",
+      "population",
+      "dem_pct",
+      "rep_pct",
+      "quality_weight"
+    ],
+
+    [
+      "race",
+      "pa-governor",
+      "governor",
+      "PA",
+      "Pennsylvania Governor",
+      "Toss-up",
+      "0",
+      "yes",
+      "published",
+      "Example race summary",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+
+    [
+      "candidate",
+      "pa-governor",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Candidate Name",
+      "D",
+      "no",
+      "50",
+      "49",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+
+    [
+      "poll",
+      "pa-governor",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "published",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Example Pollster",
+      "2026-07-01",
+      "2026-07-05",
+      "800",
+      "LV",
+      "48",
+      "47",
+      "1"
+    ],
+
+    [
+      "generic_ballot",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "published",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Example Pollster",
+      "2026-07-01",
+      "2026-07-05",
+      "1000",
+      "RV",
+      "47",
+      "46",
+      "1"
+    ]
+  ];
+
+  const csv =
+    rows
+      .map(row =>
+        row
+          .map(csvCell)
+          .join(",")
+      )
+      .join("\n");
+
+  const blob =
+    new Blob(
+      [csv],
+      {
+        type:
+          "text/csv;charset=utf-8"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
+
+  link.href = url;
+
+  link.download =
+    "electionlab-import-template.csv";
+
+  document.body
+    .appendChild(link);
+
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+async function upsertImportedRaces(
+  rows
+) {
+  const raceRows =
+    rows.filter(row =>
+      String(
+        row.record_type || ""
+      )
+        .trim()
+        .toLowerCase() ===
+      "race"
+    );
+
+  let saved = 0;
+
+  for (
+    const imported of raceRows
+  ) {
+    const slug =
+      normalizeSlug(
+        imported.race_slug ||
+        imported.slug ||
+        imported.title
+      );
+
+    if (!slug) {
+      throw new Error(
+        "Every race row must include a race_slug or title."
+      );
+    }
+
+    const office =
+      String(
+        imported.office ||
+        "senate"
+      )
+        .trim()
+        .toLowerCase();
+
+    if (
+      ![
+        "senate",
+        "house",
+        "governor"
+      ].includes(office)
+    ) {
+      throw new Error(
+        `Invalid office for ${slug}. Use senate, house, or governor.`
+      );
+    }
+
+    const row = {
+      slug,
+
+      office,
+
+      state:
+        String(
+          imported.state || ""
+        )
+          .trim()
+          .toUpperCase(),
+
+      title:
+        String(
+          imported.title || slug
+        ).trim(),
+
+      rating:
+        String(
+          imported.rating ||
+          "Toss-up"
+        ).trim(),
+
+      projected_margin:
+        normalizeNumber(
+          imported.projected_margin,
+          0
+        ),
+
+      featured:
+        normalizeBoolean(
+          imported.featured
+        ),
+
+      status:
+        String(
+          imported.status ||
+          "draft"
+        )
+          .trim()
+          .toLowerCase(),
+
+      summary:
+        String(
+          imported.summary || ""
+        ).trim(),
+
+      updated_at:
+        new Date()
+          .toISOString()
+    };
+
+    const existing =
+      state.races.find(
+        race =>
+          normalizeSlug(
+            race.slug
+          ) === slug
+      );
+
+    const query =
+      existing
+        ? sb
+            .from("races")
+            .update(row)
+            .eq(
+              "id",
+              existing.id
+            )
+        : sb
+            .from("races")
+            .insert(row);
+
+    const {
+      error
+    } = await query;
+
+    if (error) {
+      throw new Error(
+        `Race ${slug}: ${error.message}`
+      );
+    }
+
+    saved += 1;
+  }
+
+  if (raceRows.length) {
+    const {
+      data,
+      error
+    } = await sb
+      .from("races")
+      .select("*");
+
+    if (error) {
+      throw error;
+    }
+
+    state.races =
+      data || [];
+  }
+
+  return saved;
+}
+
+function findRaceFromImportRow(
+  row
+) {
+  const slug =
+    normalizeSlug(
+      row.race_slug ||
+      row.slug
+    );
+
+  if (!slug) {
+    return null;
+  }
+
+  return state.races.find(
+    race =>
+      normalizeSlug(
+        race.slug
+      ) === slug
+  ) || null;
+}
+
+async function importCandidateRows(
+  rows
+) {
+  const candidateRows =
+    rows.filter(row =>
+      String(
+        row.record_type || ""
+      )
+        .trim()
+        .toLowerCase() ===
+      "candidate"
+    );
+
+  let saved = 0;
+
+  for (
+    const imported of candidateRows
+  ) {
+    const race =
+      findRaceFromImportRow(
+        imported
+      );
+
+    if (!race) {
+      throw new Error(
+        `Candidate "${imported.candidate_name || imported.name || "Unknown"}" has no matching race. Check its race_slug.`
+      );
+    }
+
+    const name =
+      String(
+        imported.candidate_name ||
+        imported.name ||
+        ""
+      ).trim();
+
+    if (!name) {
+      throw new Error(
+        `A candidate row for ${race.slug} is missing candidate_name.`
+      );
+    }
+
+    const row = {
+      race_id:
+        race.id,
+
+      name,
+
+      party:
+        String(
+          imported.party || "D"
+        )
+          .trim()
+          .toUpperCase(),
+
+      incumbent:
+        normalizeBoolean(
+          imported.incumbent
+        ),
+
+      win_probability:
+        normalizeNumber(
+          imported.win_probability,
+          50
+        ),
+
+      expected_vote_share:
+        normalizeNumber(
+          imported.expected_vote_share,
+          50
+        ),
+
+      photo_url:
+        String(
+          imported.photo_url || ""
+        ).trim() ||
+        null
+    };
+
+    const existing =
+      state.candidates.find(
+        candidate =>
+          candidate.race_id ===
+            race.id &&
+          String(
+            candidate.name || ""
+          )
+            .trim()
+            .toLowerCase() ===
+          name.toLowerCase()
+      );
+
+    const query =
+      existing
+        ? sb
+            .from(
+              "candidates"
+            )
+            .update(row)
+            .eq(
+              "id",
+              existing.id
+            )
+        : sb
+            .from(
+              "candidates"
+            )
+            .insert(row);
+
+    const {
+      error
+    } = await query;
+
+    if (error) {
+      throw new Error(
+        `Candidate ${name}: ${error.message}`
+      );
+    }
+
+    saved += 1;
+  }
+
+  return saved;
+}
+
+async function importRacePollRows(
+  rows
+) {
+  const pollRows =
+    rows.filter(row =>
+      String(
+        row.record_type || ""
+      )
+        .trim()
+        .toLowerCase() ===
+      "poll"
+    );
+
+  let saved = 0;
+
+  for (
+    const imported of pollRows
+  ) {
+    const race =
+      findRaceFromImportRow(
+        imported
+      );
+
+    if (!race) {
+      throw new Error(
+        `Poll "${imported.pollster || "Unknown"}" has no matching race. Check its race_slug.`
+      );
+    }
+
+    const pollster =
+      String(
+        imported.pollster || ""
+      ).trim();
+
+    if (!pollster) {
+      throw new Error(
+        `A poll row for ${race.slug} is missing pollster.`
+      );
+    }
+
+    const startDate =
+      normalizeDate(
+        imported.start_date
+      );
+
+    const endDate =
+      normalizeDate(
+        imported.end_date
+      );
+
+    if (
+      !startDate ||
+      !endDate
+    ) {
+      throw new Error(
+        `Poll ${pollster} must have valid start_date and end_date values.`
+      );
+    }
+
+    const row = {
+      race_id:
+        race.id,
+
+      pollster,
+
+      start_date:
+        startDate,
+
+      end_date:
+        endDate,
+
+      sample_size:
+        normalizeNumber(
+          imported.sample_size,
+          800
+        ),
+
+      population:
+        String(
+          imported.population ||
+          "LV"
+        )
+          .trim()
+          .toUpperCase(),
+
+      dem_pct:
+        normalizeNumber(
+          imported.dem_pct,
+          0
+        ),
+
+      rep_pct:
+        normalizeNumber(
+          imported.rep_pct,
+          0
+        ),
+
+      quality_weight:
+        normalizeNumber(
+          imported.quality_weight,
+          1
+        ),
+
+      status:
+        String(
+          imported.status ||
+          "draft"
+        )
+          .trim()
+          .toLowerCase()
+    };
+
+    const {
+      error
+    } = await sb
+      .from("polls")
+      .insert(row);
+
+    if (error) {
+      throw new Error(
+        `Poll ${pollster}: ${error.message}`
+      );
+    }
+
+    saved += 1;
+  }
+
+  return saved;
+}
+
+async function importGenericBallotRows(
+  rows
+) {
+  const genericRows =
+    rows.filter(row => {
+      const type =
+        String(
+          row.record_type || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      return (
+        type ===
+          "generic_ballot" ||
+        type ===
+          "generic-ballot" ||
+        type ===
+          "generic"
+      );
+    });
+
+  let saved = 0;
+
+  for (
+    const imported of genericRows
+  ) {
+    const pollster =
+      String(
+        imported.pollster || ""
+      ).trim();
+
+    if (!pollster) {
+      throw new Error(
+        "A generic ballot row is missing pollster."
+      );
+    }
+
+    const startDate =
+      normalizeDate(
+        imported.start_date
+      );
+
+    const endDate =
+      normalizeDate(
+        imported.end_date
+      );
+
+    if (
+      !startDate ||
+      !endDate
+    ) {
+      throw new Error(
+        `Generic ballot poll ${pollster} must have valid dates.`
+      );
+    }
+
+    const row = {
+      pollster,
+
+      start_date:
+        startDate,
+
+      end_date:
+        endDate,
+
+      sample_size:
+        normalizeNumber(
+          imported.sample_size,
+          800
+        ),
+
+      population:
+        String(
+          imported.population ||
+          "LV"
+        )
+          .trim()
+          .toUpperCase(),
+
+      dem_pct:
+        normalizeNumber(
+          imported.dem_pct,
+          0
+        ),
+
+      rep_pct:
+        normalizeNumber(
+          imported.rep_pct,
+          0
+        ),
+
+      quality_weight:
+        normalizeNumber(
+          imported.quality_weight,
+          1
+        ),
+
+      status:
+        String(
+          imported.status ||
+          "draft"
+        )
+          .trim()
+          .toLowerCase(),
+
+      updated_at:
+        new Date()
+          .toISOString()
+    };
+
+    const {
+      error
+    } = await sb
+      .from(
+        "generic_ballot_polls"
+      )
+      .insert(row);
+
+    if (error) {
+      throw new Error(
+        `Generic ballot poll ${pollster}: ${error.message}`
+      );
+    }
+
+    saved += 1;
+  }
+
+  return saved;
+}
+
+async function importSpreadsheetRows(
+  rows
+) {
+  if (
+    !Array.isArray(rows) ||
+    !rows.length
+  ) {
+    throw new Error(
+      "The spreadsheet does not contain any rows."
+    );
+  }
+
+  const recognizedTypes =
+    rows.filter(row => {
+      const type =
+        String(
+          row.record_type || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      return [
+        "race",
+        "candidate",
+        "poll",
+        "generic_ballot",
+        "generic-ballot",
+        "generic"
+      ].includes(type);
+    });
+
+  if (!recognizedTypes.length) {
+    throw new Error(
+      "No valid record_type values were found. Use race, candidate, poll, or generic_ballot."
+    );
+  }
+
+  const raceCount =
+    await upsertImportedRaces(
+      rows
+    );
+
+  const candidateCount =
+    await importCandidateRows(
+      rows
+    );
+
+  const pollCount =
+    await importRacePollRows(
+      rows
+    );
+
+  const genericCount =
+    await importGenericBallotRows(
+      rows
+    );
+
+  await reloadAll();
+
+  return {
+    raceCount,
+    candidateCount,
+    pollCount,
+    genericCount
+  };
+}
+
+async function handleSpreadsheetImport(
+  event
+) {
+  event.preventDefault();
+
+  const input =
+    $("#spreadsheetFile") ||
+    $("#importFile") ||
+    $("#csvImportFile");
+
+  if (
+    !input ||
+    !input.files ||
+    !input.files[0]
+  ) {
+    msg(
+      "Choose a spreadsheet file first.",
+      "error"
+    );
+
+    return;
+  }
+
+  const file =
+    input.files[0];
+
+  const importButton =
+    $("#importSpreadsheetButton");
+
+  if (importButton) {
+    importButton.disabled =
+      true;
+
+    importButton.textContent =
+      "Importing...";
+  }
+
+  try {
+    const rows =
+      await readSpreadsheetFile(
+        file
+      );
+
+    const result =
+      await importSpreadsheetRows(
+        rows
+      );
+
+    input.value = "";
+
+    msg(
+      `Import complete: ${result.raceCount} races, ${result.candidateCount} candidates, ${result.pollCount} race polls, and ${result.genericCount} generic ballot polls saved.`
+    );
+  } catch (error) {
+    console.error(
+      "Spreadsheet import failed:",
+      error
+    );
+
+    msg(
+      error.message ||
+      "The spreadsheet could not be imported.",
+      "error"
+    );
+  } finally {
+    if (importButton) {
+      importButton.disabled =
+        false;
+
+      importButton.textContent =
+        "Import Spreadsheet";
+    }
+  }
+}
+
+function createSpreadsheetImportTools() {
+  if (
+    $("#spreadsheetImportTools")
+  ) {
+    return;
+  }
+
+  const preferredPanel =
+    $("#dashboardPanel") ||
+    $("#racesPanel") ||
+    $(".adminPanel");
+
+  if (!preferredPanel) {
+    return;
+  }
+
+  const box =
+    document.createElement(
+      "section"
+    );
+
+  box.id =
+    "spreadsheetImportTools";
+
+  box.className =
+    "adminCard";
+
+  box.innerHTML = `
+    <div class="sectionHeading">
+      <div>
+        <h2>
+          Spreadsheet Import
+        </h2>
+
+        <p>
+          Import races, candidates and polls from one CSV or Excel spreadsheet. Manual editing will still work normally.
+        </p>
+      </div>
+    </div>
+
+    <form
+      id="spreadsheetImportForm"
+      class="formGrid"
+    >
+      <label>
+        Spreadsheet file
+
+        <input
+          id="spreadsheetFile"
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          required
+        >
+      </label>
+
+      <div
+        style="display:flex;gap:10px;align-items:end;flex-wrap:wrap"
+      >
+        <button
+          id="importSpreadsheetButton"
+          class="btn"
+          type="submit"
+        >
+          Import Spreadsheet
+        </button>
+
+        <button
+          id="downloadImportTemplateButton"
+          class="btn light"
+          type="button"
+        >
+          Download Template
+        </button>
+      </div>
+    </form>
+  `;
+
+  preferredPanel
+    .appendChild(box);
+
+  const form =
+    $("#spreadsheetImportForm");
+
+  const templateButton =
+    $("#downloadImportTemplateButton");
+
+  if (form) {
+    form.onsubmit =
+      handleSpreadsheetImport;
+  }
+
+  if (templateButton) {
+    templateButton.onclick =
+      downloadImportTemplate;
+  }
+}
+
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
@@ -1983,28 +3254,31 @@ document.addEventListener(
       ".sidebar button[data-panel]"
     ).forEach(button => {
       button.onclick = () => {
-        $$(".sidebar button").forEach(
-          item => {
-            item.classList.remove(
-              "active"
-            );
-          }
-        );
+        $$(
+          ".sidebar button"
+        ).forEach(item => {
+          item.classList.remove(
+            "active"
+          );
+        });
 
         button.classList.add(
           "active"
         );
 
-        $$(".adminPanel").forEach(
-          panel => {
-            panel.classList.remove(
-              "active"
-            );
-          }
-        );
+        $$(
+          ".adminPanel"
+        ).forEach(panel => {
+          panel.classList.remove(
+            "active"
+          );
+        });
 
         const targetPanel =
-          $("#" + button.dataset.panel);
+          $(
+            "#" +
+            button.dataset.panel
+          );
 
         if (targetPanel) {
           targetPanel.classList.add(
@@ -2020,7 +3294,8 @@ document.addEventListener(
     if (logoutButton) {
       logoutButton.onclick =
         async () => {
-          await sb.auth.signOut();
+          await sb.auth
+            .signOut();
 
           location.href =
             "login.html";
@@ -2042,6 +3317,12 @@ document.addEventListener(
     const genericBallotForm =
       $("#genericBallotForm");
 
+    const spreadsheetImportForm =
+      $("#spreadsheetImportForm");
+
+    const templateButton =
+      $("#downloadImportTemplateButton");
+
     if (raceForm) {
       raceForm.onsubmit =
         saveRace;
@@ -2057,7 +3338,9 @@ document.addEventListener(
         savePoll;
     }
 
-    if (homepageSettingsForm) {
+    if (
+      homepageSettingsForm
+    ) {
       homepageSettingsForm.onsubmit =
         saveHomepageSettings;
     }
@@ -2067,8 +3350,22 @@ document.addEventListener(
         saveGenericBallotPoll;
     }
 
+    if (
+      spreadsheetImportForm
+    ) {
+      spreadsheetImportForm.onsubmit =
+        handleSpreadsheetImport;
+    }
+
+    if (templateButton) {
+      templateButton.onclick =
+        downloadImportTemplate;
+    }
+
     try {
       await reloadAll();
+
+      createSpreadsheetImportTools();
     } catch (error) {
       console.error(
         "Admin data failed to load:",
@@ -2077,7 +3374,7 @@ document.addEventListener(
 
       msg(
         error.message ||
-          "Unable to load admin data.",
+        "Unable to load admin data.",
         "error"
       );
     }
@@ -2113,3 +3410,9 @@ window.openModal =
 
 window.closeModal =
   closeModal;
+
+window.downloadImportTemplate =
+  downloadImportTemplate;
+
+window.handleSpreadsheetImport =
+  handleSpreadsheetImport;
