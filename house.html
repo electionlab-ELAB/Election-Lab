@@ -20,292 +20,312 @@
 
 <body data-race-type="house">
 
-<header class="topbar">
+  <header class="topbar">
+    <nav class="nav">
+
+      <a
+        class="brand"
+        href="index.html"
+      >
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
+
+        <span>
+          ElectionLab
+        </span>
+      </a>
+
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+
+      <div class="navlinks">
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a
+          class="active"
+          href="house.html"
+        >
+          House
+        </a>
+
+        <a href="governors.html">
+          Governors
+        </a>
+
+        <a href="polls.html">
+          Polling
+        </a>
 
-<nav class="nav">
-
-<a
-class="brand"
-href="index.html"
->
-
-<img
-src="electionlab-logo.png"
-alt="ElectionLab logo"
->
-
-<span>
-ElectionLab
-</span>
-
-</a>
-
-<button
-class="menuBtn"
-type="button"
-aria-label="Open navigation menu"
-aria-expanded="false"
->
-
-☰
-
-</button>
-
-<div class="navlinks">
-
-<a href="index.html">
-Home
-</a>
-
-<a href="senate.html">
-Senate
-</a>
-
-<a
-class="active"
-href="house.html"
->
-House
-</a>
-
-<a href="governors.html">
-Governors
-</a>
-
-<a href="polls.html">
-Polling
-</a>
-
-</div>
-
-</nav>
-
-</header>
-
-<main class="page">
-
-<section class="hero">
-
-<div class="heroGrid">
-
-<div>
-
-<div class="kicker">
-ElectionLab Forecast
-</div>
-
-<h1>
-2026 House
-</h1>
-
-<p>
-Explore ElectionLab's published House forecasts,
-interactive district map, polling and race ratings.
-</p>
-
-</div>
-
-<div
-class="forecastCounter"
-data-counter-office="house"
->
-
-<div class="forecastCounterTitle">
-Projected House
-</div>
-
-<div class="forecastCounterRow republican">
-
-<span>
-Republicans
-</span>
-
-<strong
-data-counter-value="republican"
->
-220
-</strong>
-
-</div>
-
-<div class="forecastCounterRow tossup">
-
-<span>
-Toss-ups
-</span>
-
-<strong
-data-counter-value="tossup"
->
-0
-</strong>
-
-</div>
-
-<div class="forecastCounterRow democratic">
-
-<span>
-Democrats
-</span>
-
-<strong
-data-counter-value="democratic"
->
-215
-</strong>
-
-</div>
-
-<div class="forecastCounterNote">
-
-218 seats needed for control
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<section class="section">
-
-<div class="sectionHead">
-
-<div>
-
-<div class="kicker">
-Election Map
-</div>
-
-<h2>
-House Forecast Map
-</h2>
-
-<p>
-Click a district to open its forecast.
-</p>
-
-</div>
-
-</div>
-
-<div class="card houseMapCard">
-
-<div
-id="houseHexMap"
-class="houseHexMap"
->
-
-<div class="loading">
-
-Loading House map...
-
-</div>
-
-</div>
-
-<div class="mapLegend">
-
-<span><i class="legendDot map-dem-safe"></i>Safe D</span>
-
-<span><i class="legendDot map-dem-likely"></i>Likely D</span>
-
-<span><i class="legendDot map-dem-lean"></i>Lean D</span>
-
-<span><i class="legendDot map-dem-tilt"></i>Tilt D</span>
-
-<span><i class="legendDot map-tossup"></i>Toss-up</span>
-
-<span><i class="legendDot map-rep-tilt"></i>Tilt R</span>
-
-<span><i class="legendDot map-rep-lean"></i>Lean R</span>
-
-<span><i class="legendDot map-rep-likely"></i>Likely R</span>
-
-<span><i class="legendDot map-rep-safe"></i>Safe R</span>
-
-</div>
-
-</div>
-
-</section>
-<section class="section">
-
-  <div class="raceSectionHeader">
-
-    <div>
-      <div class="kicker">
-        Race Database
       </div>
 
-      <h2>
-        House Forecasts
-      </h2>
+    </nav>
+  </header>
 
-      <p>
-        Search published House races by state,
-        district, or candidate.
-      </p>
-    </div>
+  <main class="page">
 
-    <div class="toolbar raceToolbar">
+    <section class="hero">
 
-      <input
-        id="raceSearch"
-        type="search"
-        placeholder="Search PA-16 or candidate name"
-        aria-label="Search House races"
-        autocomplete="off"
+      <div class="heroGrid">
+
+        <div>
+
+          <div class="kicker">
+            ElectionLab Forecast
+          </div>
+
+          <h1>
+            2026 House
+          </h1>
+
+          <p>
+            Explore ElectionLab's published House forecasts,
+            interactive district map, polling, and race ratings.
+          </p>
+
+        </div>
+
+        <div
+          class="forecastCounter"
+          data-counter-office="house"
+        >
+
+          <div class="forecastCounterTitle">
+            Projected House
+          </div>
+
+          <div class="forecastCounterRow republican">
+
+            <span>
+              Republicans
+            </span>
+
+            <strong
+              data-counter-value="republican"
+            >
+              220
+            </strong>
+
+          </div>
+
+          <div class="forecastCounterRow tossup">
+
+            <span>
+              Toss-ups
+            </span>
+
+            <strong
+              data-counter-value="tossup"
+            >
+              0
+            </strong>
+
+          </div>
+
+          <div class="forecastCounterRow democratic">
+
+            <span>
+              Democrats
+            </span>
+
+            <strong
+              data-counter-value="democratic"
+            >
+              215
+            </strong>
+
+          </div>
+
+          <div class="forecastCounterNote">
+            218 seats needed for control
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            Election Map
+          </div>
+
+          <h2>
+            House Forecast Map
+          </h2>
+
+          <p>
+            Click a district to open its forecast.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="card houseMapCard">
+
+        <div
+          id="houseHexMap"
+          class="houseHexMap"
+        >
+          <div class="loading">
+            Loading House map...
+          </div>
+        </div>
+
+        <div class="mapLegend">
+
+          <span>
+            <i class="legendDot map-dem-safe"></i>
+            Safe D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-likely"></i>
+            Likely D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-lean"></i>
+            Lean D
+          </span>
+
+          <span>
+            <i class="legendDot map-dem-tilt"></i>
+            Tilt D
+          </span>
+
+          <span>
+            <i class="legendDot map-tossup"></i>
+            Toss-up
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-tilt"></i>
+            Tilt R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-lean"></i>
+            Lean R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-likely"></i>
+            Likely R
+          </span>
+
+          <span>
+            <i class="legendDot map-rep-safe"></i>
+            Safe R
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="raceSectionHeader">
+
+        <div>
+
+          <div class="kicker">
+            Race Database
+          </div>
+
+          <h2>
+            House Forecasts
+          </h2>
+
+          <p>
+            Search published House races by state,
+            district, or candidate.
+          </p>
+
+        </div>
+
+        <div class="toolbar raceToolbar">
+
+          <input
+            id="raceSearch"
+            type="search"
+            placeholder="Search PA-16 or candidate name"
+            aria-label="Search House races"
+            autocomplete="off"
+          >
+
+        </div>
+
+      </div>
+
+      <div
+        id="raceGrid"
+        class="grid3"
       >
+        <div class="loading">
+          Loading House races...
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+
+    <div class="footerInner">
+
+      <div>
+
+        <b>
+          ElectionLab
+        </b>
+
+        <p class="subtle">
+          Independent election forecasts and polling analysis.
+        </p>
+
+      </div>
+
+      <div class="subtle">
+        Forecasts express uncertainty, not certainty.
+      </div>
 
     </div>
 
-  </div>
+  </footer>
 
-  <div
-    id="raceGrid"
-    class="grid3"
-  >
-    <div class="loading">
-      Loading House races...
-    </div>
-  </div>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
 
-</section>
-
-</main>
-
-<footer class="footer">
-
-  <div class="footerInner">
-
-    <div>
-      <b>
-        ElectionLab
-      </b>
-
-      <p class="subtle">
-        Independent election forecasts and polling analysis.
-      </p>
-    </div>
-
-    <div class="subtle">
-      Forecasts express uncertainty, not certainty.
-    </div>
-
-  </div>
-
-</footer>
-
-<script
-  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-></script>
-
-<script src="config.js"></script>
-<script src="common.js"></script>
-<script src="public.js"></script>
-<script src="maps.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="public.js"></script>
+  <script src="map.js"></script>
 
 </body>
 </html>
