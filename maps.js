@@ -1146,59 +1146,83 @@ function escapeMapHtml(
 }
 /* =========================================================
    HOUSE HEX MAP
+   Compact U.S.-style district cartogram
    ========================================================= */
 
+const HOUSE_HEX_SIZE = 22;
+const HOUSE_HEX_X_SPACING = 18;
+const HOUSE_HEX_Y_SPACING = 21;
+
+/*
+  x and y are pixel anchors for each state cluster.
+
+  columns controls the internal width of each state.
+  The districts remain grouped by state while the overall
+  arrangement resembles the United States.
+*/
+
 const HOUSE_STATE_LAYOUT = {
-  WA: { x: 2, y: 1, width: 3 },
-  OR: { x: 2, y: 3, width: 3 },
-  CA: { x: 1, y: 5, width: 4 },
-  NV: { x: 5, y: 5, width: 2 },
-  ID: { x: 6, y: 2, width: 2 },
-  MT: { x: 8, y: 1, width: 2 },
-  WY: { x: 8, y: 4, width: 1 },
-  UT: { x: 7, y: 6, width: 2 },
-  AZ: { x: 6, y: 9, width: 3 },
-  NM: { x: 9, y: 9, width: 2 },
-  CO: { x: 10, y: 6, width: 3 },
-  ND: { x: 13, y: 1, width: 1 },
-  SD: { x: 13, y: 3, width: 1 },
-  NE: { x: 13, y: 5, width: 2 },
-  KS: { x: 13, y: 7, width: 2 },
-  OK: { x: 14, y: 9, width: 3 },
-  TX: { x: 12, y: 11, width: 5 },
-  MN: { x: 16, y: 1, width: 3 },
-  IA: { x: 16, y: 5, width: 2 },
-  MO: { x: 16, y: 7, width: 3 },
-  AR: { x: 17, y: 10, width: 2 },
-  LA: { x: 17, y: 13, width: 2 },
-  WI: { x: 20, y: 2, width: 3 },
-  IL: { x: 20, y: 6, width: 3 },
-  MI: { x: 23, y: 2, width: 3 },
-  IN: { x: 23, y: 7, width: 2 },
-  OH: { x: 26, y: 6, width: 3 },
-  KY: { x: 22, y: 10, width: 3 },
-  TN: { x: 21, y: 12, width: 4 },
-  MS: { x: 20, y: 14, width: 2 },
-  AL: { x: 23, y: 14, width: 2 },
-  GA: { x: 26, y: 14, width: 3 },
-  FL: { x: 27, y: 17, width: 5 },
-  WV: { x: 29, y: 9, width: 2 },
-  VA: { x: 30, y: 10, width: 4 },
-  NC: { x: 30, y: 13, width: 4 },
-  SC: { x: 28, y: 15, width: 3 },
-  PA: { x: 30, y: 6, width: 4 },
-  NY: { x: 34, y: 3, width: 4 },
-  VT: { x: 37, y: 1, width: 1 },
-  NH: { x: 39, y: 1, width: 1 },
-  ME: { x: 41, y: 1, width: 2 },
-  MA: { x: 39, y: 4, width: 3 },
-  RI: { x: 42, y: 5, width: 1 },
-  CT: { x: 39, y: 6, width: 2 },
-  NJ: { x: 36, y: 7, width: 2 },
-  DE: { x: 37, y: 9, width: 1 },
-  MD: { x: 34, y: 9, width: 3 },
-  AK: { x: 2, y: 18, width: 2 },
-  HI: { x: 7, y: 19, width: 2 }
+  WA: { x: 68, y: 52, columns: 5 },
+  OR: { x: 58, y: 128, columns: 3 },
+  CA: { x: 48, y: 212, columns: 5 },
+
+  ID: { x: 174, y: 102, columns: 2 },
+  NV: { x: 153, y: 220, columns: 2 },
+  MT: { x: 242, y: 56, columns: 2 },
+  WY: { x: 256, y: 146, columns: 1 },
+  UT: { x: 226, y: 224, columns: 2 },
+  AZ: { x: 205, y: 324, columns: 3 },
+
+  ND: { x: 355, y: 62, columns: 1 },
+  SD: { x: 360, y: 130, columns: 1 },
+  NE: { x: 354, y: 201, columns: 2 },
+  CO: { x: 303, y: 261, columns: 3 },
+  NM: { x: 300, y: 355, columns: 2 },
+  KS: { x: 384, y: 271, columns: 2 },
+  OK: { x: 388, y: 354, columns: 3 },
+  TX: { x: 337, y: 438, columns: 8 },
+
+  MN: { x: 454, y: 66, columns: 3 },
+  IA: { x: 455, y: 187, columns: 2 },
+  MO: { x: 461, y: 274, columns: 3 },
+  AR: { x: 475, y: 368, columns: 2 },
+  LA: { x: 478, y: 462, columns: 3 },
+
+  WI: { x: 546, y: 102, columns: 3 },
+  IL: { x: 548, y: 212, columns: 4 },
+  MS: { x: 555, y: 401, columns: 2 },
+
+  MI: { x: 647, y: 92, columns: 4 },
+  IN: { x: 638, y: 236, columns: 3 },
+  KY: { x: 637, y: 320, columns: 3 },
+  TN: { x: 647, y: 389, columns: 5 },
+  AL: { x: 652, y: 468, columns: 3 },
+
+  OH: { x: 739, y: 207, columns: 4 },
+  WV: { x: 767, y: 302, columns: 2 },
+  GA: { x: 746, y: 454, columns: 4 },
+  FL: { x: 755, y: 553, columns: 8 },
+
+  PA: { x: 833, y: 177, columns: 5 },
+  VA: { x: 842, y: 315, columns: 5 },
+  NC: { x: 851, y: 389, columns: 6 },
+  SC: { x: 827, y: 477, columns: 3 },
+
+  NY: { x: 942, y: 88, columns: 6 },
+  VT: { x: 1031, y: 46, columns: 1 },
+  NH: { x: 1070, y: 50, columns: 1 },
+  ME: { x: 1112, y: 40, columns: 2 },
+
+  MA: { x: 1049, y: 119, columns: 4 },
+  RI: { x: 1123, y: 168, columns: 1 },
+  CT: { x: 1052, y: 184, columns: 3 },
+
+  NJ: { x: 974, y: 235, columns: 3 },
+  DE: { x: 986, y: 310, columns: 1 },
+  MD: { x: 910, y: 291, columns: 4 },
+
+  AK: { x: 72, y: 548, columns: 1 },
+  HI: { x: 178, y: 578, columns: 2 }
 };
 
 async function initializeHouseMap() {
@@ -1211,21 +1235,39 @@ async function initializeHouseMap() {
     return;
   }
 
+  ensureHouseMapStyles();
+
   map.innerHTML = `
     <div class="loading">
       Loading House map…
     </div>
   `;
 
-  const races =
-    await getMapRaces(
-      "house"
+  try {
+    const races =
+      await getMapRaces(
+        "house"
+      );
+
+    renderHouseHexMap(
+      map,
+      races
+    );
+  } catch (error) {
+    console.error(
+      "House map failed:",
+      error
     );
 
-  renderHouseHexMap(
-    map,
-    races
-  );
+    map.innerHTML = `
+      <div class="empty">
+        ${escapeMapHtml(
+          error?.message ||
+          "Unable to load the House map."
+        )}
+      </div>
+    `;
+  }
 }
 
 function renderHouseHexMap(
@@ -1242,97 +1284,63 @@ function renderHouseHexMap(
     return;
   }
 
-  const racesByState =
+  const groupedRaces =
     groupHouseRacesByState(
       races
     );
 
-  const positionedRaces = [];
+  const stateMarkup =
+    Object.entries(
+      HOUSE_STATE_LAYOUT
+    )
+      .map(
+        ([state, layout]) => {
+          const stateRaces =
+            [
+              ...(
+                groupedRaces[
+                  state
+                ] || []
+              )
+            ].sort(
+              (a, b) =>
+                getHouseDistrictNumber(
+                  a
+                ) -
+                getHouseDistrictNumber(
+                  b
+                )
+            );
 
-  Object.entries(
-    racesByState
-  ).forEach(
-    ([state, stateRaces]) => {
-      const layout =
-        HOUSE_STATE_LAYOUT[
-          state
-        ];
+          if (
+            !stateRaces.length
+          ) {
+            return "";
+          }
 
-      if (!layout) {
-        return;
-      }
-
-      const sortedStateRaces =
-        [...stateRaces].sort(
-          (a, b) =>
-            getHouseDistrictNumber(
-              a
-            ) -
-            getHouseDistrictNumber(
-              b
-            )
-        );
-
-      const positions =
-        buildStateDistrictPositions(
-          sortedStateRaces.length,
-          layout
-        );
-
-      sortedStateRaces.forEach(
-        (race, index) => {
-          positionedRaces.push({
-            race,
+          return createHouseStateMarkup(
             state,
-            position:
-              positions[index]
-          });
+            layout,
+            stateRaces
+          );
         }
-      );
-    }
-  );
+      )
+      .join("");
 
   map.innerHTML = `
-    <div class="houseMapCanvas">
-      ${positionedRaces
-        .map(
-          item =>
-            createHouseHexMarkup(
-              item.race,
-              item.position
-            )
-        )
-        .join("")}
+    <div
+      class="houseMapViewport"
+      aria-label="United States House forecast map"
+    >
+      <div class="houseMapCanvas">
+        ${stateMarkup}
+      </div>
     </div>
   `;
 
-  map
-    .querySelectorAll(
-      "[data-race-slug]"
-    )
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        event => {
-          event.preventDefault();
-          event.stopPropagation();
-
-          const slug =
-            button.dataset
-              .raceSlug;
-
-          if (!slug) {
-            return;
-          }
-
-          location.href =
-            "race.html?id=" +
-            encodeURIComponent(
-              slug
-            );
-        }
-      );
-    });
+  bindHouseMapButtons(
+    map
+  );
 }
 
 function groupHouseRacesByState(
@@ -1369,17 +1377,73 @@ function groupHouseRacesByState(
   );
 }
 
-function buildStateDistrictPositions(
+function createHouseStateMarkup(
+  state,
+  layout,
+  races
+) {
+  const seats =
+    races.length;
+
+  const positions =
+    buildCompactStatePositions(
+      seats,
+      layout.columns
+    );
+
+  const hexMarkup =
+    races
+      .map(
+        (race, index) =>
+          createHouseHexMarkup(
+            race,
+            positions[index]
+          )
+      )
+      .join("");
+
+  return `
+    <section
+      class="houseStateCluster"
+      style="
+        left:${layout.x}px;
+        top:${layout.y}px;
+      "
+      aria-label="${escapeMapHtml(
+        STATE_NAMES[state] ||
+        state
+      )}"
+    >
+      <div class="houseStateHeading">
+        ${escapeMapHtml(
+          state
+        )}
+        <span>
+          (${seats})
+        </span>
+      </div>
+
+      <div class="houseStateDistricts">
+        ${hexMarkup}
+      </div>
+    </section>
+  `;
+}
+
+function buildCompactStatePositions(
   count,
-  layout
+  requestedColumns
 ) {
   const positions = [];
 
-  const width =
+  const columns =
     Math.max(
       1,
-      Number(
-        layout.width || 1
+      Math.min(
+        Number(
+          requestedColumns || 1
+        ),
+        count
       )
     );
 
@@ -1388,28 +1452,28 @@ function buildStateDistrictPositions(
     index < count;
     index += 1
   ) {
-    const localRow =
+    const row =
       Math.floor(
-        index / width
+        index / columns
       );
 
-    const localColumn =
-      index % width;
+    const column =
+      index % columns;
 
-    const rowOffset =
-      localColumn % 2 === 1
-        ? 0.5
+    const horizontalOffset =
+      row % 2 === 1
+        ? HOUSE_HEX_X_SPACING / 2
         : 0;
 
     positions.push({
-      x:
-        layout.x +
-        localColumn,
+      left:
+        column *
+          HOUSE_HEX_X_SPACING +
+        horizontalOffset,
 
-      y:
-        layout.y +
-        localRow +
-        rowOffset
+      top:
+        row *
+        HOUSE_HEX_Y_SPACING
     });
   }
 
@@ -1439,12 +1503,6 @@ function createHouseHexMarkup(
       race
     );
 
-  const left =
-    position.x * 30;
-
-  const top =
-    position.y * 34;
-
   return `
     <button
       class="houseHex ${mapClass}"
@@ -1453,8 +1511,8 @@ function createHouseHexMarkup(
         race.slug || ""
       )}"
       style="
-        left:${left}px;
-        top:${top}px;
+        left:${position.left}px;
+        top:${position.top}px;
       "
       title="${escapeMapHtml(
         description
@@ -1468,14 +1526,40 @@ function createHouseHexMarkup(
           district
         )}
       </span>
-
-      <span class="houseHexRating">
-        ${escapeMapHtml(
-          rating
-        )}
-      </span>
     </button>
   `;
+}
+
+function bindHouseMapButtons(
+  map
+) {
+  map
+    .querySelectorAll(
+      "[data-race-slug]"
+    )
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        event => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const slug =
+            button.dataset
+              .raceSlug;
+
+          if (!slug) {
+            return;
+          }
+
+          location.href =
+            "race.html?id=" +
+            encodeURIComponent(
+              slug
+            );
+        }
+      );
+    });
 }
 
 function houseDistrictLabel(
@@ -1630,105 +1714,6 @@ function buildHouseRaceDescription(
   );
 }
 
-function addHouseMapStateLabels(
-  map
-) {
-  Object.entries(
-    HOUSE_STATE_LAYOUT
-  ).forEach(
-    ([state, layout]) => {
-      const label =
-        document.createElement(
-          "div"
-        );
-
-      label.className =
-        "houseStateLabel";
-
-      label.textContent =
-        state;
-
-      label.style.left =
-        `${layout.x * 30}px`;
-
-      label.style.top =
-        `${
-          layout.y * 34 -
-          16
-        }px`;
-
-      map.appendChild(
-        label
-      );
-    }
-  );
-}
-/* =========================================================
-   HOUSE MAP FINAL SETUP
-   ========================================================= */
-
-/*
-  This replaces the earlier initializeHouseMap function.
-  JavaScript uses this final version because it appears later
-  in the file.
-*/
-
-async function initializeHouseMap() {
-  const map =
-    document.getElementById(
-      "houseHexMap"
-    );
-
-  if (!map) {
-    return;
-  }
-
-  ensureHouseMapStyles();
-
-  map.innerHTML = `
-    <div class="loading">
-      Loading House map…
-    </div>
-  `;
-
-  try {
-    const races =
-      await getMapRaces(
-        "house"
-      );
-
-    renderHouseHexMap(
-      map,
-      races
-    );
-
-    const canvas =
-      map.querySelector(
-        ".houseMapCanvas"
-      );
-
-    if (canvas) {
-      addHouseMapStateLabels(
-        canvas
-      );
-    }
-  } catch (error) {
-    console.error(
-      "House map failed:",
-      error
-    );
-
-    map.innerHTML = `
-      <div class="empty">
-        ${escapeMapHtml(
-          error?.message ||
-            "Unable to load the House map."
-        )}
-      </div>
-    `;
-  }
-}
-
 function ensureHouseMapStyles() {
   if (
     document.getElementById(
@@ -1749,104 +1734,107 @@ function ensureHouseMapStyles() {
   style.textContent = `
     #houseHexMap {
       width: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding: 14px;
+    }
+
+    .houseMapViewport {
+      width: 100%;
       overflow-x: auto;
       overflow-y: hidden;
-      padding: 18px 8px 28px;
-      box-sizing: border-box;
       -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
     }
 
     .houseMapCanvas {
       position: relative;
-      width: 1320px;
-      height: 740px;
+      width: 1200px;
+      height: 680px;
+      min-width: 1200px;
       margin: 0 auto;
-      min-width: 1320px;
+    }
+
+    .houseStateCluster {
+      position: absolute;
+    }
+
+    .houseStateHeading {
+      position: absolute;
+      left: 0;
+      top: -17px;
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      color: #526173;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .houseStateHeading span {
+      font-weight: 700;
+      opacity: 0.75;
+    }
+
+    .houseStateDistricts {
+      position: relative;
     }
 
     .houseHex {
       position: absolute;
-      width: 34px;
-      height: 38px;
+      width: ${HOUSE_HEX_SIZE}px;
+      height: ${HOUSE_HEX_SIZE + 4}px;
       margin: 0;
       padding: 0;
       border: 1px solid rgba(
         255,
         255,
         255,
-        0.78
+        0.88
       );
-      border-radius: 0;
+      box-sizing: border-box;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: visible;
-      box-sizing: border-box;
-      font-family: inherit;
-      transition:
-        transform 120ms ease,
-        filter 120ms ease,
-        z-index 120ms ease;
       clip-path: polygon(
-        25% 4%,
-        75% 4%,
+        25% 3%,
+        75% 3%,
         100% 50%,
-        75% 96%,
-        25% 96%,
+        75% 97%,
+        25% 97%,
         0 50%
       );
+      transition:
+        transform 120ms ease,
+        filter 120ms ease;
       z-index: 2;
     }
 
     .houseHex:hover,
     .houseHex:focus-visible {
-      transform: scale(1.38);
+      transform: scale(1.35);
       filter: brightness(1.08);
-      z-index: 100;
+      z-index: 50;
       outline: none;
     }
 
     .houseHexLabel {
-      display: block;
-      font-size: 6.5px;
+      font-size: 5.5px;
       line-height: 1;
       font-weight: 800;
-      letter-spacing: -0.2px;
+      letter-spacing: -0.25px;
       color: #ffffff;
       text-shadow:
         0 1px 2px rgba(
           0,
           0,
           0,
-          0.7
+          0.62
         );
       pointer-events: none;
       white-space: nowrap;
-    }
-
-    .houseHexRating {
-      display: none;
-    }
-
-    .houseStateLabel {
-      position: absolute;
-      z-index: 1;
-      font-size: 9px;
-      line-height: 1;
-      font-weight: 900;
-      letter-spacing: 0.7px;
-      color: rgba(
-        30,
-        41,
-        59,
-        0.7
-      );
-      pointer-events: none;
-      user-select: none;
-      transform: translateX(
-        2px
-      );
     }
 
     .houseHex.map-tossup .houseHexLabel,
@@ -1858,17 +1846,8 @@ function ensureHouseMapStyles() {
       text-shadow: none;
     }
 
-    .houseHex.map-not-up {
-      background: #cbd5e1;
-    }
-
-    .houseHex.map-no-race,
-    .houseHex.map-unrated {
-      background: #d8dee8;
-    }
-
     @media (
-      max-width: 900px
+      max-width: 700px
     ) {
       #houseHexMap {
         padding-left: 4px;
@@ -1880,26 +1859,146 @@ function ensureHouseMapStyles() {
         margin-right: 0;
       }
     }
-
-    @media (
-      max-width: 600px
-    ) {
-      .houseHex {
-        width: 33px;
-        height: 37px;
-      }
-
-      .houseHexLabel {
-        font-size: 6px;
-      }
-    }
   `;
 
   document.head.appendChild(
     style
   );
 }
+/* =========================================================
+   HOUSE MAP RESPONSIVE FIT
+   ========================================================= */
 
+function fitHouseMapToContainer() {
+  const map =
+    document.getElementById(
+      "houseHexMap"
+    );
+
+  const viewport =
+    map?.querySelector(
+      ".houseMapViewport"
+    );
+
+  const canvas =
+    map?.querySelector(
+      ".houseMapCanvas"
+    );
+
+  if (
+    !map ||
+    !viewport ||
+    !canvas
+  ) {
+    return;
+  }
+
+  const naturalWidth = 1200;
+  const naturalHeight = 680;
+
+  const availableWidth =
+    Math.max(
+      300,
+      map.clientWidth - 28
+    );
+
+  const scale =
+    Math.min(
+      1,
+      availableWidth /
+        naturalWidth
+    );
+
+  canvas.style.transformOrigin =
+    "top left";
+
+  canvas.style.transform =
+    `scale(${scale})`;
+
+  canvas.style.margin =
+    "0 auto";
+
+  viewport.style.height =
+    `${Math.ceil(
+      naturalHeight *
+      scale
+    )}px`;
+
+  viewport.style.overflowX =
+    scale < 1
+      ? "hidden"
+      : "auto";
+}
+
+function watchHouseMapRendering() {
+  const map =
+    document.getElementById(
+      "houseHexMap"
+    );
+
+  if (!map) {
+    return;
+  }
+
+  const observer =
+    new MutationObserver(
+      () => {
+        const canvas =
+          map.querySelector(
+            ".houseMapCanvas"
+          );
+
+        if (!canvas) {
+          return;
+        }
+
+        fitHouseMapToContainer();
+
+        observer.disconnect();
+      }
+    );
+
+  observer.observe(
+    map,
+    {
+      childList: true,
+      subtree: true
+    }
+  );
+
+  if (
+    map.querySelector(
+      ".houseMapCanvas"
+    )
+  ) {
+    fitHouseMapToContainer();
+    observer.disconnect();
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    watchHouseMapRendering();
+  }
+);
+
+window.addEventListener(
+  "resize",
+  () => {
+    window.clearTimeout(
+      window
+        .electionLabHouseResizeTimer
+    );
+
+    window
+      .electionLabHouseResizeTimer =
+      window.setTimeout(
+        fitHouseMapToContainer,
+        120
+      );
+  }
+);
 /* =========================================================
    GENERAL MAP ERROR HANDLING
    ========================================================= */
