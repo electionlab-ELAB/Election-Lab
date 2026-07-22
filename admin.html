@@ -98,6 +98,13 @@
       </button>
 
       <button
+        data-panel="spreadsheetImportPanel"
+        type="button"
+      >
+        Spreadsheet Import
+      </button>
+
+      <button
         id="logout"
         type="button"
       >
@@ -711,6 +718,100 @@
 
           </table>
 
+        </div>
+
+      </section>
+
+      <!-- Spreadsheet import -->
+
+      <section
+        id="spreadsheetImportPanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+          <div>
+            <h2>Spreadsheet import</h2>
+            <p>
+              Upload one Excel workbook with Races, Candidates,
+              and Polls sheets. Preview everything before importing.
+            </p>
+          </div>
+        </div>
+
+        <div class="card section">
+          <div class="formGrid">
+
+            <div class="field full">
+              <label for="electionWorkbookFile">
+                Election workbook (.xlsx, .xls, or .csv)
+              </label>
+
+              <input
+                id="electionWorkbookFile"
+                type="file"
+                accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              >
+            </div>
+
+            <div class="field full">
+              <div class="toolbar">
+                <button
+                  id="downloadElectionWorkbookTemplate"
+                  class="btn light"
+                  type="button"
+                >
+                  Download spreadsheet template
+                </button>
+
+                <button
+                  id="previewElectionWorkbook"
+                  class="btn blue"
+                  type="button"
+                >
+                  Preview spreadsheet
+                </button>
+
+                <button
+                  id="importElectionWorkbook"
+                  class="btn green"
+                  type="button"
+                  disabled
+                >
+                  Import spreadsheet
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <p class="subtle">
+            Candidates and polls are matched to races using
+            <b>race_slug</b>. Importing the same workbook again skips
+            duplicate candidates and polls.
+          </p>
+        </div>
+
+        <div
+          id="spreadsheetPreviewCard"
+          class="card section"
+          style="display:none"
+        >
+          <div class="sectionHead">
+            <div>
+              <h3>Spreadsheet preview</h3>
+              <p id="spreadsheetPreviewSummary"></p>
+            </div>
+          </div>
+
+          <div id="spreadsheetValidationMessages"></div>
+
+          <div class="tableWrap">
+            <table>
+              <thead id="spreadsheetPreviewHead"></thead>
+              <tbody id="spreadsheetPreviewBody"></tbody>
+            </table>
+          </div>
         </div>
 
       </section>
@@ -1542,6 +1643,7 @@
 
   <script src="config.js"></script>
   <script src="common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="admin.js"></script>
 
 </body>
