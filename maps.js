@@ -4,8 +4,8 @@
   Clean rebuild:
   - Senate state map
   - Governor state map
-  - House district hex cartogram
-  - Visible error messages instead of endless loading
+  - House district hex map
+  - House map automatically centered and scaled
 */
 
 const MAP_ASSETS = {
@@ -552,34 +552,17 @@ function normalizeStateCode(
     return districtMatch[1];
   }
 
-  const stateNameToCode = {};
-
-  Object.entries(
-    STATE_NAMES
-  ).forEach(
-    (
-      [
-        code,
-        name
-      ]
-    ) => {
-      stateNameToCode[
-        name.toUpperCase()
-      ] = code;
-    }
-  );
-
   for (
     const [
-      name,
-      code
+      code,
+      name
     ] of Object.entries(
-      stateNameToCode
+      STATE_NAMES
     )
   ) {
     if (
       combined.includes(
-        name
+        name.toUpperCase()
       )
     ) {
       return code;
@@ -1053,15 +1036,13 @@ function addStateLabels(
             feature
           );
 
-        const [
-          x
-        ] =
+        const centroid =
           path.centroid(
             feature
           );
 
         return (
-          x +
+          centroid[0] +
           (
             offsets[
               code
@@ -1079,16 +1060,13 @@ function addStateLabels(
             feature
           );
 
-        const [
-          ,
-          y
-        ] =
+        const centroid =
           path.centroid(
             feature
           );
 
         return (
-          y +
+          centroid[1] +
           (
             offsets[
               code
@@ -1171,18 +1149,18 @@ function showMapTooltip(
     race?.title ||
     fallbackTitle;
 
-  let status = "";
-
-  if (race) {
-    status =
-      race.rating ||
-      "Toss-up";
-  } else {
-    status =
-      office === "senate"
-        ? "Not up in 2026"
-        : "No published forecast";
-  }
+  const status =
+    race
+      ? (
+          race.rating ||
+          "Toss-up"
+        )
+      : (
+          office ===
+          "senate"
+            ? "Not up in 2026"
+            : "No published forecast"
+        );
 
   const candidates =
     [
@@ -1320,9 +1298,11 @@ function hideMapTooltip() {
       "mapTooltip"
     );
 
-  tooltip?.classList.remove(
-    "visible"
-  );
+  if (tooltip) {
+    tooltip.classList.remove(
+      "visible"
+    );
+  }
 }
 /* =========================================================
    HOUSE DISTRICT MAP
@@ -1345,14 +1325,6 @@ const HOUSE_HEX_X_STEP =
 
 const HOUSE_HEX_Y_STEP =
   21;
-
-/*
-  State cluster positions.
-
-  Each state is placed in its approximate geographic
-  location. Districts are arranged compactly inside
-  each state cluster.
-*/
 
 const HOUSE_LAYOUT = {
   WA: { x: 45, y: 55, cols: 5 },
@@ -1562,7 +1534,9 @@ function renderHouseMap(
       }
     );
 
-  fitHouseMap();
+  window.requestAnimationFrame(
+    fitHouseMap
+  );
 }
 
 function groupHouseRaces(
@@ -1877,23 +1851,27 @@ function addHouseMapStyles() {
   style.textContent = `
     #houseHexMap {
       width: 100%;
-      padding: 12px;
+      padding: 12px 0;
       box-sizing: border-box;
       overflow: hidden;
     }
 
     .houseMapViewport {
       width: 100%;
-      overflow: hidden;
+      height: 0;
       position: relative;
+      overflow: hidden;
+      margin: 0 auto;
     }
 
     .houseMapCanvas {
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 0;
       width: ${HOUSE_MAP_WIDTH}px;
       height: ${HOUSE_MAP_HEIGHT}px;
       min-width: ${HOUSE_MAP_WIDTH}px;
-      transform-origin: top left;
+      transform-origin: top center;
     }
 
     .houseState {
@@ -1990,8 +1968,8 @@ function addHouseMapStyles() {
       max-width: 700px
     ) {
       #houseHexMap {
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-left: 0;
+        padding-right: 0;
       }
     }
   `;
@@ -2028,8 +2006,7 @@ function fitHouseMap() {
   const availableWidth =
     Math.max(
       280,
-      container.clientWidth -
-        24
+      container.clientWidth
     );
 
   const scale =
@@ -2039,14 +2016,26 @@ function fitHouseMap() {
         HOUSE_MAP_WIDTH
     );
 
+  canvas.style.left =
+    "50%";
+
+  canvas.style.top =
+    "0";
+
+  canvas.style.transformOrigin =
+    "top center";
+
   canvas.style.transform =
-    `scale(${scale})`;
+    `translateX(-50%) scale(${scale})`;
 
   viewport.style.height =
     `${Math.ceil(
       HOUSE_MAP_HEIGHT *
       scale
     )}px`;
+
+  viewport.style.overflow =
+    "hidden";
 }
 
 window.addEventListener(
