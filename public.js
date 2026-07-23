@@ -59,6 +59,7 @@ let activeChartRange =
   "90";
 
 
+
 /* =========================================================
    WEBSITE SETTINGS
    ========================================================= */
@@ -129,7 +130,6 @@ function safeSeatTotal(
 
 
 
-
 function renderForecastCounter(
   settings
 ) {
@@ -184,7 +184,6 @@ function renderForecastCounter(
         );
 
 
-
       const republicanBox =
         counter.querySelector(
           "[data-counter-value='republican']"
@@ -201,7 +200,6 @@ function renderForecastCounter(
         counter.querySelector(
           "[data-counter-value='democratic']"
         );
-
 
 
       if (republicanBox) {
@@ -231,10 +229,6 @@ function renderForecastCounter(
   );
 
 }
-
-
-
-
 async function loadWebsiteSettings() {
 
   const needsSettings =
@@ -355,6 +349,13 @@ async function loadWebsiteSettings() {
   }
 
 }
+
+
+
+
+
+
+
 /* =========================================================
    RACE CARDS
    ========================================================= */
@@ -536,11 +537,6 @@ function raceCard(
   `;
 
 }
-
-
-
-
-
 /* =========================================================
    HOMEPAGE
    ========================================================= */
@@ -704,6 +700,13 @@ function selectFeaturedRaces(
     );
 
 }
+
+
+
+
+
+
+
 /* =========================================================
    HOMEPAGE LOADING
    ========================================================= */
@@ -827,13 +830,6 @@ async function loadHome() {
   }
 
 }
-
-
-
-
-
-
-
 function renderRaceOfTheDay(
   races
 ) {
@@ -1140,6 +1136,13 @@ function renderRaceOfTheDay(
 
 
 }
+
+
+
+
+
+
+
 /* =========================================================
    RACE LISTING PAGES
    ========================================================= */
@@ -1234,17 +1237,9 @@ async function loadRaceGrid() {
             `;
 
     }
-
-
-
-
-
-    displayRaces(
+        displayRaces(
       races
     );
-
-
-
 
 
     const input =
@@ -1253,16 +1248,11 @@ async function loadRaceGrid() {
       );
 
 
-
-
-
     if (input) {
-
 
       input.addEventListener(
         "input",
         () => {
-
 
           const query =
             normalizeText(
@@ -1270,102 +1260,71 @@ async function loadRaceGrid() {
             );
 
 
-
-
           if (!query) {
-
 
             displayRaces(
               races
             );
 
-
             return;
-
 
           }
 
 
-
-
-
           const filtered =
-
             races.filter(
               race => {
 
-
                 const searchable =
-
                   [
-
                     race.title,
-
                     race.state,
-
                     race.slug,
-
                     race.rating,
-
 
                     ...(race.candidates || [])
                       .map(
                         candidate =>
                           candidate.name
                       )
-
-
                   ]
 
-                  .filter(
-                    Boolean
-                  )
+                    .filter(
+                      Boolean
+                    )
 
-                  .join(
-                    " "
-                  )
+                    .join(
+                      " "
+                    )
 
-                  .toLowerCase();
-
-
+                    .toLowerCase();
 
 
                 return searchable.includes(
                   query
                 );
 
-
               }
             );
-
-
-
 
 
           displayRaces(
             filtered
           );
 
-
         }
       );
 
-
     }
-
-
 
   }
 
-
   catch(error) {
-
 
     console.error(
       "Race grid failed:",
       error
     );
-
 
 
     renderLoadError(
@@ -1374,14 +1333,9 @@ async function loadRaceGrid() {
       "Unable to load races."
     );
 
-
   }
 
-
 }
-
-
-
 
 
 
@@ -1390,15 +1344,12 @@ async function loadRaceGrid() {
    ========================================================= */
 
 
-
 async function loadRace() {
-
 
   const root =
     document.querySelector(
       "#raceRoot"
     );
-
 
 
   if (!root) {
@@ -1408,9 +1359,7 @@ async function loadRace() {
   }
 
 
-
   if (!configured) {
-
 
     root.innerHTML = `
 
@@ -1422,21 +1371,14 @@ async function loadRace() {
 
     `;
 
-
     return;
-
 
   }
 
 
-
-
-
   try {
 
-
     const slug =
-
       new URLSearchParams(
         location.search
       )
@@ -1445,10 +1387,7 @@ async function loadRace() {
       );
 
 
-
-
     if (!slug) {
-
 
       root.innerHTML = `
 
@@ -1460,29 +1399,18 @@ async function loadRace() {
 
       `;
 
-
       return;
-
 
     }
 
 
-
-
-
-
     const race =
-
       await getPublishedRaceBySlug(
         slug
       );
 
 
-
-
-
     if (!race) {
-
 
       root.innerHTML = `
 
@@ -1494,90 +1422,54 @@ async function loadRace() {
 
       `;
 
-
       return;
-
 
     }
 
 
-
-
-
-
     const polls =
-
       await getPublishedPolls(
         race.id
       );
-
-
-
 
 
     activeRacePolls =
       polls;
 
 
-
     activeRaceCandidates =
-
       sortCandidates(
         race.candidates ||
         []
       );
 
 
-
-
-
-
     const template =
-
       document.querySelector(
         "#racePageTemplate"
       );
 
 
-
-
-
     if (!template) {
-
 
       throw new Error(
         "The race page template could not be found."
       );
 
-
     }
-
-
-
-
 
 
     root.innerHTML =
       template.innerHTML;
 
 
-
-
-
     document.title =
-
       `${race.title || "Election Forecast"} | ElectionLab`;
-
-
-
 
 
     renderRaceHeader(
       race
     );
-
-
-
 
 
     renderRaceForecast(
@@ -1587,17 +1479,11 @@ async function loadRace() {
     );
 
 
-
-
-
     renderRacePollingAverage(
       race,
       activeRaceCandidates,
       polls
     );
-
-
-
 
 
     renderRacePollingMetadata(
@@ -1606,16 +1492,10 @@ async function loadRace() {
     );
 
 
-
-
-
     renderRacePollTable(
       race,
       polls
     );
-
-
-
 
 
     initializeRaceChartControls(
@@ -1624,28 +1504,20 @@ async function loadRace() {
     );
 
 
-
-
-
     renderRacePollingChart(
       polls,
       activeRaceCandidates,
       activeChartRange
     );
 
-
-
   }
 
-
   catch(error) {
-
 
     console.error(
       "Race page failed:",
       error
     );
-
 
 
     renderLoadError(
@@ -1654,14 +1526,14 @@ async function loadRace() {
       "Unable to load this race."
     );
 
-
   }
 
-
 }
+
+
+
 /* =========================================================
    RACE HEADER + FORECAST
-   (Forecast Confidence REMOVED)
    ========================================================= */
 
 
@@ -1692,7 +1564,6 @@ function renderRaceHeader(
     candidates[0];
 
 
-
   setElementText(
     "#raceKicker",
     `2026 ${label} Forecast`
@@ -1713,12 +1584,10 @@ function renderRaceHeader(
   );
 
 
-
   const ratingBadge =
     document.querySelector(
       "#raceRatingBadge"
     );
-
 
 
   if (ratingBadge) {
@@ -1736,8 +1605,6 @@ function renderRaceHeader(
   }
 
 
-
-
   setElementText(
     "#raceOfficeBadge",
     label
@@ -1751,10 +1618,7 @@ function renderRaceHeader(
   );
 
 
-
-
   if (leader) {
-
 
     setElementText(
       "#raceLeaderProbability",
@@ -1765,13 +1629,11 @@ function renderRaceHeader(
     );
 
 
-
     setElementText(
       "#raceLeaderName",
       leader.name ||
       "Leading candidate"
     );
-
 
 
     setElementText(
@@ -1783,12 +1645,10 @@ function renderRaceHeader(
     );
 
 
-
     const leaderCard =
       document.querySelector(
         ".raceLeaderCard"
       );
-
 
 
     if (leaderCard) {
@@ -1800,10 +1660,9 @@ function renderRaceHeader(
 
     }
 
+  }
 
-
-  } else {
-
+  else {
 
     setElementText(
       "#raceLeaderProbability",
@@ -1822,15 +1681,9 @@ function renderRaceHeader(
       "Add candidates in the admin portal"
     );
 
-
   }
 
-
 }
-
-
-
-
 
 
 
@@ -1840,12 +1693,10 @@ function renderRaceForecast(
   polls
 ) {
 
-
   const list =
     document.querySelector(
       "#candidateForecastList"
     );
-
 
 
   const margin =
@@ -1853,7 +1704,6 @@ function renderRaceForecast(
       race.projected_margin ||
       0
     );
-
 
 
   setElementText(
@@ -1864,7 +1714,6 @@ function renderRaceForecast(
   );
 
 
-
   if (!list) {
 
     return;
@@ -1872,11 +1721,7 @@ function renderRaceForecast(
   }
 
 
-
-
-
   if (!candidates.length) {
-
 
     list.innerHTML = `
 
@@ -1888,30 +1733,21 @@ function renderRaceForecast(
 
     `;
 
-
     return;
-
 
   }
 
 
-
-
-
-
   list.innerHTML =
-
     candidates
 
       .map(
         candidate => {
 
-
           const party =
             normalizeParty(
               candidate.party
             );
-
 
 
           const winProbability =
@@ -1922,7 +1758,6 @@ function renderRaceForecast(
             );
 
 
-
           const expectedVote =
             Number(
               candidate.expected_vote_share ||
@@ -1930,15 +1765,11 @@ function renderRaceForecast(
             );
 
 
-
           return `
-
 
             <div class="candidateForecastRow">
 
-
               <div class="candidateForecastIdentity">
-
 
                 <i
                   class="partyDot ${partyCssClass(
@@ -1946,10 +1777,7 @@ function renderRaceForecast(
                   )}"
                 ></i>
 
-
-
                 <div>
-
 
                   <strong>
 
@@ -1959,8 +1787,6 @@ function renderRaceForecast(
                     )}
 
                   </strong>
-
-
 
                   <span>
 
@@ -1972,27 +1798,18 @@ function renderRaceForecast(
 
                   </span>
 
-
                 </div>
-
 
               </div>
 
 
-
-
-
               <div class="candidateForecastNumbers">
 
-
                 <div>
-
 
                   <span>
                     Win chance
                   </span>
-
-
 
                   <strong>
 
@@ -2002,21 +1819,14 @@ function renderRaceForecast(
 
                   </strong>
 
-
                 </div>
-
-
-
 
 
                 <div>
 
-
                   <span>
                     Projected vote
                   </span>
-
-
 
                   <strong>
 
@@ -2026,18 +1836,12 @@ function renderRaceForecast(
 
                   </strong>
 
-
                 </div>
-
 
               </div>
 
 
-
-
-
               <div class="candidateForecastMeter">
-
 
                 <span
                   style="
@@ -2048,24 +1852,459 @@ function renderRaceForecast(
                   "
                 ></span>
 
-
               </div>
-
-
 
             </div>
 
-
           `;
 
-
         }
-
       )
 
       .join("");
 
 }
+/* =========================================================
+   POLLING AVERAGE
+   ========================================================= */
+
+
+function pollCandidateValue(
+  poll,
+  candidate,
+  index
+) {
+
+  const party =
+    normalizeParty(
+      candidate?.party
+    );
+
+
+  if (
+    party === "D"
+  ) {
+
+    return Number(
+      poll.dem_pct ??
+      poll.democratic_pct ??
+      poll.d_pct ??
+      0
+    );
+
+  }
+
+
+  if (
+    party === "R"
+  ) {
+
+    return Number(
+      poll.rep_pct ??
+      poll.republican_pct ??
+      poll.r_pct ??
+      0
+    );
+
+  }
+
+
+  const possibleFields = [
+
+    `candidate_${index + 1}_pct`,
+
+    `candidate${index + 1}_pct`,
+
+    `candidate_${candidate?.id}_pct`,
+
+    `candidate_${normalizeText(
+      candidate?.name
+    )
+      .replace(
+        /[^a-z0-9]+/g,
+        "_"
+      )}_pct`
+
+  ];
+
+
+  for (
+    const field of possibleFields
+  ) {
+
+    const value =
+      Number(
+        poll[field]
+      );
+
+
+    if (
+      Number.isFinite(
+        value
+      ) &&
+      value > 0
+    ) {
+
+      return value;
+
+    }
+
+  }
+
+
+  return 0;
+
+}
+
+
+
+function calculateCandidatePollingAverage(
+  polls,
+  candidate,
+  index
+) {
+
+  const usablePolls =
+    polls.filter(
+      poll => {
+
+        const value =
+          pollCandidateValue(
+            poll,
+            candidate,
+            index
+          );
+
+
+        return (
+          Number.isFinite(
+            value
+          ) &&
+          value > 0
+        );
+
+      }
+    );
+
+
+  if (
+    !usablePolls.length
+  ) {
+
+    return null;
+
+  }
+
+
+  let weightedTotal =
+    0;
+
+
+  let totalWeight =
+    0;
+
+
+  usablePolls.forEach(
+    poll => {
+
+      const value =
+        pollCandidateValue(
+          poll,
+          candidate,
+          index
+        );
+
+
+      const sampleSize =
+        Number(
+          poll.sample_size ||
+          0
+        );
+
+
+      const weight =
+        sampleSize > 0
+
+          ?
+
+            Math.sqrt(
+              sampleSize
+            )
+
+          :
+
+            1;
+
+
+      weightedTotal +=
+        value * weight;
+
+
+      totalWeight +=
+        weight;
+
+    }
+  );
+
+
+  if (
+    totalWeight <= 0
+  ) {
+
+    return null;
+
+  }
+
+
+  return (
+    weightedTotal /
+    totalWeight
+  );
+
+}
+
+
+
+function renderRacePollingAverage(
+  race,
+  candidates,
+  polls
+) {
+
+  const container =
+    document.querySelector(
+      "#racePollingAverage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      polls
+    ) ||
+    !polls.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        No published polling is available for this race.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  const averages =
+    candidates
+
+      .map(
+        (
+          candidate,
+          index
+        ) => ({
+
+          candidate,
+
+          average:
+            calculateCandidatePollingAverage(
+              polls,
+              candidate,
+              index
+            )
+
+        })
+      )
+
+      .filter(
+        item =>
+          item.average !== null
+      )
+
+      .sort(
+        (
+          first,
+          second
+        ) =>
+
+          second.average -
+          first.average
+
+      );
+
+
+  if (
+    !averages.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        Polling data exists, but no candidate percentages could be calculated.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  const leader =
+    averages[0];
+
+
+  const runnerUp =
+    averages[1];
+
+
+  const pollingMargin =
+    runnerUp
+
+      ?
+
+        leader.average -
+        runnerUp.average
+
+      :
+
+        0;
+
+
+  container.innerHTML = `
+
+    <div class="pollingAverageHeader">
+
+      <div>
+
+        <span class="kicker">
+
+          ElectionLab polling average
+
+        </span>
+
+        <h3>
+
+          ${escapeHtml(
+            leader.candidate.name ||
+            "Leader"
+          )}
+
+          leads
+
+          ${pollingMargin.toFixed(
+            1
+          )}
+
+          points
+
+        </h3>
+
+      </div>
+
+      <strong>
+
+        ${averages.length}
+
+        candidate${averages.length === 1 ? "" : "s"}
+
+      </strong>
+
+    </div>
+
+
+    <div class="pollingAverageList">
+
+      ${averages
+        .map(
+          item => {
+
+            const party =
+              normalizeParty(
+                item.candidate.party
+              );
+
+
+            return `
+
+              <div class="pollingAverageRow">
+
+                <div class="pollingAverageCandidate">
+
+                  <i
+                    class="partyDot ${partyCssClass(
+                      party
+                    )}"
+                  ></i>
+
+                  <span>
+
+                    ${escapeHtml(
+                      item.candidate.name ||
+                      "Unnamed candidate"
+                    )}
+
+                  </span>
+
+                </div>
+
+
+                <div class="pollingAverageBar">
+
+                  <span
+                    style="
+                      width:${clamp(
+                        item.average,
+                        0,
+                        100
+                      )}%;
+
+                      background:${partyColor(
+                        party
+                      )};
+                    "
+                  ></span>
+
+                </div>
+
+
+                <strong>
+
+                  ${item.average.toFixed(
+                    1
+                  )}%
+
+                </strong>
+
+              </div>
+
+            `;
+
+          }
+        )
+        .join("")}
+
+    </div>
+
+  `;
+
+}
+
+
+
 /* =========================================================
    POLLING METADATA
    ========================================================= */
@@ -2092,6 +2331,7 @@ function renderRacePollingMetadata(
 
   setElementText(
     "#racePollFieldDates",
+
     metadata.startDate &&
     metadata.endDate
 
@@ -2106,6 +2346,7 @@ function renderRacePollingMetadata(
       :
 
         "—"
+
   );
 
 
@@ -2118,6 +2359,7 @@ function renderRacePollingMetadata(
 
   setElementText(
     "#raceLatestPollDate",
+
     metadata.latestPoll
 
       ?
@@ -2130,8 +2372,8 @@ function renderRacePollingMetadata(
       :
 
         "—"
-  );
 
+  );
 
 
   const updatedAt =
@@ -2139,7 +2381,6 @@ function renderRacePollingMetadata(
     metadata.latestPoll?.updated_at ||
     metadata.latestPoll?.created_at ||
     metadata.endDate;
-
 
 
   setElementText(
@@ -2153,7 +2394,673 @@ function renderRacePollingMetadata(
 
 
 
+/* =========================================================
+   POLL TABLE
+   ========================================================= */
 
+
+function renderRacePollTable(
+  race,
+  polls
+) {
+
+  const table =
+    document.querySelector(
+      "#racePollTable"
+    );
+
+
+  if (!table) {
+
+    return;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      polls
+    ) ||
+    !polls.length
+  ) {
+
+    table.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="8"
+          class="empty"
+        >
+
+          No published polls are available.
+
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+
+  }
+
+
+  const candidates =
+    activeRaceCandidates;
+
+
+  const sortedPolls =
+    [...polls]
+      .sort(
+        (
+          first,
+          second
+        ) => {
+
+          const firstDate =
+            new Date(
+              first.end_date ||
+              first.start_date ||
+              0
+            );
+
+
+          const secondDate =
+            new Date(
+              second.end_date ||
+              second.start_date ||
+              0
+            );
+
+
+          return (
+            secondDate -
+            firstDate
+          );
+
+        }
+      );
+
+
+  table.innerHTML =
+    sortedPolls
+
+      .map(
+        poll => {
+
+          const candidateValues =
+            candidates
+              .slice(
+                0,
+                3
+              )
+              .map(
+                (
+                  candidate,
+                  index
+                ) => {
+
+                  const value =
+                    pollCandidateValue(
+                      poll,
+                      candidate,
+                      index
+                    );
+
+
+                  return `
+
+                    <td>
+
+                      ${value > 0
+                        ? `${value.toFixed(1)}%`
+                        : "—"}
+
+                    </td>
+
+                  `;
+
+                }
+              )
+              .join("");
+
+
+          return `
+
+            <tr>
+
+              <td>
+
+                <strong>
+
+                  ${escapeHtml(
+                    poll.pollster ||
+                    "Unknown pollster"
+                  )}
+
+                </strong>
+
+              </td>
+
+
+              <td>
+
+                ${escapeHtml(
+                  fmtDateRange(
+                    poll.start_date,
+                    poll.end_date
+                  )
+                )}
+
+              </td>
+
+
+              <td>
+
+                ${escapeHtml(
+                  poll.population ||
+                  poll.sample_type ||
+                  "—"
+                )}
+
+              </td>
+
+
+              <td>
+
+                ${Number(
+                  poll.sample_size ||
+                  0
+                ) > 0
+
+                  ?
+
+                    Number(
+                      poll.sample_size
+                    ).toLocaleString()
+
+                  :
+
+                    "—"}
+
+              </td>
+
+
+              ${candidateValues}
+
+            </tr>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+}
+
+
+
+/* =========================================================
+   POLLING CHART
+   ========================================================= */
+
+
+function pollDateValue(
+  poll
+) {
+
+  return (
+    poll.end_date ||
+    poll.start_date ||
+    poll.created_at ||
+    null
+  );
+
+}
+
+
+
+function filterPollsByRange(
+  polls,
+  range
+) {
+
+  if (
+    range === "all"
+  ) {
+
+    return [...polls];
+
+  }
+
+
+  const numberOfDays =
+    Number(
+      range
+    );
+
+
+  if (
+    !Number.isFinite(
+      numberOfDays
+    ) ||
+    numberOfDays <= 0
+  ) {
+
+    return [...polls];
+
+  }
+
+
+  const cutoff =
+    new Date();
+
+
+  cutoff.setDate(
+    cutoff.getDate() -
+    numberOfDays
+  );
+
+
+  return polls.filter(
+    poll => {
+
+      const date =
+        new Date(
+          pollDateValue(
+            poll
+          ) ||
+          0
+        );
+
+
+      return (
+        !Number.isNaN(
+          date.getTime()
+        ) &&
+        date >= cutoff
+      );
+
+    }
+  );
+
+}
+
+
+
+function initializeRaceChartControls(
+  polls,
+  candidates
+) {
+
+  const controls =
+    document.querySelectorAll(
+      "[data-chart-range]"
+    );
+
+
+  controls.forEach(
+    control => {
+
+      control.addEventListener(
+        "click",
+        () => {
+
+          activeChartRange =
+            control.dataset.chartRange ||
+            "90";
+
+
+          controls.forEach(
+            item =>
+              item.classList.remove(
+                "active"
+              )
+          );
+
+
+          control.classList.add(
+            "active"
+          );
+
+
+          renderRacePollingChart(
+            polls,
+            candidates,
+            activeChartRange
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+  const selectedControl =
+    document.querySelector(
+      `[data-chart-range="${activeChartRange}"]`
+    );
+
+
+  if (
+    selectedControl
+  ) {
+
+    selectedControl.classList.add(
+      "active"
+    );
+
+  }
+
+}
+
+
+
+function renderRacePollingChart(
+  polls,
+  candidates,
+  range = "90"
+) {
+
+  const canvas =
+    document.querySelector(
+      "#racePollingChart"
+    );
+
+
+  if (!canvas) {
+
+    return;
+
+  }
+
+
+  if (
+    typeof Chart ===
+    "undefined"
+  ) {
+
+    console.warn(
+      "Chart.js is not loaded."
+    );
+
+    return;
+
+  }
+
+
+  const filteredPolls =
+    filterPollsByRange(
+      polls,
+      range
+    )
+      .sort(
+        (
+          first,
+          second
+        ) => {
+
+          return (
+
+            new Date(
+              pollDateValue(
+                first
+              ) ||
+              0
+            )
+
+            -
+
+            new Date(
+              pollDateValue(
+                second
+              ) ||
+              0
+            )
+
+          );
+
+        }
+      );
+
+
+  if (
+    racePollingChart
+  ) {
+
+    racePollingChart.destroy();
+
+    racePollingChart =
+      null;
+
+  }
+
+
+  if (
+    !filteredPolls.length
+  ) {
+
+    return;
+
+  }
+
+
+  const labels =
+    filteredPolls.map(
+      poll =>
+        fmtDate(
+          pollDateValue(
+            poll
+          )
+        )
+    );
+
+
+  const datasets =
+    candidates
+      .slice(
+        0,
+        3
+      )
+      .map(
+        (
+          candidate,
+          index
+        ) => {
+
+          const party =
+            normalizeParty(
+              candidate.party
+            );
+
+
+          const color =
+            partyColor(
+              party
+            );
+
+
+          return {
+
+            label:
+              candidate.name ||
+              `Candidate ${index + 1}`,
+
+            data:
+              filteredPolls.map(
+                poll => {
+
+                  const value =
+                    pollCandidateValue(
+                      poll,
+                      candidate,
+                      index
+                    );
+
+
+                  return (
+                    value > 0
+                      ? value
+                      : null
+                  );
+
+                }
+              ),
+
+            borderColor:
+              color,
+
+            backgroundColor:
+              color,
+
+            tension:
+              0.25,
+
+            spanGaps:
+              true,
+
+            pointRadius:
+              3,
+
+            pointHoverRadius:
+              5,
+
+            borderWidth:
+              3,
+
+            fill:
+              false
+
+          };
+
+        }
+      );
+
+
+  racePollingChart =
+    new Chart(
+      canvas,
+      {
+
+        type:
+          "line",
+
+        data: {
+
+          labels,
+
+          datasets
+
+        },
+
+        options: {
+
+          responsive:
+            true,
+
+          maintainAspectRatio:
+            false,
+
+          interaction: {
+
+            mode:
+              "index",
+
+            intersect:
+              false
+
+          },
+
+          plugins: {
+
+            legend: {
+
+              display:
+                true,
+
+              position:
+                "bottom"
+
+            },
+
+            tooltip: {
+
+              callbacks: {
+
+                label(
+                  context
+                ) {
+
+                  const value =
+                    Number(
+                      context.raw
+                    );
+
+
+                  return `${context.dataset.label}: ${value.toFixed(
+                    1
+                  )}%`;
+
+                }
+
+              }
+
+            }
+
+          },
+
+          scales: {
+
+            y: {
+
+              suggestedMin:
+                30,
+
+              suggestedMax:
+                60,
+
+              ticks: {
+
+                callback(
+                  value
+                ) {
+
+                  return `${value}%`;
+
+                }
+
+              }
+
+            },
+
+            x: {
+
+              ticks: {
+
+                maxRotation:
+                  0,
+
+                autoSkip:
+                  true,
+
+                maxTicksLimit:
+                  8
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+    );
+
+}
 
 
 
@@ -2167,7 +3074,9 @@ function genericBallotAverage(
 ) {
 
   if (
-    !Array.isArray(polls) ||
+    !Array.isArray(
+      polls
+    ) ||
     !polls.length
   ) {
 
@@ -2184,7 +3093,277 @@ function genericBallotAverage(
 
 
 
+function renderGenericBallotSummary(
+  average,
+  polls
+) {
 
+  const democratic =
+    Number(
+      average?.dem_pct ??
+      average?.democratic ??
+      average?.dem ??
+      0
+    );
+
+
+  const republican =
+    Number(
+      average?.rep_pct ??
+      average?.republican ??
+      average?.rep ??
+      0
+    );
+
+
+  const margin =
+    democratic -
+    republican;
+
+
+  setElementText(
+    "#genericDemAverage",
+    average
+      ? `${democratic.toFixed(1)}%`
+      : "—"
+  );
+
+
+  setElementText(
+    "#genericRepAverage",
+    average
+      ? `${republican.toFixed(1)}%`
+      : "—"
+  );
+
+
+  setElementText(
+    "#genericBallotMargin",
+    average
+      ? formatMargin(
+          margin
+        )
+      : "—"
+  );
+
+
+  setElementText(
+    "#genericPollCount",
+    String(
+      polls.length
+    )
+  );
+
+
+  const leaderText =
+    margin > 0
+
+      ?
+
+        `Democrats lead by ${Math.abs(
+          margin
+        ).toFixed(1)} points`
+
+      :
+
+        margin < 0
+
+          ?
+
+            `Republicans lead by ${Math.abs(
+              margin
+            ).toFixed(1)} points`
+
+          :
+
+            "The generic ballot is tied";
+
+
+  setElementText(
+    "#genericBallotLeader",
+    average
+      ? leaderText
+      : "No polling average available"
+  );
+
+}
+
+
+
+function renderGenericBallotTable(
+  table,
+  polls
+) {
+
+  if (
+    !polls.length
+  ) {
+
+    table.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="6"
+          class="empty"
+        >
+
+          No published generic ballot polls.
+
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+
+  }
+
+
+  table.innerHTML =
+    [...polls]
+
+      .sort(
+        (
+          first,
+          second
+        ) =>
+
+          new Date(
+            second.end_date ||
+            second.start_date ||
+            0
+          )
+
+          -
+
+          new Date(
+            first.end_date ||
+            first.start_date ||
+            0
+          )
+
+      )
+
+      .map(
+        poll => {
+
+          const democratic =
+            Number(
+              poll.dem_pct ||
+              0
+            );
+
+
+          const republican =
+            Number(
+              poll.rep_pct ||
+              0
+            );
+
+
+          const margin =
+            democratic -
+            republican;
+
+
+          return `
+
+            <tr>
+
+              <td>
+
+                <strong>
+
+                  ${escapeHtml(
+                    poll.pollster ||
+                    "Unknown pollster"
+                  )}
+
+                </strong>
+
+              </td>
+
+
+              <td>
+
+                ${escapeHtml(
+                  fmtDateRange(
+                    poll.start_date,
+                    poll.end_date
+                  )
+                )}
+
+              </td>
+
+
+              <td>
+
+                ${escapeHtml(
+                  poll.population ||
+                  "—"
+                )}
+
+              </td>
+
+
+              <td>
+
+                ${Number(
+                  poll.sample_size ||
+                  0
+                ) > 0
+
+                  ?
+
+                    Number(
+                      poll.sample_size
+                    ).toLocaleString()
+
+                  :
+
+                    "—"}
+
+              </td>
+
+
+              <td>
+
+                ${democratic.toFixed(
+                  1
+                )}%
+
+              </td>
+
+
+              <td>
+
+                ${republican.toFixed(
+                  1
+                )}%
+
+              </td>
+
+
+              <td>
+
+                ${formatMargin(
+                  margin
+                )}
+
+              </td>
+
+            </tr>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+}
 
 
 
@@ -2203,16 +3382,14 @@ async function loadGenericBallotPage() {
   }
 
 
-
   if (!configured) {
-
 
     table.innerHTML = `
 
       <tr>
 
         <td
-          colspan="6"
+          colspan="7"
           class="empty"
         >
 
@@ -2230,15 +3407,10 @@ async function loadGenericBallotPage() {
   }
 
 
-
-
-
   try {
-
 
     const polls =
       await getPublishedGenericBallotPolls();
-
 
 
     const average =
@@ -2247,12 +3419,10 @@ async function loadGenericBallotPage() {
       );
 
 
-
     renderGenericBallotSummary(
       average,
       polls
     );
-
 
 
     renderGenericBallotTable(
@@ -2260,12 +3430,9 @@ async function loadGenericBallotPage() {
       polls
     );
 
-
-
   }
 
   catch(error) {
-
 
     console.error(
       "Generic ballot failed:",
@@ -2273,14 +3440,29 @@ async function loadGenericBallotPage() {
     );
 
 
+    table.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="7"
+          class="empty"
+        >
+
+          ${escapeHtml(
+            error.message ||
+            "Unable to load generic ballot polling."
+          )}
+
+        </td>
+
+      </tr>
+
+    `;
+
   }
 
-
 }
-
-
-
-
 
 
 
@@ -2298,9 +3480,8 @@ function markActiveNavigation() {
         .pop() ||
       "index.html"
     )
-    .split("?")[0]
-    .toLowerCase();
-
+      .split("?")[0]
+      .toLowerCase();
 
 
   document
@@ -2310,7 +3491,6 @@ function markActiveNavigation() {
     .forEach(
       link => {
 
-
         const linkFile =
           (
             link.getAttribute(
@@ -2318,13 +3498,13 @@ function markActiveNavigation() {
             ) ||
             ""
           )
-          .split("?")[0]
-          .toLowerCase();
-
+            .split("?")[0]
+            .toLowerCase();
 
 
         if (
-          linkFile === currentFile
+          linkFile ===
+          currentFile
         ) {
 
           link.classList.add(
@@ -2333,7 +3513,6 @@ function markActiveNavigation() {
 
         }
 
-
       }
     );
 
@@ -2341,8 +3520,9 @@ function markActiveNavigation() {
 
 
 
-
-
+/* =========================================================
+   EXTERNAL LINKS
+   ========================================================= */
 
 
 function protectExternalLinks() {
@@ -2354,21 +3534,15 @@ function protectExternalLinks() {
     .forEach(
       link => {
 
-
         link.setAttribute(
           "rel",
           "noopener noreferrer"
         );
 
-
       }
     );
 
 }
-
-
-
-
 
 
 
@@ -2379,12 +3553,10 @@ function protectExternalLinks() {
 
 async function initializePublicWebsite() {
 
-
   markActiveNavigation();
 
 
   protectExternalLinks();
-
 
 
   const tasks = [
@@ -2402,42 +3574,31 @@ async function initializePublicWebsite() {
   ];
 
 
-
   const results =
     await Promise.allSettled(
       tasks
     );
 
 
-
   results.forEach(
     result => {
-
 
       if (
         result.status ===
         "rejected"
       ) {
 
-
         console.error(
           "ElectionLab initialization error:",
           result.reason
         );
 
-
       }
-
 
     }
   );
 
-
 }
-
-
-
-
 
 
 
