@@ -91,7 +91,6 @@
     </nav>
   </header>
 
-
   <main
     id="raceRoot"
     class="page racePage"
@@ -103,9 +102,7 @@
 
   </main>
 
-
   <template id="racePageTemplate">
-
 
     <section class="hero raceHero">
 
@@ -155,7 +152,6 @@
 
         </div>
 
-
         <div class="probCard raceLeaderCard">
 
           <div
@@ -186,7 +182,6 @@
 
     </section>
 
-
     <section class="section">
 
       <div class="grid2">
@@ -204,6 +199,13 @@
                 Candidate outlook
               </h2>
             </div>
+
+            <span
+              id="forecastConfidenceBadge"
+              class="confidenceBadge confidence-low"
+            >
+              Low confidence
+            </span>
 
           </div>
 
@@ -229,12 +231,22 @@
               </strong>
 
             </div>
-                        </div>
+
+            <div class="forecastMetaItem">
+
+              <span>
+                Forecast confidence
+              </span>
+
+              <strong id="forecastConfidenceText">
+                —
+              </strong>
+
+            </div>
 
           </div>
 
         </article>
-
 
         <article class="card pollingAverageCard">
 
@@ -259,7 +271,6 @@
 
           </div>
 
-
           <div
             id="pollingCandidateRows"
             class="pollingCandidateRows"
@@ -269,19 +280,16 @@
             </p>
           </div>
 
-
           <div
             id="pollingShareBar"
             class="pollingShareBar"
             aria-label="Polling average vote share"
           ></div>
 
-
           <div
             id="pollingBarLegend"
             class="pollingBarLegend"
           ></div>
-
 
           <div
             id="pollingAverageMeta"
@@ -295,7 +303,6 @@
       </div>
 
     </section>
-
 
     <section class="section pollingTrendSection">
 
@@ -316,7 +323,6 @@
           </p>
 
         </div>
-
 
         <div
           id="pollingRangeControls"
@@ -356,7 +362,6 @@
 
       </div>
 
-
       <article class="card pollingChartCard">
 
         <div
@@ -367,27 +372,22 @@
           Add published polls to display the running average.
         </div>
 
-
         <div
           id="pollingChartWrap"
           class="pollingChartWrap"
         >
-
           <canvas
             id="racePollingChart"
             aria-label="Running polling average chart"
             role="img"
           ></canvas>
-
         </div>
-
 
         <div class="pollingChartFooter">
 
           <div id="pollingChartLatest">
             Latest average: —
           </div>
-
 
           <div id="pollingChartUpdated">
             Forecast updated: —
@@ -398,7 +398,8 @@
       </article>
 
     </section>
-        <section class="section">
+
+    <section class="section">
 
       <div class="sectionHead">
 
@@ -416,9 +417,7 @@
 
       </div>
 
-
       <div class="grid3 raceInfoGrid">
-
 
         <article class="card raceInfoCard">
 
@@ -436,8 +435,6 @@
 
         </article>
 
-
-
         <article class="card raceInfoCard">
 
           <span class="raceInfoLabel">
@@ -453,8 +450,6 @@
           </p>
 
         </article>
-
-
 
         <article class="card raceInfoCard">
 
@@ -472,12 +467,9 @@
 
         </article>
 
-
       </div>
 
     </section>
-
-
 
     <section class="section">
 
@@ -501,95 +493,70 @@
 
       </div>
 
-
-
       <div class="tableWrap">
-
 
         <table>
 
-
           <thead>
 
-
             <tr>
-
 
               <th>
                 Pollster
               </th>
 
-
               <th>
                 Dates
               </th>
-
 
               <th>
                 Sample
               </th>
 
-
               <th>
                 Democrat
               </th>
-
 
               <th>
                 Republican
               </th>
 
-
               <th>
                 Independent
               </th>
-
 
               <th>
                 Margin
               </th>
 
-
             </tr>
-
 
           </thead>
 
-
-
           <tbody id="racePollTable">
 
-
             <tr>
-
 
               <td
                 colspan="7"
                 class="empty"
               >
-
                 Loading polls…
-
               </td>
-
 
             </tr>
 
-
           </tbody>
-
 
         </table>
 
-
       </div>
-
 
     </section>
 
-
   </template>
-    <footer class="footer">
+
+  <footer class="footer">
 
     <div class="footerInner">
 
@@ -605,37 +572,24 @@
 
       </div>
 
-
       <div class="subtle">
-
         Forecasts express uncertainty, not certainty.
-
       </div>
-
 
     </div>
 
   </footer>
-
-
-
-  <script
+    <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
-
 
   <script
     src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
   ></script>
 
-
   <script src="config.js"></script>
-
   <script src="common.js"></script>
-
   <script src="public.js"></script>
 
-
 </body>
-
 </html>
