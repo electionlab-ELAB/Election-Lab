@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
 
@@ -8,9 +9,19 @@
     content="width=device-width, initial-scale=1"
   >
 
-  <title>ElectionLab | 2026 Election Forecasts</title>
+  <title>
+    ElectionLab | 2026 Election Forecasts
+  </title>
 
-  <link rel="stylesheet" href="styles.css">
+  <meta
+    name="description"
+    content="ElectionLab tracks the 2026 Senate, House, and gubernatorial elections with race forecasts, polling averages, and interactive maps."
+  >
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
 </head>
 
 <body>
@@ -18,12 +29,18 @@
   <header class="topbar">
     <nav class="nav">
 
-      <a class="brand" href="index.html">
+      <a
+        class="brand"
+        href="index.html"
+      >
         <img
           src="electionlab-logo.png"
           alt="ElectionLab logo"
         >
-        <span>ElectionLab</span>
+
+        <span>
+          ElectionLab
+        </span>
       </a>
 
       <button
@@ -36,11 +53,42 @@
       </button>
 
       <div class="navlinks">
-        <a class="active" href="index.html">Home</a>
-        <a href="senate.html">Senate</a>
-        <a href="house.html">House</a>
-        <a href="governors.html">Governors</a>
-        <a href="polls.html">Polling</a>
+
+        <a
+          class="active"
+          href="index.html"
+        >
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a href="house.html">
+          House
+        </a>
+
+        <a href="governors.html">
+          Governors
+        </a>
+
+        <a href="polls.html">
+          Polling
+        </a>
+
+        <a href="approval.html">
+          Trump Approval
+        </a>
+
+        <a href="primary.html">
+          2028 Primary
+        </a>
+
+        <a href="methodology.html">
+          Methodology
+        </a>
+
       </div>
 
     </nav>
@@ -53,7 +101,10 @@
       <div class="heroGrid">
 
         <div>
-          <div class="kicker">2026 Midterm Elections</div>
+
+          <div class="kicker">
+            2026 Midterm Elections
+          </div>
 
           <h1>
             Forecasting the races that will shape Congress.
@@ -61,9 +112,10 @@
 
           <p>
             ElectionLab combines polling averages, political fundamentals,
-            and transparent judgment to track the 2026 Senate, House, and
-            gubernatorial elections.
+            and transparent judgment to track the 2026 Senate, House,
+            and gubernatorial elections.
           </p>
+
         </div>
 
         <div class="controlForecasts">
@@ -72,6 +124,7 @@
             class="controlForecastCard"
             href="senate.html"
           >
+
             <div class="controlForecastLabel">
               Senate Control
             </div>
@@ -80,18 +133,20 @@
               class="controlForecastMessage"
               id="senateControlMessage"
             >
-              Republicans are favored to win the Senate
+              Republicans are favored to retain control of the Senate
             </div>
 
             <div class="controlForecastLink">
               View Senate forecast →
             </div>
+
           </a>
 
           <a
             class="controlForecastCard"
             href="house.html"
           >
+
             <div class="controlForecastLabel">
               House Control
             </div>
@@ -100,14 +155,85 @@
               class="controlForecastMessage"
               id="houseControlMessage"
             >
-              Democrats are favored to win the House
+              Republicans are favored to retain control of the House
             </div>
 
             <div class="controlForecastLink">
               View House forecast →
             </div>
+
           </a>
 
+          <a
+            class="controlForecastCard"
+            href="polls.html"
+          >
+
+            <div class="controlForecastLabel">
+              National Environment
+            </div>
+
+            <div
+              class="controlForecastMessage"
+              id="congressControlMessage"
+            >
+              Democrats currently lead the national vote
+            </div>
+
+            <div class="controlForecastLink">
+              View national polling →
+            </div>
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section
+      id="raceOfTheDay"
+      aria-label="Race of the Day"
+    ></section>
+
+    <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            National Race Watch
+          </div>
+
+          <h2 id="featuredRacesTitle">
+            America's Closest Races
+          </h2>
+
+          <p id="featuredRacesSubtitle">
+            The elections most likely to shape control of Congress
+            and the governorships.
+          </p>
+
+        </div>
+
+        <a
+          class="linkBtn"
+          href="senate.html"
+        >
+          Explore all forecasts →
+        </a>
+
+      </div>
+
+      <div
+        class="grid3"
+        id="featuredRaces"
+      >
+
+        <div class="loading">
+          Loading forecasts…
         </div>
 
       </div>
@@ -119,29 +245,234 @@
       <div class="sectionHead">
 
         <div>
-          <h2>Featured Senate races</h2>
+
+          <div class="kicker">
+            ElectionLab Trackers
+          </div>
+
+          <h2>
+            National political environment
+          </h2>
 
           <p>
-            Published and featured races appear here automatically.
+            Follow the indicators shaping the 2026 midterm elections
+            and the early 2028 presidential race.
           </p>
+
         </div>
 
+      </div>
+
+      <div class="grid3">
+
         <a
-          class="linkBtn"
-          href="senate.html"
+          class="card"
+          href="polls.html"
         >
-          View Senate forecast →
+
+          <div class="kicker">
+            2026
+          </div>
+
+          <h3>
+            Generic Ballot
+          </h3>
+
+          <p class="subtle">
+            Track the national congressional vote using ElectionLab's
+            weighted average of published polls.
+          </p>
+
+          <span class="linkBtn">
+            View generic ballot →
+          </span>
+
+        </a>
+
+        <a
+          class="card"
+          href="approval.html"
+        >
+
+          <div class="kicker">
+            White House
+          </div>
+
+          <h3>
+            Trump Approval
+          </h3>
+
+          <p class="subtle">
+            Follow President Donald Trump's approval and disapproval
+            ratings with a running national average.
+          </p>
+
+          <span class="linkBtn">
+            View approval tracker →
+          </span>
+
+        </a>
+
+        <a
+          class="card"
+          href="primary.html"
+        >
+
+          <div class="kicker">
+            2028
+          </div>
+
+          <h3>
+            Presidential Primaries
+          </h3>
+
+          <p class="subtle">
+            Track early Democratic and Republican national primary
+            polling ahead of the 2028 election.
+          </p>
+
+          <span class="linkBtn">
+            View primary tracker →
+          </span>
+
         </a>
 
       </div>
 
-      <div
-        class="grid3"
-        id="featuredRaces"
-      >
-        <div class="loading">
-          Loading forecasts…
+    </section>
+        <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            Explore the Forecast
+          </div>
+
+          <h2>
+            Race-by-race election coverage
+          </h2>
+
+          <p>
+            Browse ElectionLab's Senate, House, and governor forecasts,
+            interactive maps, ratings, candidates, and polling averages.
+          </p>
+
         </div>
+
+      </div>
+
+      <div class="grid3">
+
+        <a
+          class="card"
+          href="senate.html"
+        >
+
+          <div class="kicker">
+            U.S. Senate
+          </div>
+
+          <h3>
+            Senate Forecast
+          </h3>
+
+          <p class="subtle">
+            Track the races that will determine control of the Senate.
+          </p>
+
+          <span class="linkBtn">
+            View Senate forecast →
+          </span>
+
+        </a>
+
+        <a
+          class="card"
+          href="house.html"
+        >
+
+          <div class="kicker">
+            U.S. House
+          </div>
+
+          <h3>
+            House Forecast
+          </h3>
+
+          <p class="subtle">
+            Explore all 435 districts, the House map, and the fight
+            for the majority.
+          </p>
+
+          <span class="linkBtn">
+            View House forecast →
+          </span>
+
+        </a>
+
+        <a
+          class="card"
+          href="governors.html"
+        >
+
+          <div class="kicker">
+            State Elections
+          </div>
+
+          <h3>
+            Governor Forecast
+          </h3>
+
+          <p class="subtle">
+            Follow the gubernatorial races shaping state government
+            across the country.
+          </p>
+
+          <span class="linkBtn">
+            View governor forecast →
+          </span>
+
+        </a>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="card">
+
+        <div class="sectionHead">
+
+          <div>
+
+            <div class="kicker">
+              Our Approach
+            </div>
+
+            <h2>
+              Transparent forecasts, clearly explained
+            </h2>
+
+            <p>
+              ElectionLab combines polling, political fundamentals,
+              candidate strength, and judgment rather than relying on
+              any single number.
+            </p>
+
+          </div>
+
+          <a
+            class="btn light"
+            href="methodology.html"
+          >
+            Read methodology
+          </a>
+
+        </div>
+
       </div>
 
     </section>
@@ -153,20 +484,29 @@
     <div class="footerInner">
 
       <div>
-        <b>ElectionLab</b>
-        <br>
-        Independent 2026 election forecasting.
+
+        <b>
+          ElectionLab
+        </b>
+
+        <p class="subtle">
+          Independent election forecasts and polling analysis.
+        </p>
+
       </div>
 
-      <div>
-        Forecasts are probabilities, not certainties.
+      <div class="subtle">
+        Forecasts express uncertainty, not certainty.
       </div>
 
     </div>
 
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="public.js"></script>
