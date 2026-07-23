@@ -42,17 +42,17 @@ const PUBLIC_DEFAULT_SETTINGS = {
     "The elections most likely to shape control of Congress and the governorships."
 };
 
-let racePollingChart =
-  null;
+let racePollingChart = null;
 
-let activeRacePolls =
-  [];
+let activeRacePolls = [];
 
-let activeRaceCandidates =
-  [];
+let activeRaceCandidates = [];
 
-let activeChartRange =
-  "90";
+let activeChartRange = "90";
+
+let approvalPollingChart = null;
+
+let activeApprovalRange = "90";
 
 
 /* =========================================================
@@ -568,7 +568,6 @@ async function loadHome() {
     );
   }
 }
-
 function renderRaceOfTheDay(
   races
 ) {
@@ -883,6 +882,8 @@ async function loadRaceGrid() {
     );
   }
 }
+
+
 /* =========================================================
    RACE PAGE
    ========================================================= */
@@ -1136,7 +1137,6 @@ function renderRaceHeader(
     );
   }
 }
-
 function renderRaceForecast(
   race,
   candidates,
@@ -1742,8 +1742,10 @@ function renderRacePollTable(
       )
       .join("");
 }
+
+
 /* =========================================================
-   RUNNING-AVERAGE CHART
+   RACE CHART CONTROLS
    ========================================================= */
 
 function initializeRaceChartControls(
@@ -1858,7 +1860,6 @@ function chartCandidateLabel(
     party
   );
 }
-
 function buildRaceChartDatasets(
   points,
   candidates
@@ -2156,15 +2157,16 @@ function calculateChartBounds(
   points
 ) {
   const values =
-    points.flatMap(
-      point => [
-        point.dem,
-        point.rep,
-        point.ind,
-        point.lib,
-        point.green
-      ]
-    )
+    points
+      .flatMap(
+        point => [
+          point.dem,
+          point.rep,
+          point.ind,
+          point.lib,
+          point.green
+        ]
+      )
       .map(Number)
       .filter(
         Number.isFinite
@@ -2220,688 +2222,6 @@ function calculateChartBounds(
       )
   };
 }
-
-function chartTooltipLabel(
-  context
-) {
-  const value =
-    Number(
-      context.parsed.y
-    );
-
-  if (
-    !Number.isFinite(value)
-  ) {
-    return (
-      context.dataset.label
-    );
-  }
-
-  return `${context.dataset.label}: ${value.toFixed(
-    1
-  )}%`;
-}
-
-function renderRacePollingChart(
-  polls,
-  candidates,
-  range = "90"
-) {
-  const canvas =
-    document.querySelector(
-      "#racePollingChart"
-    );
-
-  const chartWrap =
-    document.querySelector(
-      "#pollingChartWrap"
-    );
-
-  const empty =
-    document.querySelector(
-      "#pollingChartEmpty"
-    );
-
-  const latestBox =
-    document.querySelector(
-      "#pollingChartLatest"
-    );
-
-  if (
-    !canvas ||
-    typeof Chart ===
-      "undefined"
-  ) {
-    return;
-  }
-
-  const points =
-    runningAverage(
-      polls,
-      {
-        halfLifeDays: 28,
-        maxPollAgeDays: 90,
-        minimumPolls: 1,
-        smoothingDays: 3
-      }
-    );
-
-  const filteredPoints =
-    filterRunningAverageByRange(
-      points,
-      range
-    );
-
-  if (!filteredPoints.length) {
-    if (racePollingChart) {
-      racePollingChart.destroy();
-      racePollingChart =
-        null;
-    }
-
-    if (chartWrap) {
-      chartWrap.style.display =
-        "none";
-    }
-
-    if (empty) {
-      empty.style.display =
-        "";
-    }
-
-    if (latestBox) {
-      latestBox.textContent =
-        "Latest average: —";
-    }
-
-    return;
-  }
-
-  if (chartWrap) {
-    chartWrap.style.display =
-      "";
-  }
-
-  if (empty) {
-    empty.style.display =
-      "none";
-  }
-
-  const latest =
-    filteredPoints[
-      filteredPoints.length - 1
-    ];
-
-  if (latestBox) {
-    latestBox.textContent =
-      `Latest average: ${formatMargin(
-        latest.margin
-      )} · ${fmtDate(
-        latest.date
-      )}`;
-  }
-
-  const datasets =
-    buildRaceChartDatasets(
-      filteredPoints,
-      candidates
-    );
-
-  const bounds =
-    calculateChartBounds(
-      filteredPoints
-    );
-
-  if (racePollingChart) {
-    racePollingChart.destroy();
-  }
-
-  racePollingChart =
-    new Chart(
-      canvas,
-      {
-        type: "line",
-
-        data: {
-          datasets
-        },
-
-        options: {
-          responsive: true,
-
-          maintainAspectRatio:
-            false,
-
-          interaction: {
-            mode: "index",
-            intersect: false
-          },
-
-          animation: {
-            duration: 450
-          },
-
-          layout: {
-            padding: {
-              top: 8,
-              right: 8,
-              bottom: 0,
-              left: 0
-            }
-          },
-
-          plugins: {
-            legend: {
-              display: true,
-
-              position:
-                "top",
-
-              align:
-                "start",
-
-              labels: {
-                usePointStyle:
-                  true,
-
-                pointStyle:
-                  "circle",
-
-                boxWidth:
-                  8,
-
-                boxHeight:
-                  8,
-
-                padding:
-                  18,
-
-                color:
-                  "#34435a",
-
-                font: {
-                  size: 12,
-                  weight:
-                    "700"
-                }
-              }
-            },
-
-            tooltip: {
-              backgroundColor:
-                "rgba(7, 26, 54, 0.96)",
-
-              titleColor:
-                "#ffffff",
-
-              bodyColor:
-                "#ffffff",
-
-              borderColor:
-                "rgba(255,255,255,.14)",
-
-              borderWidth:
-                1,
-
-              padding:
-                12,
-
-              displayColors:
-                true,
-
-              callbacks: {
-                title(
-                  items
-                ) {
-                  if (
-                    !items.length
-                  ) {
-                    return "";
-                  }
-
-                  return fmtDate(
-                    items[0]
-                      .parsed.x
-                  );
-                },
-
-                label:
-                  chartTooltipLabel
-              }
-            }
-          },
-
-          scales: {
-            x: {
-              type:
-                "time",
-
-              time: {
-                parser:
-                  "yyyy-MM-dd",
-
-                unit:
-                  range === "30"
-                    ? "day"
-                    : "month",
-
-                tooltipFormat:
-                  "MMM d, yyyy",
-
-                displayFormats: {
-                  day:
-                    "MMM d",
-
-                  month:
-                    "MMM yyyy"
-                }
-              },
-
-              grid: {
-                display:
-                  false
-              },
-
-              ticks: {
-                color:
-                  "#718096",
-
-                maxRotation:
-                  0,
-
-                autoSkip:
-                  true,
-
-                maxTicksLimit:
-                  range === "30"
-                    ? 6
-                    : 8
-              },
-
-              border: {
-                color:
-                  "#dce5f2"
-              }
-            },
-
-            y: {
-              min:
-                bounds.minimum,
-
-              max:
-                bounds.maximum,
-
-              ticks: {
-                color:
-                  "#718096",
-
-                callback(
-                  value
-                ) {
-                  return `${value}%`;
-                }
-              },
-
-              grid: {
-                color:
-                  "rgba(130, 149, 178, 0.16)"
-              },
-
-              border: {
-                display:
-                  false
-              }
-            }
-          }
-        }
-      }
-    );
-}
-
-
-/* =========================================================
-   GENERIC BALLOT
-   ========================================================= */
-
-function genericBallotAverage(
-  polls
-) {
-  if (
-    !Array.isArray(polls) ||
-    !polls.length
-  ) {
-    return null;
-  }
-
-  const normalizedPolls =
-    polls.map(
-      poll => ({
-        ...poll,
-
-        dem_pct:
-          poll.dem_pct,
-
-        rep_pct:
-          poll.rep_pct
-      })
-    );
-
-  return weightedAverage(
-    normalizedPolls
-  );
-}
-
-async function loadGenericBallotPage() {
-  const table =
-    document.querySelector(
-      "#genericBallotTable"
-    );
-
-  if (!table) {
-    return;
-  }
-
-  if (!configured) {
-    table.innerHTML = `
-      <tr>
-        <td
-          colspan="6"
-          class="empty"
-        >
-          Connect Supabase to load generic ballot polls.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  try {
-    const polls =
-      await getPublishedGenericBallotPolls();
-
-    const average =
-      genericBallotAverage(
-        polls
-      );
-
-    renderGenericBallotSummary(
-      average,
-      polls
-    );
-
-    renderGenericBallotTable(
-      table,
-      polls
-    );
-  } catch (error) {
-    console.error(
-      "Generic ballot failed:",
-      error
-    );
-
-    table.innerHTML = `
-      <tr>
-        <td
-          colspan="6"
-          class="empty"
-        >
-          ${escapeHtml(
-            friendlyErrorMessage(
-              error,
-              "Unable to load generic ballot polls."
-            )
-          )}
-        </td>
-      </tr>
-    `;
-  }
-}
-
-function renderGenericBallotSummary(
-  average,
-  polls
-) {
-  const margin =
-    document.querySelector(
-      "#genericMargin"
-    );
-
-  const leader =
-    document.querySelector(
-      "#genericLeader"
-    );
-
-  const count =
-    document.querySelector(
-      "#genericPollCount"
-    );
-
-  const dem =
-    document.querySelector(
-      "#genericDemAverage"
-    );
-
-  const rep =
-    document.querySelector(
-      "#genericRepAverage"
-    );
-
-  const demStatus =
-    document.querySelector(
-      "#genericDemStatus"
-    );
-
-  const repStatus =
-    document.querySelector(
-      "#genericRepStatus"
-    );
-
-  if (!average) {
-    if (margin) {
-      margin.textContent =
-        "—";
-    }
-
-    if (leader) {
-      leader.textContent =
-        "No average yet";
-    }
-
-    if (count) {
-      count.textContent =
-        "No published polls";
-    }
-
-    if (dem) {
-      dem.textContent =
-        "—%";
-    }
-
-    if (rep) {
-      rep.textContent =
-        "—%";
-    }
-
-    if (demStatus) {
-      demStatus.textContent =
-        "Add published polls.";
-    }
-
-    if (repStatus) {
-      repStatus.textContent =
-        "Add published polls.";
-    }
-
-    return;
-  }
-
-  if (margin) {
-    margin.textContent =
-      formatMargin(
-        average.margin
-      );
-  }
-
-  if (leader) {
-    leader.textContent =
-      average.margin >= 0
-        ? "Democrats lead"
-        : "Republicans lead";
-  }
-
-  if (count) {
-    count.textContent =
-      `${polls.length} published ${
-        polls.length === 1
-          ? "poll"
-          : "polls"
-      }`;
-  }
-
-  if (dem) {
-    dem.textContent =
-      formatPercent(
-        average.dem
-      );
-  }
-
-  if (rep) {
-    rep.textContent =
-      formatPercent(
-        average.rep
-      );
-  }
-
-  if (demStatus) {
-    demStatus.textContent =
-      "Weighted national average";
-  }
-
-  if (repStatus) {
-    repStatus.textContent =
-      "Weighted national average";
-  }
-}
-
-function renderGenericBallotTable(
-  table,
-  polls
-) {
-  if (!polls.length) {
-    table.innerHTML = `
-      <tr>
-        <td
-          colspan="6"
-          class="empty"
-        >
-          No published generic ballot polls yet.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  table.innerHTML =
-    polls
-      .map(
-        poll => {
-          const dem =
-            Number(
-              poll.dem_pct
-            );
-
-          const rep =
-            Number(
-              poll.rep_pct
-            );
-
-          const margin =
-            dem - rep;
-
-          return `
-            <tr>
-
-              <td>
-                <b>
-                  ${escapeHtml(
-                    poll.pollster ||
-                    "Unknown pollster"
-                  )}
-                </b>
-              </td>
-
-              <td>
-                ${fmtDateRange(
-                  poll.start_date,
-                  poll.end_date
-                )}
-              </td>
-
-              <td>
-                ${
-                  poll.sample_size ||
-                  "—"
-                }
-
-                ${escapeHtml(
-                  poll.population ||
-                  ""
-                )}
-              </td>
-
-              <td class="pollCellDem">
-                ${
-                  Number.isFinite(
-                    dem
-                  )
-                    ? `${dem.toFixed(
-                        1
-                      )}%`
-                    : "—"
-                }
-              </td>
-
-              <td class="pollCellRep">
-                ${
-                  Number.isFinite(
-                    rep
-                  )
-                    ? `${rep.toFixed(
-                        1
-                      )}%`
-                    : "—"
-                }
-              </td>
-
-              <td>
-                <b
-                  class="${
-                    margin >= 0
-                      ? "marginDem"
-                      : "marginRep"
-                  }"
-                >
-                  ${formatMargin(
-                    margin
-                  )}
-                </b>
-              </td>
-
-            </tr>
-          `;
-        }
-      )
-      .join("");
-}
-/* =========================================================
-   CHART.JS COMPATIBILITY VERSION
-
-   This final definition intentionally uses a category axis,
-   so the chart works without installing a separate
-   Chart.js date-adapter library.
-   ========================================================= */
 
 function renderRacePollingChart(
   polls,
@@ -3055,30 +2375,28 @@ function renderRacePollingChart(
             false,
 
           interaction: {
-            mode: "index",
-            intersect: false
+            mode:
+              "index",
+
+            intersect:
+              false
           },
 
           animation: {
-            duration: 450
-          },
-
-          layout: {
-            padding: {
-              top: 8,
-              right: 8,
-              bottom: 0,
-              left: 0
-            }
+            duration:
+              450
           },
 
           plugins: {
             legend: {
-              display: true,
+              display:
+                true,
 
-              position: "top",
+              position:
+                "top",
 
-              align: "start",
+              align:
+                "start",
 
               labels: {
                 usePointStyle:
@@ -3087,18 +2405,24 @@ function renderRacePollingChart(
                 pointStyle:
                   "circle",
 
-                boxWidth: 8,
+                boxWidth:
+                  8,
 
-                boxHeight: 8,
+                boxHeight:
+                  8,
 
-                padding: 18,
+                padding:
+                  18,
 
                 color:
                   "#34435a",
 
                 font: {
-                  size: 12,
-                  weight: "700"
+                  size:
+                    12,
+
+                  weight:
+                    "700"
                 }
               }
             },
@@ -3116,12 +2440,11 @@ function renderRacePollingChart(
               borderColor:
                 "rgba(255,255,255,.14)",
 
-              borderWidth: 1,
+              borderWidth:
+                1,
 
-              padding: 12,
-
-              displayColors:
-                true,
+              padding:
+                12,
 
               callbacks: {
                 title(
@@ -3133,12 +2456,11 @@ function renderRacePollingChart(
                     return "";
                   }
 
-                  const index =
-                    items[0]
-                      .dataIndex;
-
                   return fmtDate(
-                    labels[index]
+                    labels[
+                      items[0]
+                        .dataIndex
+                    ]
                   );
                 },
 
@@ -3150,10 +2472,7 @@ function renderRacePollingChart(
                       context.raw
                     );
 
-                  return `${
-                    context.dataset
-                      .label
-                  }: ${
+                  return `${context.dataset.label}: ${
                     Number.isFinite(
                       value
                     )
@@ -3169,19 +2488,23 @@ function renderRacePollingChart(
 
           scales: {
             x: {
-              type: "category",
+              type:
+                "category",
 
               grid: {
-                display: false
+                display:
+                  false
               },
 
               ticks: {
                 color:
                   "#718096",
 
-                maxRotation: 0,
+                maxRotation:
+                  0,
 
-                autoSkip: true,
+                autoSkip:
+                  true,
 
                 maxTicksLimit:
                   range === "30"
@@ -3192,11 +2515,8 @@ function renderRacePollingChart(
                   value,
                   index
                 ) {
-                  const date =
-                    labels[index];
-
                   return fmtDate(
-                    date,
+                    labels[index],
                     {
                       includeYear:
                         range ===
@@ -3236,13 +2556,1631 @@ function renderRacePollingChart(
               },
 
               border: {
-                display: false
+                display:
+                  false
               }
             }
           }
         }
       }
     );
+}
+
+
+/* =========================================================
+   GENERIC BALLOT
+   ========================================================= */
+
+function genericBallotAverage(
+  polls
+) {
+  if (
+    !Array.isArray(polls) ||
+    !polls.length
+  ) {
+    return null;
+  }
+
+  return weightedAverage(
+    polls
+  );
+}
+
+async function loadGenericBallotPage() {
+  const table =
+    document.querySelector(
+      "#genericBallotTable"
+    );
+
+  if (!table) {
+    return;
+  }
+
+  if (!configured) {
+    table.innerHTML = `
+      <tr>
+
+        <td
+          colspan="6"
+          class="empty"
+        >
+          Connect Supabase to load generic ballot polls.
+        </td>
+
+      </tr>
+    `;
+
+    return;
+  }
+
+  try {
+    const polls =
+      await getPublishedGenericBallotPolls();
+
+    const average =
+      genericBallotAverage(
+        polls
+      );
+
+    renderGenericBallotSummary(
+      average,
+      polls
+    );
+
+    renderGenericBallotTable(
+      table,
+      polls
+    );
+  } catch (error) {
+    console.error(
+      "Generic ballot failed:",
+      error
+    );
+
+    table.innerHTML = `
+      <tr>
+
+        <td
+          colspan="6"
+          class="empty"
+        >
+          ${escapeHtml(
+            friendlyErrorMessage(
+              error,
+              "Unable to load generic ballot polls."
+            )
+          )}
+        </td>
+
+      </tr>
+    `;
+  }
+}
+
+function renderGenericBallotSummary(
+  average,
+  polls
+) {
+  const margin =
+    document.querySelector(
+      "#genericMargin"
+    );
+
+  const leader =
+    document.querySelector(
+      "#genericLeader"
+    );
+
+  const count =
+    document.querySelector(
+      "#genericPollCount"
+    );
+
+  const dem =
+    document.querySelector(
+      "#genericDemAverage"
+    );
+
+  const rep =
+    document.querySelector(
+      "#genericRepAverage"
+    );
+
+  const demStatus =
+    document.querySelector(
+      "#genericDemStatus"
+    );
+
+  const repStatus =
+    document.querySelector(
+      "#genericRepStatus"
+    );
+
+  if (!average) {
+    if (margin) {
+      margin.textContent =
+        "—";
+    }
+
+    if (leader) {
+      leader.textContent =
+        "No average yet";
+    }
+
+    if (count) {
+      count.textContent =
+        "No published polls";
+    }
+
+    if (dem) {
+      dem.textContent =
+        "—%";
+    }
+
+    if (rep) {
+      rep.textContent =
+        "—%";
+    }
+
+    if (demStatus) {
+      demStatus.textContent =
+        "Add published polls.";
+    }
+
+    if (repStatus) {
+      repStatus.textContent =
+        "Add published polls.";
+    }
+
+    return;
+  }
+
+  if (margin) {
+    margin.textContent =
+      formatMargin(
+        average.margin
+      );
+  }
+
+  if (leader) {
+    leader.textContent =
+      average.margin >= 0
+        ? "Democrats lead"
+        : "Republicans lead";
+  }
+
+  if (count) {
+    count.textContent =
+      `${polls.length} published ${
+        polls.length === 1
+          ? "poll"
+          : "polls"
+      }`;
+  }
+
+  if (dem) {
+    dem.textContent =
+      formatPercent(
+        average.dem
+      );
+  }
+
+  if (rep) {
+    rep.textContent =
+      formatPercent(
+        average.rep
+      );
+  }
+
+  if (demStatus) {
+    demStatus.textContent =
+      "Weighted national average";
+  }
+
+  if (repStatus) {
+    repStatus.textContent =
+      "Weighted national average";
+  }
+}
+function renderGenericBallotTable(
+  table,
+  polls
+) {
+  if (!polls.length) {
+    table.innerHTML = `
+      <tr>
+
+        <td
+          colspan="6"
+          class="empty"
+        >
+          No published generic ballot polls yet.
+        </td>
+
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML =
+    polls
+      .map(
+        poll => {
+          const dem =
+            Number(
+              poll.dem_pct
+            );
+
+          const rep =
+            Number(
+              poll.rep_pct
+            );
+
+          const margin =
+            dem - rep;
+
+          return `
+            <tr>
+
+              <td>
+
+                <b>
+                  ${escapeHtml(
+                    poll.pollster ||
+                    "Unknown pollster"
+                  )}
+                </b>
+
+              </td>
+
+              <td>
+                ${fmtDateRange(
+                  poll.start_date,
+                  poll.end_date
+                )}
+              </td>
+
+              <td>
+
+                ${
+                  poll.sample_size ||
+                  "—"
+                }
+
+                ${escapeHtml(
+                  poll.population ||
+                  ""
+                )}
+
+              </td>
+
+              <td class="pollCellDem">
+
+                ${
+                  Number.isFinite(
+                    dem
+                  )
+                    ? `${dem.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+
+              </td>
+
+              <td class="pollCellRep">
+
+                ${
+                  Number.isFinite(
+                    rep
+                  )
+                    ? `${rep.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+
+              </td>
+
+              <td>
+
+                <b
+                  class="${
+                    margin >= 0
+                      ? "marginDem"
+                      : "marginRep"
+                  }"
+                >
+                  ${formatMargin(
+                    margin
+                  )}
+                </b>
+
+              </td>
+
+            </tr>
+          `;
+        }
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   TRUMP APPROVAL TRACKER
+   ========================================================= */
+
+function approvalAverage(
+  polls
+) {
+  if (
+    !Array.isArray(polls) ||
+    !polls.length
+  ) {
+    return null;
+  }
+
+  const normalizedPolls =
+    polls
+      .map(
+        poll => ({
+          ...poll,
+
+          dem_pct:
+            Number(
+              poll.approve_pct
+            ),
+
+          rep_pct:
+            Number(
+              poll.disapprove_pct
+            )
+        })
+      )
+      .filter(
+        poll =>
+          Number.isFinite(
+            poll.dem_pct
+          ) &&
+          Number.isFinite(
+            poll.rep_pct
+          )
+      );
+
+  if (!normalizedPolls.length) {
+    return null;
+  }
+
+  const average =
+    weightedAverage(
+      normalizedPolls
+    );
+
+  if (!average) {
+    return null;
+  }
+
+  return {
+    approve:
+      Number(
+        average.dem
+      ),
+
+    disapprove:
+      Number(
+        average.rep
+      ),
+
+    net:
+      Number(
+        average.dem
+      ) -
+      Number(
+        average.rep
+      )
+  };
+}
+
+function approvalNetLabel(
+  value
+) {
+  const number =
+    Number(value);
+
+  if (
+    !Number.isFinite(number)
+  ) {
+    return "—";
+  }
+
+  if (
+    Math.abs(number) <
+    0.05
+  ) {
+    return "Even";
+  }
+
+  return `${
+    number > 0
+      ? "+"
+      : "−"
+  }${Math.abs(
+    number
+  ).toFixed(1)}`;
+}
+
+function approvalPollMetadata(
+  polls
+) {
+  const validPolls =
+    Array.isArray(polls)
+      ? polls
+      : [];
+
+  const dates =
+    validPolls
+      .flatMap(
+        poll => [
+          poll.start_date,
+          poll.end_date
+        ]
+      )
+      .filter(Boolean)
+      .sort();
+
+  const latest =
+    [...validPolls].sort(
+      (
+        first,
+        second
+      ) =>
+        new Date(
+          `${
+            second.end_date ||
+            second.start_date ||
+            "1900-01-01"
+          }T12:00:00`
+        ) -
+        new Date(
+          `${
+            first.end_date ||
+            first.start_date ||
+            "1900-01-01"
+          }T12:00:00`
+        )
+    )[0] || null;
+
+  return {
+    pollCount:
+      validPolls.length,
+
+    startDate:
+      dates[0] ||
+      null,
+
+    endDate:
+      dates[
+        dates.length - 1
+      ] ||
+      null,
+
+    latestPoll:
+      latest,
+
+    latestPollster:
+      latest?.pollster ||
+      null
+  };
+}
+
+function renderApprovalSummary(
+  average,
+  polls
+) {
+  const net =
+    document.querySelector(
+      "#approvalNet"
+    );
+
+  const pollCount =
+    document.querySelector(
+      "#approvalPollCount"
+    );
+
+  const approveAverage =
+    document.querySelector(
+      "#approvalApproveAverage"
+    );
+
+  const disapproveAverage =
+    document.querySelector(
+      "#approvalDisapproveAverage"
+    );
+
+  const approveStatus =
+    document.querySelector(
+      "#approvalApproveStatus"
+    );
+
+  const disapproveStatus =
+    document.querySelector(
+      "#approvalDisapproveStatus"
+    );
+
+  const marginLabel =
+    document.querySelector(
+      "#approvalMarginLabel"
+    );
+
+  const approveBar =
+    document.querySelector(
+      "#approvalBarApprove"
+    );
+
+  const disapproveBar =
+    document.querySelector(
+      "#approvalBarDisapprove"
+    );
+
+  const otherBar =
+    document.querySelector(
+      "#approvalBarOther"
+    );
+
+  const approveBarLabel =
+    document.querySelector(
+      "#approvalBarApproveLabel"
+    );
+
+  const disapproveBarLabel =
+    document.querySelector(
+      "#approvalBarDisapproveLabel"
+    );
+
+  const otherBarLabel =
+    document.querySelector(
+      "#approvalBarOtherLabel"
+    );
+
+  const meta =
+    document.querySelector(
+      "#approvalAverageMeta"
+    );
+
+  if (!average) {
+    if (net) {
+      net.textContent =
+        "—";
+    }
+
+    if (pollCount) {
+      pollCount.textContent =
+        "No published polls";
+    }
+
+    if (approveAverage) {
+      approveAverage.textContent =
+        "—%";
+    }
+
+    if (disapproveAverage) {
+      disapproveAverage.textContent =
+        "—%";
+    }
+
+    if (approveStatus) {
+      approveStatus.textContent =
+        "Add published approval polls.";
+    }
+
+    if (disapproveStatus) {
+      disapproveStatus.textContent =
+        "Add published approval polls.";
+    }
+
+    if (marginLabel) {
+      marginLabel.textContent =
+        "—";
+    }
+
+    if (approveBar) {
+      approveBar.style.width =
+        "0%";
+    }
+
+    if (disapproveBar) {
+      disapproveBar.style.width =
+        "0%";
+    }
+
+    if (otherBar) {
+      otherBar.style.width =
+        "100%";
+    }
+
+    if (approveBarLabel) {
+      approveBarLabel.textContent =
+        "—%";
+    }
+
+    if (disapproveBarLabel) {
+      disapproveBarLabel.textContent =
+        "—%";
+    }
+
+    if (otherBarLabel) {
+      otherBarLabel.textContent =
+        "—%";
+    }
+
+    if (meta) {
+      meta.textContent =
+        "Add published national approval polls to calculate an average.";
+    }
+
+    return;
+  }
+
+  const approve =
+    clamp(
+      average.approve,
+      0,
+      100
+    );
+
+  const disapprove =
+    clamp(
+      average.disapprove,
+      0,
+      100
+    );
+
+  const other =
+    Math.max(
+      0,
+      100 -
+      approve -
+      disapprove
+    );
+
+  const metadata =
+    approvalPollMetadata(
+      polls
+    );
+
+  if (net) {
+    net.textContent =
+      approvalNetLabel(
+        average.net
+      );
+
+    net.style.color =
+      average.net >= 0
+        ? "#169b62"
+        : "#d64045";
+  }
+
+  if (pollCount) {
+    pollCount.textContent =
+      `${metadata.pollCount} published ${
+        metadata.pollCount === 1
+          ? "poll"
+          : "polls"
+      }`;
+  }
+
+  if (approveAverage) {
+    approveAverage.textContent =
+      `${approve.toFixed(
+        1
+      )}%`;
+
+    approveAverage.style.color =
+      "#169b62";
+  }
+
+  if (disapproveAverage) {
+    disapproveAverage.textContent =
+      `${disapprove.toFixed(
+        1
+      )}%`;
+
+    disapproveAverage.style.color =
+      "#d64045";
+  }
+
+  if (approveStatus) {
+    approveStatus.textContent =
+      "Weighted national average";
+  }
+
+  if (disapproveStatus) {
+    disapproveStatus.textContent =
+      "Weighted national average";
+  }
+
+  if (marginLabel) {
+    marginLabel.textContent =
+      approvalNetLabel(
+        average.net
+      );
+
+    marginLabel.style.color =
+      average.net >= 0
+        ? "#169b62"
+        : "#d64045";
+  }
+
+  if (approveBar) {
+    approveBar.style.width =
+      `${approve}%`;
+
+    approveBar.style.background =
+      "#169b62";
+  }
+
+  if (disapproveBar) {
+    disapproveBar.style.width =
+      `${disapprove}%`;
+
+    disapproveBar.style.background =
+      "#d64045";
+  }
+
+  if (otherBar) {
+    otherBar.style.width =
+      `${other}%`;
+  }
+
+  if (approveBarLabel) {
+    approveBarLabel.textContent =
+      `${approve.toFixed(
+        1
+      )}%`;
+
+    approveBarLabel.style.color =
+      "#169b62";
+  }
+
+  if (disapproveBarLabel) {
+    disapproveBarLabel.textContent =
+      `${disapprove.toFixed(
+        1
+      )}%`;
+
+    disapproveBarLabel.style.color =
+      "#d64045";
+  }
+
+  if (otherBarLabel) {
+    otherBarLabel.textContent =
+      `${other.toFixed(
+        1
+      )}%`;
+  }
+
+  if (meta) {
+    const parts = [
+      `${metadata.pollCount} ${
+        metadata.pollCount === 1
+          ? "poll"
+          : "polls"
+      }`
+    ];
+
+    if (
+      metadata.startDate &&
+      metadata.endDate
+    ) {
+      parts.push(
+        `${fmtDate(
+          metadata.startDate
+        )} – ${fmtDate(
+          metadata.endDate
+        )}`
+      );
+    }
+
+    if (
+      metadata.latestPollster
+    ) {
+      parts.push(
+        `Latest: ${metadata.latestPollster}`
+      );
+    }
+
+    meta.textContent =
+      parts.join(" · ");
+  }
+}
+
+function renderApprovalPollTable(
+  polls
+) {
+  const table =
+    document.querySelector(
+      "#approvalPollTable"
+    );
+
+  if (!table) {
+    return;
+  }
+
+  if (
+    !Array.isArray(polls) ||
+    !polls.length
+  ) {
+    table.innerHTML = `
+      <tr>
+
+        <td
+          colspan="7"
+          class="empty"
+        >
+          No published approval polls yet.
+        </td>
+
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML =
+    polls
+      .map(
+        poll => {
+          const approve =
+            Number(
+              poll.approve_pct
+            );
+
+          const disapprove =
+            Number(
+              poll.disapprove_pct
+            );
+
+          const net =
+            approve -
+            disapprove;
+
+          return `
+            <tr>
+
+              <td>
+
+                <b>
+                  ${escapeHtml(
+                    poll.pollster ||
+                    "Unknown pollster"
+                  )}
+                </b>
+
+              </td>
+
+              <td>
+                ${fmtDateRange(
+                  poll.start_date,
+                  poll.end_date
+                )}
+              </td>
+
+              <td>
+                ${
+                  poll.sample_size ||
+                  "—"
+                }
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  poll.population ||
+                  "—"
+                )}
+              </td>
+
+              <td
+                style="
+                  color:#169b62;
+                  font-weight:800;
+                "
+              >
+                ${
+                  Number.isFinite(
+                    approve
+                  )
+                    ? `${approve.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td
+                style="
+                  color:#d64045;
+                  font-weight:800;
+                "
+              >
+                ${
+                  Number.isFinite(
+                    disapprove
+                  )
+                    ? `${disapprove.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td>
+
+                <b
+                  style="
+                    color:${
+                      net >= 0
+                        ? "#169b62"
+                        : "#d64045"
+                    };
+                  "
+                >
+                  ${
+                    Number.isFinite(
+                      net
+                    )
+                      ? approvalNetLabel(
+                          net
+                        )
+                      : "—"
+                  }
+                </b>
+
+              </td>
+
+            </tr>
+          `;
+        }
+      )
+      .join("");
+}
+
+function buildApprovalRunningAverage(
+  polls
+) {
+  if (
+    !Array.isArray(polls) ||
+    !polls.length
+  ) {
+    return [];
+  }
+
+  const normalizedPolls =
+    polls
+      .map(
+        poll => ({
+          ...poll,
+
+          dem_pct:
+            Number(
+              poll.approve_pct
+            ),
+
+          rep_pct:
+            Number(
+              poll.disapprove_pct
+            )
+        })
+      )
+      .filter(
+        poll =>
+          Number.isFinite(
+            poll.dem_pct
+          ) &&
+          Number.isFinite(
+            poll.rep_pct
+          )
+      );
+
+  if (!normalizedPolls.length) {
+    return [];
+  }
+
+  return runningAverage(
+    normalizedPolls,
+    {
+      halfLifeDays:
+        28,
+
+      maxPollAgeDays:
+        180,
+
+      minimumPolls:
+        1,
+
+      smoothingDays:
+        3
+    }
+  );
+}
+function initializeApprovalChartControls(
+  polls
+) {
+  const controls =
+    document.querySelector(
+      "#approvalRangeControls"
+    );
+
+  if (!controls) {
+    return;
+  }
+
+  controls
+    .querySelectorAll(
+      "button[data-range]"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            controls
+              .querySelectorAll(
+                "button[data-range]"
+              )
+              .forEach(
+                item => {
+                  item.classList.remove(
+                    "active"
+                  );
+                }
+              );
+
+            button.classList.add(
+              "active"
+            );
+
+            activeApprovalRange =
+              button.dataset.range ||
+              "90";
+
+            renderApprovalChart(
+              polls,
+              activeApprovalRange
+            );
+          }
+        );
+      }
+    );
+}
+
+function renderApprovalChart(
+  polls,
+  range = "90"
+) {
+  const canvas =
+    document.querySelector(
+      "#approvalChart"
+    );
+
+  const chartWrap =
+    document.querySelector(
+      "#approvalChartWrap"
+    );
+
+  const empty =
+    document.querySelector(
+      "#approvalChartEmpty"
+    );
+
+  const latestBox =
+    document.querySelector(
+      "#approvalChartLatest"
+    );
+
+  const updatedBox =
+    document.querySelector(
+      "#approvalChartUpdated"
+    );
+
+  if (
+    !canvas ||
+    typeof Chart ===
+      "undefined"
+  ) {
+    return;
+  }
+
+  const points =
+    buildApprovalRunningAverage(
+      polls
+    );
+
+  const filteredPoints =
+    filterRunningAverageByRange(
+      points,
+      range
+    );
+
+  if (!filteredPoints.length) {
+    if (approvalPollingChart) {
+      approvalPollingChart.destroy();
+
+      approvalPollingChart =
+        null;
+    }
+
+    if (chartWrap) {
+      chartWrap.style.display =
+        "none";
+    }
+
+    if (empty) {
+      empty.style.display =
+        "";
+    }
+
+    if (latestBox) {
+      latestBox.textContent =
+        "Latest average: —";
+    }
+
+    if (updatedBox) {
+      updatedBox.textContent =
+        "Last updated: —";
+    }
+
+    return;
+  }
+
+  if (chartWrap) {
+    chartWrap.style.display =
+      "";
+  }
+
+  if (empty) {
+    empty.style.display =
+      "none";
+  }
+
+  const labels =
+    filteredPoints.map(
+      point =>
+        point.date
+    );
+
+  const approveData =
+    filteredPoints.map(
+      point =>
+        Number(
+          point.dem
+        )
+    );
+
+  const disapproveData =
+    filteredPoints.map(
+      point =>
+        Number(
+          point.rep
+        )
+    );
+
+  const latest =
+    filteredPoints[
+      filteredPoints.length - 1
+    ];
+
+  if (latestBox) {
+    latestBox.textContent =
+      `Latest average: ${Number(
+        latest.dem
+      ).toFixed(1)}% approve · ${Number(
+        latest.rep
+      ).toFixed(1)}% disapprove`;
+  }
+
+  const metadata =
+    approvalPollMetadata(
+      polls
+    );
+
+  if (updatedBox) {
+    updatedBox.textContent =
+      metadata.endDate
+        ? `Last updated: ${fmtDate(
+            metadata.endDate
+          )}`
+        : "Last updated: —";
+  }
+
+  const values = [
+    ...approveData,
+    ...disapproveData
+  ].filter(
+    Number.isFinite
+  );
+
+  const minimum =
+    values.length
+      ? Math.max(
+          0,
+          Math.floor(
+            Math.min(
+              ...values
+            ) - 3
+          )
+        )
+      : 30;
+
+  const maximum =
+    values.length
+      ? Math.min(
+          100,
+          Math.ceil(
+            Math.max(
+              ...values
+            ) + 3
+          )
+        )
+      : 70;
+
+  if (approvalPollingChart) {
+    approvalPollingChart.destroy();
+  }
+
+  approvalPollingChart =
+    new Chart(
+      canvas,
+      {
+        type:
+          "line",
+
+        data: {
+          labels,
+
+          datasets: [
+            {
+              label:
+                "Approve",
+
+              data:
+                approveData,
+
+              borderColor:
+                "#169b62",
+
+              backgroundColor:
+                "#169b62",
+
+              borderWidth:
+                3,
+
+              pointRadius:
+                0,
+
+              pointHoverRadius:
+                5,
+
+              tension:
+                0.32,
+
+              cubicInterpolationMode:
+                "monotone",
+
+              spanGaps:
+                true
+            },
+
+            {
+              label:
+                "Disapprove",
+
+              data:
+                disapproveData,
+
+              borderColor:
+                "#d64045",
+
+              backgroundColor:
+                "#d64045",
+
+              borderWidth:
+                3,
+
+              pointRadius:
+                0,
+
+              pointHoverRadius:
+                5,
+
+              tension:
+                0.32,
+
+              cubicInterpolationMode:
+                "monotone",
+
+              spanGaps:
+                true
+            }
+          ]
+        },
+
+        options: {
+          responsive:
+            true,
+
+          maintainAspectRatio:
+            false,
+
+          interaction: {
+            mode:
+              "index",
+
+            intersect:
+              false
+          },
+
+          animation: {
+            duration:
+              450
+          },
+
+          plugins: {
+            legend: {
+              display:
+                true,
+
+              position:
+                "top",
+
+              align:
+                "start",
+
+              labels: {
+                usePointStyle:
+                  true,
+
+                pointStyle:
+                  "circle",
+
+                boxWidth:
+                  8,
+
+                boxHeight:
+                  8,
+
+                padding:
+                  18,
+
+                color:
+                  "#34435a",
+
+                font: {
+                  size:
+                    12,
+
+                  weight:
+                    "700"
+                }
+              }
+            },
+
+            tooltip: {
+              backgroundColor:
+                "rgba(7, 26, 54, 0.96)",
+
+              titleColor:
+                "#ffffff",
+
+              bodyColor:
+                "#ffffff",
+
+              borderColor:
+                "rgba(255,255,255,.14)",
+
+              borderWidth:
+                1,
+
+              padding:
+                12,
+
+              callbacks: {
+                title(
+                  items
+                ) {
+                  if (
+                    !items.length
+                  ) {
+                    return "";
+                  }
+
+                  return fmtDate(
+                    labels[
+                      items[0]
+                        .dataIndex
+                    ]
+                  );
+                },
+
+                label(
+                  context
+                ) {
+                  const value =
+                    Number(
+                      context.raw
+                    );
+
+                  return `${context.dataset.label}: ${
+                    Number.isFinite(
+                      value
+                    )
+                      ? value.toFixed(
+                          1
+                        )
+                      : "—"
+                  }%`;
+                }
+              }
+            }
+          },
+
+          scales: {
+            x: {
+              type:
+                "category",
+
+              grid: {
+                display:
+                  false
+              },
+
+              ticks: {
+                color:
+                  "#718096",
+
+                maxRotation:
+                  0,
+
+                autoSkip:
+                  true,
+
+                maxTicksLimit:
+                  range === "30"
+                    ? 6
+                    : 8,
+
+                callback(
+                  value,
+                  index
+                ) {
+                  return fmtDate(
+                    labels[index],
+                    {
+                      includeYear:
+                        range ===
+                        "all"
+                    }
+                  );
+                }
+              },
+
+              border: {
+                color:
+                  "#dce5f2"
+              }
+            },
+
+            y: {
+              min:
+                minimum,
+
+              max:
+                maximum,
+
+              ticks: {
+                color:
+                  "#718096",
+
+                callback(
+                  value
+                ) {
+                  return `${value}%`;
+                }
+              },
+
+              grid: {
+                color:
+                  "rgba(130, 149, 178, 0.16)"
+              },
+
+              border: {
+                display:
+                  false
+              }
+            }
+          }
+        }
+      }
+    );
+}
+
+async function loadApprovalPage() {
+  const table =
+    document.querySelector(
+      "#approvalPollTable"
+    );
+
+  if (!table) {
+    return;
+  }
+
+  if (!configured) {
+    table.innerHTML = `
+      <tr>
+
+        <td
+          colspan="7"
+          class="empty"
+        >
+          Connect Supabase to load approval polls.
+        </td>
+
+      </tr>
+    `;
+
+    return;
+  }
+
+  try {
+    const polls =
+      await getPublishedApprovalPolls();
+
+    const average =
+      approvalAverage(
+        polls
+      );
+
+    renderApprovalSummary(
+      average,
+      polls
+    );
+
+    renderApprovalPollTable(
+      polls
+    );
+
+    initializeApprovalChartControls(
+      polls
+    );
+
+    renderApprovalChart(
+      polls,
+      activeApprovalRange
+    );
+  } catch (error) {
+    console.error(
+      "Approval tracker failed:",
+      error
+    );
+
+    table.innerHTML = `
+      <tr>
+
+        <td
+          colspan="7"
+          class="empty"
+        >
+          ${escapeHtml(
+            friendlyErrorMessage(
+              error,
+              "Unable to load approval polls."
+            )
+          )}
+        </td>
+
+      </tr>
+    `;
+  }
 }
 
 
@@ -3346,7 +4284,8 @@ async function initializePublicWebsite() {
     loadHome(),
     loadRaceGrid(),
     loadRace(),
-    loadGenericBallotPage()
+    loadGenericBallotPage(),
+    loadApprovalPage()
   ];
 
   const results =
