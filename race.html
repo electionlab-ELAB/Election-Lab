@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
   <meta charset="utf-8">
 
   <meta
@@ -23,842 +22,618 @@
     rel="stylesheet"
     href="styles.css"
   >
-
 </head>
 
 <body>
 
+  <header class="topbar">
+    <nav class="nav">
 
-<header class="topbar">
-
-  <nav class="nav">
-
-
-    <a
-      class="brand"
-      href="index.html"
-    >
-
-      <img
-        src="electionlab-logo.png"
-        alt="ElectionLab logo"
+      <a
+        class="brand"
+        href="index.html"
       >
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
 
-      <span>
-        ElectionLab
-      </span>
-
-    </a>
-
-
-
-    <button
-      class="menuBtn"
-      type="button"
-      aria-label="Open navigation menu"
-      aria-expanded="false"
-    >
-      ☰
-    </button>
-
-
-
-    <div class="navlinks">
-
-
-      <a href="index.html">
-        Home
+        <span>
+          ElectionLab
+        </span>
       </a>
 
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
-      <a href="senate.html">
-        Senate
-      </a>
+      <div class="navlinks">
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a href="house.html">
+          House
+        </a>
+
+        <a href="governors.html">
+          Governors
+        </a>
+
+        <a href="polls.html">
+          Polling
+        </a>
+
+        <a href="approval.html">
+          Trump Approval
+        </a>
+
+        <a href="primary.html">
+          2028 Primary
+        </a>
+
+        <a href="methodology.html">
+          Methodology
+        </a>
+
+      </div>
+
+    </nav>
+  </header>
 
 
-      <a href="house.html">
-        House
-      </a>
+  <main
+    id="raceRoot"
+    class="page racePage"
+  >
 
-
-      <a href="governors.html">
-        Governors
-      </a>
-
-
-      <a href="polls.html">
-        Polling
-      </a>
-
-
-      <a href="approval.html">
-        Trump Approval
-      </a>
-
-
-      <a href="primary.html">
-        2028 Primary
-      </a>
-
-
-      <a href="methodology.html">
-        Methodology
-      </a>
-
-
+    <div class="loading">
+      Loading race…
     </div>
 
+  </main>
 
-  </nav>
 
-</header>
+  <template id="racePageTemplate">
 
 
+    <section class="hero raceHero">
 
-
-
-<main
-  id="raceRoot"
-  class="page racePage"
->
-
-
-  <div class="loading">
-    Loading race…
-  </div>
-
-
-</main>
-
-
-
-
-
-<template id="racePageTemplate">
-
-
-<section class="hero raceHero">
-
-
-  <div class="heroGrid">
-
-
-    <div>
-
-
-      <div
-        id="raceKicker"
-        class="kicker"
-      >
-        ElectionLab Forecast
-      </div>
-
-
-
-      <h1 id="raceTitle">
-        Election Forecast
-      </h1>
-
-
-
-      <p id="raceSummary">
-        ElectionLab's published forecast and polling average.
-      </p>
-
-
-
-      <div class="raceHeroBadges">
-
-
-        <span
-          id="raceRatingBadge"
-          class="badge gold"
-        >
-          Toss-up
-        </span>
-
-
-
-        <span
-          id="raceOfficeBadge"
-          class="badge blue"
-        >
-          U.S. Senate
-        </span>
-
-
-
-        <span
-          id="raceStateBadge"
-          class="badge green"
-        >
-          —
-        </span>
-
-
-      </div>
-
-
-    </div>
-
-
-
-
-
-    <div class="probCard raceLeaderCard">
-
-
-      <div
-        id="raceLeaderProbability"
-        class="bigProb"
-      >
-        —
-      </div>
-
-
-
-      <b id="raceLeaderName">
-        No candidate data
-      </b>
-
-
-
-      <div class="raceLeaderLabel">
-        chance to win
-      </div>
-
-
-
-      <div
-        id="raceLeaderVote"
-        class="raceLeaderVote"
-      >
-        —
-      </div>
-
-
-    </div>
-
-
-
-  </div>
-
-
-</section>
-<section class="section">
-
-
-  <div class="grid2">
-
-
-    <article class="card forecastCard">
-
-
-      <div class="sectionMiniHead">
-
+      <div class="heroGrid">
 
         <div>
 
-          <div class="kicker">
-            Forecast
+          <div
+            id="raceKicker"
+            class="kicker"
+          >
+            ElectionLab Forecast
           </div>
 
+          <h1 id="raceTitle">
+            Election Forecast
+          </h1>
 
-          <h2>
-            Candidate outlook
-          </h2>
+          <p id="raceSummary">
+            ElectionLab's published forecast and polling average.
+          </p>
 
+          <div class="raceHeroBadges">
+
+            <span
+              id="raceRatingBadge"
+              class="badge gold"
+            >
+              Toss-up
+            </span>
+
+            <span
+              id="raceOfficeBadge"
+              class="badge blue"
+            >
+              U.S. Senate
+            </span>
+
+            <span
+              id="raceStateBadge"
+              class="badge green"
+            >
+              —
+            </span>
+
+          </div>
 
         </div>
 
 
-      </div>
+        <div class="probCard raceLeaderCard">
 
-
-
-
-
-      <div
-        id="candidateForecastList"
-        class="candidateForecastList"
-      >
-
-        <p class="subtle">
-          No candidates have been added yet.
-        </p>
-
-
-      </div>
-
-
-
-
-
-      <div class="forecastMetaGrid">
-
-
-        <div class="forecastMetaItem">
-
-
-          <span>
-            Model margin
-          </span>
-
-
-          <strong id="raceProjectedMargin">
+          <div
+            id="raceLeaderProbability"
+            class="bigProb"
+          >
             —
-          </strong>
+          </div>
 
+          <b id="raceLeaderName">
+            No candidate data
+          </b>
+
+          <div class="raceLeaderLabel">
+            chance to win
+          </div>
+
+          <div
+            id="raceLeaderVote"
+            class="raceLeaderVote"
+          >
+            —
+          </div>
 
         </div>
 
+      </div>
+
+    </section>
+
+
+    <section class="section">
+
+      <div class="grid2">
+
+        <article class="card forecastCard">
+
+          <div class="sectionMiniHead">
+
+            <div>
+              <div class="kicker">
+                Forecast
+              </div>
+
+              <h2>
+                Candidate outlook
+              </h2>
+            </div>
+
+          </div>
+
+          <div
+            id="candidateForecastList"
+            class="candidateForecastList"
+          >
+            <p class="subtle">
+              No candidates have been added yet.
+            </p>
+          </div>
+
+          <div class="forecastMetaGrid">
+
+            <div class="forecastMetaItem">
+
+              <span>
+                Model margin
+              </span>
+
+              <strong id="raceProjectedMargin">
+                —
+              </strong>
+
+            </div>
+                        </div>
+
+          </div>
+
+        </article>
+
+
+        <article class="card pollingAverageCard">
+
+          <div class="sectionMiniHead">
+
+            <div>
+              <div class="kicker">
+                Polling Average
+              </div>
+
+              <h2>
+                Current polling
+              </h2>
+            </div>
+
+            <div
+              id="pollingAverageMargin"
+              class="pollingAverageMargin"
+            >
+              —
+            </div>
+
+          </div>
+
+
+          <div
+            id="pollingCandidateRows"
+            class="pollingCandidateRows"
+          >
+            <p class="subtle">
+              No published polls yet.
+            </p>
+          </div>
+
+
+          <div
+            id="pollingShareBar"
+            class="pollingShareBar"
+            aria-label="Polling average vote share"
+          ></div>
+
+
+          <div
+            id="pollingBarLegend"
+            class="pollingBarLegend"
+          ></div>
+
+
+          <div
+            id="pollingAverageMeta"
+            class="pollingAverageMeta"
+          >
+            Add published polls to calculate an average.
+          </div>
+
+        </article>
 
       </div>
 
-
-    </article>
-
+    </section>
 
 
+    <section class="section pollingTrendSection">
 
-
-    <article class="card pollingAverageCard">
-
-
-      <div class="sectionMiniHead">
-
+      <div class="sectionHead">
 
         <div>
 
           <div class="kicker">
-            Polling Average
+            Polling Trend
           </div>
 
-
           <h2>
-            Current polling
+            Running polling average
           </h2>
 
+          <p>
+            A weighted daily average smooths out individual-poll noise.
+          </p>
 
         </div>
-
-
 
 
         <div
-          id="pollingAverageMargin"
-          class="pollingAverageMargin"
+          id="pollingRangeControls"
+          class="chartRangeControls"
         >
-          —
+
+          <button
+            type="button"
+            data-range="30"
+          >
+            30D
+          </button>
+
+          <button
+            type="button"
+            data-range="90"
+            class="active"
+          >
+            3M
+          </button>
+
+          <button
+            type="button"
+            data-range="180"
+          >
+            6M
+          </button>
+
+          <button
+            type="button"
+            data-range="all"
+          >
+            All
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <article class="card pollingChartCard">
+
+        <div
+          id="pollingChartEmpty"
+          class="empty"
+          style="display:none"
+        >
+          Add published polls to display the running average.
         </div>
 
 
+        <div
+          id="pollingChartWrap"
+          class="pollingChartWrap"
+        >
+
+          <canvas
+            id="racePollingChart"
+            aria-label="Running polling average chart"
+            role="img"
+          ></canvas>
+
+        </div>
+
+
+        <div class="pollingChartFooter">
+
+          <div id="pollingChartLatest">
+            Latest average: —
+          </div>
+
+
+          <div id="pollingChartUpdated">
+            Forecast updated: —
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+        <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            Race Information
+          </div>
+
+          <h2>
+            What the numbers mean
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="grid3 raceInfoGrid">
+
+
+        <article class="card raceInfoCard">
+
+          <span class="raceInfoLabel">
+            Poll count
+          </span>
+
+          <strong id="racePollCount">
+            0
+          </strong>
+
+          <p>
+            Published polls currently included in the average.
+          </p>
+
+        </article>
+
+
+
+        <article class="card raceInfoCard">
+
+          <span class="raceInfoLabel">
+            Field dates
+          </span>
+
+          <strong id="racePollFieldDates">
+            —
+          </strong>
+
+          <p>
+            Earliest and latest polling dates represented.
+          </p>
+
+        </article>
+
+
+
+        <article class="card raceInfoCard">
+
+          <span class="raceInfoLabel">
+            Latest poll
+          </span>
+
+          <strong id="raceLatestPollster">
+            —
+          </strong>
+
+          <p id="raceLatestPollDate">
+            —
+          </p>
+
+        </article>
+
+
+      </div>
+
+    </section>
+
+
+
+    <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            Poll Database
+          </div>
+
+          <h2>
+            Recent polls
+          </h2>
+
+          <p>
+            Published surveys included in the ElectionLab average.
+          </p>
+
+        </div>
+
       </div>
 
 
 
+      <div class="tableWrap">
 
 
-      <div
-        id="pollingCandidateRows"
-        class="pollingCandidateRows"
-      >
+        <table>
+
+
+          <thead>
+
+
+            <tr>
+
+
+              <th>
+                Pollster
+              </th>
+
+
+              <th>
+                Dates
+              </th>
+
+
+              <th>
+                Sample
+              </th>
+
+
+              <th>
+                Democrat
+              </th>
+
+
+              <th>
+                Republican
+              </th>
+
+
+              <th>
+                Independent
+              </th>
+
+
+              <th>
+                Margin
+              </th>
+
+
+            </tr>
+
+
+          </thead>
+
+
+
+          <tbody id="racePollTable">
+
+
+            <tr>
+
+
+              <td
+                colspan="7"
+                class="empty"
+              >
+
+                Loading polls…
+
+              </td>
+
+
+            </tr>
+
+
+          </tbody>
+
+
+        </table>
+
+
+      </div>
+
+
+    </section>
+
+
+  </template>
+    <footer class="footer">
+
+    <div class="footerInner">
+
+      <div>
+
+        <b>
+          ElectionLab
+        </b>
 
         <p class="subtle">
-          No published polls yet.
+          Independent election forecasts and polling analysis.
         </p>
 
-
       </div>
 
 
+      <div class="subtle">
 
-
-
-      <div
-        id="pollingShareBar"
-        class="pollingShareBar"
-        aria-label="Polling average vote share"
-      ></div>
-
-
-
-
-
-      <div
-        id="pollingBarLegend"
-        class="pollingBarLegend"
-      ></div>
-
-
-
-
-
-      <div
-        id="pollingAverageMeta"
-        class="pollingAverageMeta"
-      >
-
-        Add published polls to calculate an average.
-
-      </div>
-
-
-    </article>
-
-
-  </div>
-
-
-</section>
-
-
-
-
-
-<section class="section pollingTrendSection">
-
-
-  <div class="sectionHead">
-
-
-    <div>
-
-
-      <div class="kicker">
-        Polling Trend
-      </div>
-
-
-      <h2>
-        Running polling average
-      </h2>
-
-
-      <p>
-        A weighted daily average smooths out individual-poll noise.
-      </p>
-
-
-    </div>
-
-
-
-
-
-    <div
-      id="pollingRangeControls"
-      class="chartRangeControls"
-    >
-
-
-      <button
-        type="button"
-        data-range="30"
-      >
-        30D
-      </button>
-
-
-      <button
-        type="button"
-        data-range="90"
-        class="active"
-      >
-        3M
-      </button>
-
-
-      <button
-        type="button"
-        data-range="180"
-      >
-        6M
-      </button>
-
-
-      <button
-        type="button"
-        data-range="all"
-      >
-        All
-      </button>
-
-
-    </div>
-
-
-  </div>
-      </div>
-
-
-  </div>
-
-
-
-
-
-  <article class="card pollingChartCard">
-
-
-    <div
-      id="pollingChartEmpty"
-      class="empty"
-      style="display:none"
-    >
-
-      Add published polls to display the running average.
-
-    </div>
-
-
-
-
-
-    <div
-      id="pollingChartWrap"
-      class="pollingChartWrap"
-    >
-
-
-      <canvas
-        id="racePollingChart"
-        aria-label="Running polling average chart"
-        role="img"
-      ></canvas>
-
-
-    </div>
-
-
-
-
-
-    <div class="pollingChartFooter">
-
-
-      <div id="pollingChartLatest">
-
-        Latest average: —
-
-      </div>
-
-
-
-
-      <div id="pollingChartUpdated">
-
-        Forecast updated: —
+        Forecasts express uncertainty, not certainty.
 
       </div>
 
 
     </div>
 
+  </footer>
 
-  </article>
 
 
-</section>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
 
 
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+  ></script>
 
 
+  <script src="config.js"></script>
 
+  <script src="common.js"></script>
 
-
-<section class="section">
-
-
-  <div class="sectionHead">
-
-
-    <div>
-
-
-      <div class="kicker">
-        Race Information
-      </div>
-
-
-      <h2>
-        What the numbers mean
-      </h2>
-
-
-    </div>
-
-
-  </div>
-
-
-
-
-
-  <div class="grid3 raceInfoGrid">
-
-
-
-    <article class="card raceInfoCard">
-
-
-      <span class="raceInfoLabel">
-        Poll count
-      </span>
-
-
-      <strong id="racePollCount">
-        0
-      </strong>
-
-
-      <p>
-        Published polls currently included in the average.
-      </p>
-
-
-    </article>
-
-
-
-
-
-    <article class="card raceInfoCard">
-
-
-      <span class="raceInfoLabel">
-        Field dates
-      </span>
-
-
-      <strong id="racePollFieldDates">
-        —
-      </strong>
-
-
-      <p>
-        Earliest and latest polling dates represented.
-      </p>
-
-
-    </article>
-
-
-
-
-
-    <article class="card raceInfoCard">
-
-
-      <span class="raceInfoLabel">
-        Latest poll
-      </span>
-
-
-      <strong id="raceLatestPollster">
-        —
-      </strong>
-
-
-      <p id="raceLatestPollDate">
-        —
-      </p>
-
-
-    </article>
-
-
-
-  </div>
-
-
-</section>
-
-
-
-
-
-
-
-<section class="section">
-
-
-  <div class="sectionHead">
-
-
-    <div>
-
-
-      <div class="kicker">
-        Poll Database
-      </div>
-
-
-      <h2>
-        Recent polls
-      </h2>
-
-
-      <p>
-        Published surveys included in the ElectionLab average.
-      </p>
-
-
-    </div>
-
-
-  </div>
-
-
-
-
-
-  <div class="tableWrap">
-
-
-    <table>
-
-
-      <thead>
-
-
-        <tr>
-
-
-          <th>
-            Pollster
-          </th>
-
-
-          <th>
-            Dates
-          </th>
-
-
-          <th>
-            Sample
-          </th>
-
-
-          <th>
-            Democrat
-          </th>
-
-
-          <th>
-            Republican
-          </th>
-
-
-          <th>
-            Independent
-          </th>
-
-
-          <th>
-            Margin
-          </th>
-
-
-        </tr>
-
-
-      </thead>
-            <tbody id="racePollTable">
-
-        <tr>
-
-          <td
-            colspan="7"
-            class="empty"
-          >
-
-            Loading polls…
-
-          </td>
-
-        </tr>
-
-      </tbody>
-
-
-    </table>
-
-
-  </div>
-
-
-</section>
-
-
-
-</template>
-
-
-
-
-
-<footer class="footer">
-
-
-  <div class="footerInner">
-
-
-    <div>
-
-
-      <b>
-        ElectionLab
-      </b>
-
-
-      <p class="subtle">
-
-        Independent election forecasts and polling analysis.
-
-      </p>
-
-
-    </div>
-
-
-
-
-
-    <div class="subtle">
-
-      Forecasts express uncertainty, not certainty.
-
-    </div>
-
-
-  </div>
-
-
-</footer>
-
-
-
-
-
-<script
-  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-></script>
-
-
-
-<script
-  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
-></script>
-
-
-
-<script src="config.js"></script>
-
-<script src="common.js"></script>
-
-<script src="public.js"></script>
-
+  <script src="public.js"></script>
 
 
 </body>
