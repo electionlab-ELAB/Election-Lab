@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
 
@@ -8,9 +9,19 @@
     content="width=device-width, initial-scale=1"
   >
 
-  <title>ElectionLab Newsroom</title>
+  <title>
+    ElectionLab Newsroom
+  </title>
 
-  <link rel="stylesheet" href="styles.css">
+  <meta
+    name="description"
+    content="ElectionLab administration and publishing dashboard."
+  >
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
 </head>
 
 <body>
@@ -18,13 +29,18 @@
   <header class="topbar">
     <nav class="nav">
 
-      <a class="brand" href="index.html">
+      <a
+        class="brand"
+        href="index.html"
+      >
         <img
           src="electionlab-logo.png"
           alt="ElectionLab logo"
         >
 
-        <span>ElectionLab</span>
+        <span>
+          ElectionLab
+        </span>
       </a>
 
       <button
@@ -37,11 +53,39 @@
       </button>
 
       <div class="navlinks">
-        <a href="index.html">Home</a>
-        <a href="senate.html">Senate</a>
-        <a href="house.html">House</a>
-        <a href="governors.html">Governors</a>
-        <a href="polls.html">Generic Ballot</a>
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a href="house.html">
+          House
+        </a>
+
+        <a href="governors.html">
+          Governors
+        </a>
+
+        <a href="polls.html">
+          Polling
+        </a>
+
+        <a href="approval.html">
+          Trump Approval
+        </a>
+
+        <a href="primary.html">
+          2028 Primary
+        </a>
+
+        <a href="methodology.html">
+          Methodology
+        </a>
+
       </div>
 
     </nav>
@@ -77,6 +121,13 @@
       </button>
 
       <button
+        data-panel="forecastHistoryPanel"
+        type="button"
+      >
+        Forecast History
+      </button>
+
+      <button
         data-panel="candidatesPanel"
         type="button"
       >
@@ -95,6 +146,20 @@
         type="button"
       >
         Generic Ballot
+      </button>
+
+      <button
+        data-panel="approvalPanel"
+        type="button"
+      >
+        Trump Approval
+      </button>
+
+      <button
+        data-panel="primaryPanel"
+        type="button"
+      >
+        2028 Primaries
       </button>
 
       <button
@@ -118,6 +183,7 @@
       <div class="adminHead">
 
         <div>
+
           <h1 style="margin:0">
             ElectionLab Newsroom
           </h1>
@@ -126,6 +192,7 @@
             Signed in as
             <span id="adminEmail"></span>
           </div>
+
         </div>
 
         <a
@@ -144,7 +211,9 @@
         style="display:none"
       ></div>
 
-      <!-- Dashboard -->
+      <!-- =================================================
+           DASHBOARD
+           ================================================= -->
 
       <section
         id="dashboardPanel"
@@ -154,6 +223,7 @@
         <div class="statGrid">
 
           <div class="stat">
+
             <span class="subtle">
               Races
             </span>
@@ -161,9 +231,11 @@
             <strong id="statRaces">
               —
             </strong>
+
           </div>
 
           <div class="stat">
+
             <span class="subtle">
               Published
             </span>
@@ -171,9 +243,11 @@
             <strong id="statPublished">
               —
             </strong>
+
           </div>
 
           <div class="stat">
+
             <span class="subtle">
               Candidates
             </span>
@@ -181,9 +255,11 @@
             <strong id="statCandidates">
               —
             </strong>
+
           </div>
 
           <div class="stat">
+
             <span class="subtle">
               Race polls
             </span>
@@ -191,24 +267,86 @@
             <strong id="statPolls">
               —
             </strong>
+
+          </div>
+
+          <div class="stat">
+
+            <span class="subtle">
+              Forecast changes
+            </span>
+
+            <strong id="statForecastChanges">
+              —
+            </strong>
+
+          </div>
+
+          <div class="stat">
+
+            <span class="subtle">
+              Approval polls
+            </span>
+
+            <strong id="statApprovalPolls">
+              —
+            </strong>
+
+          </div>
+
+          <div class="stat">
+
+            <span class="subtle">
+              Primary polls
+            </span>
+
+            <strong id="statPrimaryPolls">
+              —
+            </strong>
+
+          </div>
+
+          <div class="stat">
+
+            <span class="subtle">
+              Race of the Day
+            </span>
+
+            <strong id="statRaceOfDay">
+              —
+            </strong>
+
           </div>
 
         </div>
 
         <div class="card section">
-          <h2>How publishing works</h2>
+
+          <h2>
+            How publishing works
+          </h2>
 
           <p>
-            Set a race or poll to <b>Draft</b> while editing.
-            Set it to <b>Published</b> when it is ready for
-            public visitors. Public polling averages use only
-            published polls.
+            Set races and polls to
+            <b>Draft</b>
+            while editing. Set them to
+            <b>Published</b>
+            when they are ready for the public site.
           </p>
+
+          <p>
+            When a race rating or projected margin changes,
+            ElectionLab can record the old value, the new value,
+            and an optional explanation in Forecast History.
+          </p>
+
         </div>
 
       </section>
 
-      <!-- Website settings -->
+      <!-- =================================================
+           WEBSITE SETTINGS
+           ================================================= -->
 
       <section
         id="websitePanel"
@@ -218,18 +356,25 @@
         <div class="sectionHead">
 
           <div>
-            <h2>Website settings</h2>
+
+            <h2>
+              Website settings
+            </h2>
 
             <p>
-              Change homepage headlines and forecast totals.
+              Change homepage headlines, featured-section text,
+              and forecast totals.
             </p>
+
           </div>
 
         </div>
 
         <div class="card section">
 
-          <h3>Homepage control forecasts</h3>
+          <h3>
+            Homepage headlines
+          </h3>
 
           <form
             id="homepageSettingsForm"
@@ -269,7 +414,7 @@
             <div class="field full">
 
               <label for="homepageCongress">
-                Generic ballot headline
+                National environment headline
               </label>
 
               <input
@@ -282,11 +427,43 @@
             </div>
 
             <div class="field full">
+
+              <label for="homepageFeaturedTitle">
+                Featured-races title
+              </label>
+
+              <input
+                id="homepageFeaturedTitle"
+                required
+                maxlength="100"
+                value="America's Closest Races"
+              >
+
+            </div>
+
+            <div class="field full">
+
+              <label for="homepageFeaturedSubtitle">
+                Featured-races subtitle
+              </label>
+
+              <input
+                id="homepageFeaturedSubtitle"
+                required
+                maxlength="220"
+                value="The elections most likely to shape control of Congress and the governorships."
+              >
+
+            </div>
+
+            <div class="field full">
+
               <hr>
 
               <h3>
                 Senate forecast totals
               </h3>
+
             </div>
 
             <div class="field">
@@ -338,11 +515,13 @@
             </div>
 
             <div class="field full">
+
               <hr>
 
               <h3>
                 House forecast totals
               </h3>
+
             </div>
 
             <div class="field">
@@ -394,11 +573,13 @@
             </div>
 
             <div class="field full">
+
               <hr>
 
               <h3>
                 Governor forecast totals
               </h3>
+
             </div>
 
             <div class="field">
@@ -465,7 +646,10 @@
         </div>
 
       </section>
-            <!-- Races -->
+
+      <!-- =================================================
+           RACES
+           ================================================= -->
 
       <section
         id="racesPanel"
@@ -475,11 +659,15 @@
         <div class="sectionHead">
 
           <div>
-            <h2>Election races</h2>
+
+            <h2>
+              Election races
+            </h2>
 
             <p>
               Manage Senate, Governor, and House forecasts.
             </p>
+
           </div>
 
           <button
@@ -497,14 +685,43 @@
           <table>
 
             <thead>
+
               <tr>
-                <th>Race</th>
-                <th>Office</th>
-                <th>Rating</th>
-                <th>Margin</th>
-                <th>Status</th>
-                <th>Actions</th>
+
+                <th>
+                  Race
+                </th>
+
+                <th>
+                  Office
+                </th>
+
+                <th>
+                  Rating
+                </th>
+
+                <th>
+                  Margin
+                </th>
+
+                <th>
+                  Featured
+                </th>
+
+                <th>
+                  Race of Day
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
               </tr>
+
             </thead>
 
             <tbody id="racesBody"></tbody>
@@ -514,8 +731,168 @@
         </div>
 
       </section>
+            <!-- =================================================
+           FORECAST HISTORY
+           ================================================= -->
 
-      <!-- Candidates -->
+      <section
+        id="forecastHistoryPanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+
+          <div>
+
+            <h2>
+              Forecast history
+            </h2>
+
+            <p>
+              Review rating and projected-margin changes recorded
+              when race forecasts are updated.
+            </p>
+
+          </div>
+
+          <button
+            class="btn blue"
+            type="button"
+            onclick="editForecastChange()"
+          >
+            Add forecast change
+          </button>
+
+        </div>
+
+        <div class="card section">
+
+          <div class="grid3">
+
+            <div>
+
+              <div class="kicker">
+                Latest change
+              </div>
+
+              <div
+                id="forecastHistoryLatestRace"
+                class="bigProb"
+                style="font-size:30px"
+              >
+                —
+              </div>
+
+            </div>
+
+            <div>
+
+              <div class="kicker">
+                New rating
+              </div>
+
+              <div
+                id="forecastHistoryLatestRating"
+                class="bigProb"
+                style="font-size:30px"
+              >
+                —
+              </div>
+
+            </div>
+
+            <div>
+
+              <div class="kicker">
+                Recorded
+              </div>
+
+              <div
+                id="forecastHistoryLatestDate"
+                class="bigProb"
+                style="font-size:30px"
+              >
+                —
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Race
+                </th>
+
+                <th>
+                  Previous rating
+                </th>
+
+                <th>
+                  New rating
+                </th>
+
+                <th>
+                  Previous margin
+                </th>
+
+                <th>
+                  New margin
+                </th>
+
+                <th>
+                  Reason
+                </th>
+
+                <th>
+                  Date
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="forecastHistoryBody">
+
+              <tr>
+
+                <td
+                  colspan="9"
+                  class="empty"
+                >
+                  No forecast changes recorded yet.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           CANDIDATES
+           ================================================= -->
 
       <section
         id="candidatesPanel"
@@ -525,11 +902,16 @@
         <div class="sectionHead">
 
           <div>
-            <h2>Candidates</h2>
+
+            <h2>
+              Candidates
+            </h2>
 
             <p>
-              Add candidates, win odds, and expected vote shares.
+              Add candidates, win odds, expected vote shares,
+              and third-party or independent options.
             </p>
+
           </div>
 
           <button
@@ -547,14 +929,43 @@
           <table>
 
             <thead>
+
               <tr>
-                <th>Candidate</th>
-                <th>Race</th>
-                <th>Party</th>
-                <th>Win odds</th>
-                <th>Projected vote</th>
-                <th>Actions</th>
+
+                <th>
+                  Candidate
+                </th>
+
+                <th>
+                  Race
+                </th>
+
+                <th>
+                  Party
+                </th>
+
+                <th>
+                  Incumbent
+                </th>
+
+                <th>
+                  Win odds
+                </th>
+
+                <th>
+                  Projected vote
+                </th>
+
+                <th>
+                  Candidate to Watch
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
               </tr>
+
             </thead>
 
             <tbody id="candidatesBody"></tbody>
@@ -565,7 +976,9 @@
 
       </section>
 
-      <!-- Race polls -->
+      <!-- =================================================
+           RACE POLLS
+           ================================================= -->
 
       <section
         id="pollsPanel"
@@ -575,12 +988,16 @@
         <div class="sectionHead">
 
           <div>
-            <h2>Race poll database</h2>
+
+            <h2>
+              Race poll database
+            </h2>
 
             <p>
-              Published polls feed each race's public weighted
-              polling average.
+              Published polls feed each race's weighted polling
+              average and running-average chart.
             </p>
+
           </div>
 
           <button
@@ -593,20 +1010,62 @@
 
         </div>
 
+        <div class="card section">
+
+          <p class="subtle">
+            Polls may include Democratic, Republican, Independent,
+            Libertarian, Green, or other vote shares. Independent
+            values are optional for normal two-party races.
+          </p>
+
+        </div>
+
         <div class="tableWrap">
 
           <table>
 
             <thead>
+
               <tr>
-                <th>Pollster</th>
-                <th>Race</th>
-                <th>End date</th>
-                <th>Sample</th>
-                <th>Result</th>
-                <th>Status</th>
-                <th>Actions</th>
+
+                <th>
+                  Pollster
+                </th>
+
+                <th>
+                  Race
+                </th>
+
+                <th>
+                  End date
+                </th>
+
+                <th>
+                  Sample
+                </th>
+
+                <th>
+                  Democrat
+                </th>
+
+                <th>
+                  Republican
+                </th>
+
+                <th>
+                  Independent
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
               </tr>
+
             </thead>
 
             <tbody id="pollsBody"></tbody>
@@ -617,7 +1076,9 @@
 
       </section>
 
-      <!-- Generic ballot -->
+      <!-- =================================================
+           GENERIC BALLOT
+           ================================================= -->
 
       <section
         id="genericBallotPanel"
@@ -627,12 +1088,16 @@
         <div class="sectionHead">
 
           <div>
-            <h2>Generic ballot polls</h2>
+
+            <h2>
+              Generic ballot polls
+            </h2>
 
             <p>
-              Add national polls asking voters which party
-              they plan to support for Congress.
+              Add national polls asking voters which party they
+              plan to support for Congress.
             </p>
+
           </div>
 
           <button
@@ -650,6 +1115,7 @@
           <div class="grid2">
 
             <div>
+
               <div class="kicker">
                 Democratic average
               </div>
@@ -661,9 +1127,11 @@
               >
                 —%
               </div>
+
             </div>
 
             <div>
+
               <div class="kicker">
                 Republican average
               </div>
@@ -675,6 +1143,7 @@
               >
                 —%
               </div>
+
             </div>
 
           </div>
@@ -693,27 +1162,58 @@
           <table>
 
             <thead>
+
               <tr>
-                <th>Pollster</th>
-                <th>Dates</th>
-                <th>Sample</th>
-                <th>Dem</th>
-                <th>Rep</th>
-                <th>Margin</th>
-                <th>Status</th>
-                <th>Actions</th>
+
+                <th>
+                  Pollster
+                </th>
+
+                <th>
+                  Dates
+                </th>
+
+                <th>
+                  Sample
+                </th>
+
+                <th>
+                  Democrat
+                </th>
+
+                <th>
+                  Republican
+                </th>
+
+                <th>
+                  Margin
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
               </tr>
+
             </thead>
 
             <tbody id="genericBallotBody">
+
               <tr>
+
                 <td
                   colspan="8"
                   class="empty"
                 >
                   No generic ballot polls yet.
                 </td>
+
               </tr>
+
             </tbody>
 
           </table>
@@ -722,7 +1222,306 @@
 
       </section>
 
-      <!-- Spreadsheet import -->
+      <!-- =================================================
+           TRUMP APPROVAL
+           ================================================= -->
+
+      <section
+        id="approvalPanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+
+          <div>
+
+            <h2>
+              Trump approval tracker
+            </h2>
+
+            <p>
+              Manage national approval and disapproval polls.
+              State-level approval polling is not included yet.
+            </p>
+
+          </div>
+
+          <button
+            class="btn blue"
+            type="button"
+            onclick="editApprovalPoll()"
+          >
+            Add approval poll
+          </button>
+
+        </div>
+
+        <div class="card section">
+
+          <div class="grid3">
+
+            <div>
+
+              <div class="kicker">
+                Approval average
+              </div>
+
+              <div
+                id="approvalAverageApprove"
+                class="bigProb"
+                style="color:var(--blue)"
+              >
+                —%
+              </div>
+
+            </div>
+
+            <div>
+
+              <div class="kicker">
+                Disapproval average
+              </div>
+
+              <div
+                id="approvalAverageDisapprove"
+                class="bigProb"
+                style="color:var(--red)"
+              >
+                —%
+              </div>
+
+            </div>
+
+            <div>
+
+              <div class="kicker">
+                Net approval
+              </div>
+
+              <div
+                id="approvalAverageNet"
+                class="bigProb"
+                style="font-size:44px"
+              >
+                —
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Pollster
+                </th>
+
+                <th>
+                  Dates
+                </th>
+
+                <th>
+                  Sample
+                </th>
+
+                <th>
+                  Population
+                </th>
+
+                <th>
+                  Approve
+                </th>
+
+                <th>
+                  Disapprove
+                </th>
+
+                <th>
+                  Net
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="approvalPollsBody">
+
+              <tr>
+
+                <td
+                  colspan="9"
+                  class="empty"
+                >
+                  No approval polls yet.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           2028 PRIMARIES
+           ================================================= -->
+
+      <section
+        id="primaryPanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+
+          <div>
+
+            <h2>
+              2028 primary polls
+            </h2>
+
+            <p>
+              Manage national Democratic and Republican
+              presidential-primary polls.
+            </p>
+
+          </div>
+
+          <button
+            class="btn blue"
+            type="button"
+            onclick="editPrimaryPoll()"
+          >
+            Add primary poll
+          </button>
+
+        </div>
+
+        <div class="card section">
+
+          <div class="grid2">
+
+            <div>
+
+              <div class="kicker">
+                Democratic polls
+              </div>
+
+              <div
+                id="primaryDemocraticPollCount"
+                class="bigProb"
+                style="color:var(--blue)"
+              >
+                0
+              </div>
+
+            </div>
+
+            <div>
+
+              <div class="kicker">
+                Republican polls
+              </div>
+
+              <div
+                id="primaryRepublicanPollCount"
+                class="bigProb"
+                style="color:var(--red)"
+              >
+                0
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Pollster
+                </th>
+
+                <th>
+                  Party
+                </th>
+
+                <th>
+                  Dates
+                </th>
+
+                <th>
+                  Sample
+                </th>
+
+                <th>
+                  Population
+                </th>
+
+                <th>
+                  Candidates
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="primaryPollsBody">
+
+              <tr>
+
+                <td
+                  colspan="8"
+                  class="empty"
+                >
+                  No primary polls yet.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+            <!-- =================================================
+           SPREADSHEET IMPORT
+           ================================================= -->
 
       <section
         id="spreadsheetImportPanel"
@@ -730,21 +1529,31 @@
       >
 
         <div class="sectionHead">
+
           <div>
-            <h2>Spreadsheet import</h2>
+
+            <h2>
+              Spreadsheet import
+            </h2>
+
             <p>
-              Upload one Excel workbook with Races, Candidates,
-              and Polls sheets. Preview everything before importing.
+              Upload one Excel or CSV file containing races,
+              candidates, race polls, generic-ballot polls,
+              approval polls, or primary polls.
             </p>
+
           </div>
+
         </div>
 
         <div class="card section">
+
           <div class="formGrid">
 
             <div class="field full">
+
               <label for="electionWorkbookFile">
-                Election workbook (.xlsx, .xls, or .csv)
+                Election workbook
               </label>
 
               <input
@@ -752,10 +1561,13 @@
                 type="file"
                 accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
               >
+
             </div>
 
             <div class="field full">
+
               <div class="toolbar">
+
                 <button
                   id="downloadElectionWorkbookTemplate"
                   class="btn light"
@@ -780,16 +1592,27 @@
                 >
                   Import spreadsheet
                 </button>
+
               </div>
+
             </div>
 
           </div>
 
           <p class="subtle">
-            Candidates and polls are matched to races using
-            <b>race_slug</b>. Importing the same workbook again skips
-            duplicate candidates and polls.
+            Accepted
+            <b>record_type</b>
+            values:
+            race, candidate, poll, generic_ballot,
+            approval_poll, and primary_poll.
           </p>
+
+          <p class="subtle">
+            Candidates and race polls are matched using
+            <b>race_slug</b>.
+            Duplicate records are skipped whenever possible.
+          </p>
+
         </div>
 
         <div
@@ -797,21 +1620,35 @@
           class="card section"
           style="display:none"
         >
+
           <div class="sectionHead">
+
             <div>
-              <h3>Spreadsheet preview</h3>
+
+              <h3>
+                Spreadsheet preview
+              </h3>
+
               <p id="spreadsheetPreviewSummary"></p>
+
             </div>
+
           </div>
 
           <div id="spreadsheetValidationMessages"></div>
 
           <div class="tableWrap">
+
             <table>
+
               <thead id="spreadsheetPreviewHead"></thead>
+
               <tbody id="spreadsheetPreviewBody"></tbody>
+
             </table>
+
           </div>
+
         </div>
 
       </section>
@@ -819,7 +1656,11 @@
     </main>
 
   </div>
-    <!-- Race modal -->
+
+
+  <!-- =====================================================
+       RACE MODAL
+       ===================================================== -->
 
   <div
     id="raceModal"
@@ -855,6 +1696,16 @@
           type="hidden"
         >
 
+        <input
+          id="raceOriginalRating"
+          type="hidden"
+        >
+
+        <input
+          id="raceOriginalMargin"
+          type="hidden"
+        >
+
         <div class="field">
 
           <label for="raceOffice">
@@ -865,6 +1716,7 @@
             id="raceOffice"
             required
           >
+
             <option value="senate">
               U.S. Senate
             </option>
@@ -876,6 +1728,7 @@
             <option value="house">
               U.S. House
             </option>
+
           </select>
 
         </div>
@@ -915,9 +1768,8 @@
             Forecast rating
           </label>
 
-          <select
-            id="raceRating"
-          >
+          <select id="raceRating">
+
             <option>
               Toss-up
             </option>
@@ -953,6 +1805,7 @@
             <option>
               Safe Republican
             </option>
+
           </select>
 
         </div>
@@ -981,8 +1834,9 @@
           <input
             id="raceMargin"
             type="number"
-            step=".1"
-            value="0"
+            step="0.1"
+            required
+            placeholder="1.8"
           >
 
         </div>
@@ -993,9 +1847,8 @@
             Status
           </label>
 
-          <select
-            id="raceStatus"
-          >
+          <select id="raceStatus">
+
             <option value="draft">
               Draft
             </option>
@@ -1003,6 +1856,7 @@
             <option value="published">
               Published
             </option>
+
           </select>
 
         </div>
@@ -1010,13 +1864,37 @@
         <div class="field">
 
           <label>
+            Featured race
+          </label>
+
+          <label class="checkboxLine">
+
             <input
               id="raceFeatured"
               type="checkbox"
-              style="width:auto"
             >
 
-            Feature on homepage
+            Show in America's Closest Races
+
+          </label>
+
+        </div>
+
+        <div class="field">
+
+          <label>
+            Race of the Day
+          </label>
+
+          <label class="checkboxLine">
+
+            <input
+              id="raceOfTheDay"
+              type="checkbox"
+            >
+
+            Feature prominently on the homepage
+
           </label>
 
         </div>
@@ -1029,7 +1907,89 @@
 
           <textarea
             id="raceSummary"
+            placeholder="Explain the state of the race and the factors shaping the forecast."
           ></textarea>
+
+        </div>
+
+        <div class="field full">
+
+          <hr>
+
+          <h3>
+            Forecast-change record
+          </h3>
+
+          <p class="subtle">
+            Complete this section when the rating or projected
+            margin has meaningfully changed.
+          </p>
+
+        </div>
+
+        <div class="field full">
+
+          <label for="raceChangeReason">
+            Reason for change
+          </label>
+
+          <textarea
+            id="raceChangeReason"
+            placeholder="Two new polls moved the race toward Democrats."
+          ></textarea>
+
+        </div>
+
+        <div class="field full">
+
+          <label for="raceChangeNotes">
+            Additional notes
+          </label>
+
+          <textarea
+            id="raceChangeNotes"
+            placeholder="Optional internal or public explanation."
+          ></textarea>
+
+        </div>
+
+        <div class="field">
+
+          <label for="raceChangeStatus">
+            Change-log status
+          </label>
+
+          <select id="raceChangeStatus">
+
+            <option value="published">
+              Published
+            </option>
+
+            <option value="draft">
+              Draft
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label>
+            Create history entry
+          </label>
+
+          <label class="checkboxLine">
+
+            <input
+              id="raceCreateHistory"
+              type="checkbox"
+              checked
+            >
+
+            Record rating or margin changes
+
+          </label>
 
         </div>
 
@@ -1050,7 +2010,177 @@
 
   </div>
 
-  <!-- Candidate modal -->
+
+  <!-- =====================================================
+       FORECAST-CHANGE MODAL
+       ===================================================== -->
+
+  <div
+    id="forecastChangeModal"
+    class="modal"
+  >
+
+    <div class="modalCard">
+
+      <div class="modalHead">
+
+        <h2>
+          Edit forecast change
+        </h2>
+
+        <button
+          class="close"
+          type="button"
+          onclick="closeModal('forecastChangeModal')"
+          aria-label="Close forecast-change editor"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <form
+        id="forecastChangeForm"
+        class="formGrid"
+      >
+
+        <input
+          id="forecastChangeId"
+          type="hidden"
+        >
+
+        <div class="field full">
+
+          <label for="forecastChangeRace">
+            Race
+          </label>
+
+          <select
+            id="forecastChangeRace"
+            required
+          ></select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="forecastChangeOldRating">
+            Previous rating
+          </label>
+
+          <input
+            id="forecastChangeOldRating"
+            placeholder="Toss-up"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="forecastChangeNewRating">
+            New rating
+          </label>
+
+          <input
+            id="forecastChangeNewRating"
+            required
+            placeholder="Lean Democratic"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="forecastChangeOldMargin">
+            Previous margin
+          </label>
+
+          <input
+            id="forecastChangeOldMargin"
+            type="number"
+            step="0.1"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="forecastChangeNewMargin">
+            New margin
+          </label>
+
+          <input
+            id="forecastChangeNewMargin"
+            type="number"
+            step="0.1"
+          >
+
+        </div>
+
+        <div class="field full">
+
+          <label for="forecastChangeReason">
+            Reason
+          </label>
+
+          <textarea
+            id="forecastChangeReason"
+            placeholder="New polling shifted the race."
+          ></textarea>
+
+        </div>
+
+        <div class="field full">
+
+          <label for="forecastChangeNotes">
+            Notes
+          </label>
+
+          <textarea id="forecastChangeNotes"></textarea>
+
+        </div>
+
+        <div class="field">
+
+          <label for="forecastChangeStatus">
+            Status
+          </label>
+
+          <select id="forecastChangeStatus">
+
+            <option value="published">
+              Published
+            </option>
+
+            <option value="draft">
+              Draft
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field full">
+
+          <button
+            class="btn green"
+            type="submit"
+          >
+            Save forecast change
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CANDIDATE MODAL
+       ===================================================== -->
 
   <div
     id="candidateModal"
@@ -1099,15 +2229,16 @@
 
         </div>
 
-        <div class="field">
+        <div class="field full">
 
           <label for="candidateName">
-            Name
+            Candidate name
           </label>
 
           <input
             id="candidateName"
             required
+            placeholder="Candidate name"
           >
 
         </div>
@@ -1120,7 +2251,9 @@
 
           <select
             id="candidateParty"
+            required
           >
+
             <option value="D">
               Democratic
             </option>
@@ -1132,53 +2265,68 @@
             <option value="I">
               Independent
             </option>
+
+            <option value="L">
+              Libertarian
+            </option>
+
+            <option value="G">
+              Green
+            </option>
+
           </select>
 
         </div>
 
         <div class="field">
 
-          <label for="candidateProb">
+          <label>
+            Incumbent
+          </label>
+
+          <label class="checkboxLine">
+
+            <input
+              id="candidateIncumbent"
+              type="checkbox"
+            >
+
+            Current officeholder
+
+          </label>
+
+        </div>
+
+        <div class="field">
+
+          <label for="candidateWinProbability">
             Win probability
           </label>
 
           <input
-            id="candidateProb"
+            id="candidateWinProbability"
             type="number"
             min="0"
             max="100"
-            step=".1"
-            value="50"
+            step="0.1"
+            required
           >
 
         </div>
 
         <div class="field">
 
-          <label for="candidateVote">
+          <label for="candidateVoteShare">
             Expected vote share
           </label>
 
           <input
-            id="candidateVote"
+            id="candidateVoteShare"
             type="number"
             min="0"
             max="100"
-            step=".1"
-            value="50"
-          >
-
-        </div>
-
-        <div class="field full">
-
-          <label for="candidatePhoto">
-            Photo URL
-          </label>
-
-          <input
-            id="candidatePhoto"
-            type="url"
+            step="0.1"
+            required
           >
 
         </div>
@@ -1186,14 +2334,33 @@
         <div class="field">
 
           <label>
+            Candidate to Watch
+          </label>
+
+          <label class="checkboxLine">
+
             <input
-              id="candidateIncumbent"
+              id="candidateToWatch"
               type="checkbox"
-              style="width:auto"
             >
 
-            Incumbent
+            Feature in editorial sections
+
           </label>
+
+        </div>
+
+        <div class="field full">
+
+          <label for="candidatePhotoUrl">
+            Photo URL
+          </label>
+
+          <input
+            id="candidatePhotoUrl"
+            type="url"
+            placeholder="Optional"
+          >
 
         </div>
 
@@ -1213,7 +2380,9 @@
     </div>
 
   </div>
-    <!-- Race poll modal -->
+    <!-- =====================================================
+       RACE POLL MODAL
+       ===================================================== -->
 
   <div
     id="pollModal"
@@ -1232,7 +2401,7 @@
           class="close"
           type="button"
           onclick="closeModal('pollModal')"
-          aria-label="Close race poll editor"
+          aria-label="Close race-poll editor"
         >
           ×
         </button>
@@ -1262,15 +2431,60 @@
 
         </div>
 
-        <div class="field">
+        <div class="field full">
 
-          <label for="pollster">
+          <label for="pollPollster">
             Pollster
           </label>
 
           <input
-            id="pollster"
+            id="pollPollster"
             required
+            placeholder="Emerson College"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollStartDate">
+            Start date
+          </label>
+
+          <input
+            id="pollStartDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollEndDate">
+            End date
+          </label>
+
+          <input
+            id="pollEndDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollSampleSize">
+            Sample size
+          </label>
+
+          <input
+            id="pollSampleSize"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="1000"
           >
 
         </div>
@@ -1278,66 +2492,46 @@
         <div class="field">
 
           <label for="pollPopulation">
-            Voter population
+            Population
           </label>
 
           <select
             id="pollPopulation"
+            required
           >
-            <option>
-              LV
+
+            <option value="LV">
+              Likely voters
             </option>
 
-            <option>
-              RV
+            <option value="RV">
+              Registered voters
             </option>
 
-            <option>
-              A
+            <option value="V">
+              Voters
             </option>
+
+            <option value="A">
+              Adults
+            </option>
+
           </select>
 
         </div>
 
         <div class="field">
 
-          <label for="pollStart">
-            Start date
+          <label for="pollDemPct">
+            Democratic percentage
           </label>
 
           <input
-            id="pollStart"
-            type="date"
-            required
-          >
-
-        </div>
-
-        <div class="field">
-
-          <label for="pollEnd">
-            End date
-          </label>
-
-          <input
-            id="pollEnd"
-            type="date"
-            required
-          >
-
-        </div>
-
-        <div class="field">
-
-          <label for="pollSample">
-            Sample size
-          </label>
-
-          <input
-            id="pollSample"
+            id="pollDemPct"
             type="number"
-            min="100"
-            value="800"
+            min="0"
+            max="100"
+            step="0.1"
             required
           >
 
@@ -1345,16 +2539,84 @@
 
         <div class="field">
 
-          <label for="pollQuality">
+          <label for="pollRepPct">
+            Republican percentage
+          </label>
+
+          <input
+            id="pollRepPct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollIndPct">
+            Independent percentage
+          </label>
+
+          <input
+            id="pollIndPct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            placeholder="Optional"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollLibPct">
+            Libertarian percentage
+          </label>
+
+          <input
+            id="pollLibPct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            placeholder="Optional"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollGreenPct">
+            Green percentage
+          </label>
+
+          <input
+            id="pollGreenPct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            placeholder="Optional"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="pollQualityWeight">
             Quality weight
           </label>
 
           <input
-            id="pollQuality"
+            id="pollQualityWeight"
             type="number"
-            min=".25"
-            max="2"
-            step=".05"
+            min="0.1"
+            max="5"
+            step="0.1"
             value="1"
           >
 
@@ -1362,47 +2624,12 @@
 
         <div class="field">
 
-          <label for="pollDem">
-            Democratic %
-          </label>
-
-          <input
-            id="pollDem"
-            type="number"
-            min="0"
-            max="100"
-            step=".1"
-            value="48"
-          >
-
-        </div>
-
-        <div class="field">
-
-          <label for="pollRep">
-            Republican %
-          </label>
-
-          <input
-            id="pollRep"
-            type="number"
-            min="0"
-            max="100"
-            step=".1"
-            value="48"
-          >
-
-        </div>
-
-        <div class="field full">
-
           <label for="pollStatus">
             Status
           </label>
 
-          <select
-            id="pollStatus"
-          >
+          <select id="pollStatus">
+
             <option value="draft">
               Draft
             </option>
@@ -1410,6 +2637,7 @@
             <option value="published">
               Published
             </option>
+
           </select>
 
         </div>
@@ -1431,7 +2659,10 @@
 
   </div>
 
-  <!-- Generic ballot poll modal -->
+
+  <!-- =====================================================
+       GENERIC BALLOT MODAL
+       ===================================================== -->
 
   <div
     id="genericBallotModal"
@@ -1450,7 +2681,7 @@
           class="close"
           type="button"
           onclick="closeModal('genericBallotModal')"
-          aria-label="Close generic ballot poll editor"
+          aria-label="Close generic-ballot editor"
         >
           ×
         </button>
@@ -1467,7 +2698,7 @@
           type="hidden"
         >
 
-        <div class="field">
+        <div class="field full">
 
           <label for="genericBallotPollster">
             Pollster
@@ -1476,6 +2707,50 @@
           <input
             id="genericBallotPollster"
             required
+            placeholder="YouGov"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="genericBallotStartDate">
+            Start date
+          </label>
+
+          <input
+            id="genericBallotStartDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="genericBallotEndDate">
+            End date
+          </label>
+
+          <input
+            id="genericBallotEndDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="genericBallotSampleSize">
+            Sample size
+          </label>
+
+          <input
+            id="genericBallotSampleSize"
+            type="number"
+            min="1"
+            step="1"
           >
 
         </div>
@@ -1483,66 +2758,46 @@
         <div class="field">
 
           <label for="genericBallotPopulation">
-            Voter population
+            Population
           </label>
 
           <select
             id="genericBallotPopulation"
+            required
           >
-            <option>
-              LV
+
+            <option value="LV">
+              Likely voters
             </option>
 
-            <option>
-              RV
+            <option value="RV">
+              Registered voters
             </option>
 
-            <option>
-              A
+            <option value="V">
+              Voters
             </option>
+
+            <option value="A">
+              Adults
+            </option>
+
           </select>
 
         </div>
 
         <div class="field">
 
-          <label for="genericBallotStart">
-            Start date
+          <label for="genericBallotDemPct">
+            Democratic percentage
           </label>
 
           <input
-            id="genericBallotStart"
-            type="date"
-            required
-          >
-
-        </div>
-
-        <div class="field">
-
-          <label for="genericBallotEnd">
-            End date
-          </label>
-
-          <input
-            id="genericBallotEnd"
-            type="date"
-            required
-          >
-
-        </div>
-
-        <div class="field">
-
-          <label for="genericBallotSample">
-            Sample size
-          </label>
-
-          <input
-            id="genericBallotSample"
+            id="genericBallotDemPct"
             type="number"
-            min="100"
-            value="800"
+            min="0"
+            max="100"
+            step="0.1"
             required
           >
 
@@ -1550,16 +2805,33 @@
 
         <div class="field">
 
-          <label for="genericBallotQuality">
+          <label for="genericBallotRepPct">
+            Republican percentage
+          </label>
+
+          <input
+            id="genericBallotRepPct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="genericBallotQualityWeight">
             Quality weight
           </label>
 
           <input
-            id="genericBallotQuality"
+            id="genericBallotQualityWeight"
             type="number"
-            min=".25"
-            max="2"
-            step=".05"
+            min="0.1"
+            max="5"
+            step="0.1"
             value="1"
           >
 
@@ -1567,49 +2839,12 @@
 
         <div class="field">
 
-          <label for="genericBallotDem">
-            Democratic %
-          </label>
-
-          <input
-            id="genericBallotDem"
-            type="number"
-            min="0"
-            max="100"
-            step=".1"
-            value="48"
-            required
-          >
-
-        </div>
-
-        <div class="field">
-
-          <label for="genericBallotRep">
-            Republican %
-          </label>
-
-          <input
-            id="genericBallotRep"
-            type="number"
-            min="0"
-            max="100"
-            step=".1"
-            value="48"
-            required
-          >
-
-        </div>
-
-        <div class="field full">
-
           <label for="genericBallotStatus">
             Status
           </label>
 
-          <select
-            id="genericBallotStatus"
-          >
+          <select id="genericBallotStatus">
+
             <option value="draft">
               Draft
             </option>
@@ -1617,6 +2852,7 @@
             <option value="published">
               Published
             </option>
+
           </select>
 
         </div>
@@ -1637,13 +2873,466 @@
     </div>
 
   </div>
-    <script
+
+
+  <!-- =====================================================
+       APPROVAL POLL MODAL
+       ===================================================== -->
+
+  <div
+    id="approvalPollModal"
+    class="modal"
+  >
+
+    <div class="modalCard">
+
+      <div class="modalHead">
+
+        <h2>
+          Edit approval poll
+        </h2>
+
+        <button
+          class="close"
+          type="button"
+          onclick="closeModal('approvalPollModal')"
+          aria-label="Close approval-poll editor"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <form
+        id="approvalPollForm"
+        class="formGrid"
+      >
+
+        <input
+          id="approvalPollId"
+          type="hidden"
+        >
+
+        <div class="field full">
+
+          <label for="approvalPollPollster">
+            Pollster
+          </label>
+
+          <input
+            id="approvalPollPollster"
+            required
+            placeholder="Gallup"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollStartDate">
+            Start date
+          </label>
+
+          <input
+            id="approvalPollStartDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollEndDate">
+            End date
+          </label>
+
+          <input
+            id="approvalPollEndDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollSampleSize">
+            Sample size
+          </label>
+
+          <input
+            id="approvalPollSampleSize"
+            type="number"
+            min="1"
+            step="1"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollPopulation">
+            Population
+          </label>
+
+          <select
+            id="approvalPollPopulation"
+            required
+          >
+
+            <option value="LV">
+              Likely voters
+            </option>
+
+            <option value="RV">
+              Registered voters
+            </option>
+
+            <option value="V">
+              Voters
+            </option>
+
+            <option value="A">
+              Adults
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollApprovePct">
+            Approve percentage
+          </label>
+
+          <input
+            id="approvalPollApprovePct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollDisapprovePct">
+            Disapprove percentage
+          </label>
+
+          <input
+            id="approvalPollDisapprovePct"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollQualityWeight">
+            Quality weight
+          </label>
+
+          <input
+            id="approvalPollQualityWeight"
+            type="number"
+            min="0.1"
+            max="5"
+            step="0.1"
+            value="1"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="approvalPollStatus">
+            Status
+          </label>
+
+          <select id="approvalPollStatus">
+
+            <option value="draft">
+              Draft
+            </option>
+
+            <option value="published">
+              Published
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field full">
+
+          <button
+            class="btn green"
+            type="submit"
+          >
+            Save approval poll
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       PRIMARY POLL MODAL
+       ===================================================== -->
+
+  <div
+    id="primaryPollModal"
+    class="modal"
+  >
+
+    <div class="modalCard">
+
+      <div class="modalHead">
+
+        <h2>
+          Edit primary poll
+        </h2>
+
+        <button
+          class="close"
+          type="button"
+          onclick="closeModal('primaryPollModal')"
+          aria-label="Close primary-poll editor"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <form
+        id="primaryPollForm"
+        class="formGrid"
+      >
+
+        <input
+          id="primaryPollId"
+          type="hidden"
+        >
+
+        <div class="field full">
+
+          <label for="primaryPollPollster">
+            Pollster
+          </label>
+
+          <input
+            id="primaryPollPollster"
+            required
+            placeholder="Emerson College"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollParty">
+            Primary party
+          </label>
+
+          <select
+            id="primaryPollParty"
+            required
+          >
+
+            <option value="D">
+              Democratic
+            </option>
+
+            <option value="R">
+              Republican
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollPopulation">
+            Population
+          </label>
+
+          <select
+            id="primaryPollPopulation"
+            required
+          >
+
+            <option value="LV">
+              Likely primary voters
+            </option>
+
+            <option value="RV">
+              Registered voters
+            </option>
+
+            <option value="V">
+              Voters
+            </option>
+
+            <option value="A">
+              Adults
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollStartDate">
+            Start date
+          </label>
+
+          <input
+            id="primaryPollStartDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollEndDate">
+            End date
+          </label>
+
+          <input
+            id="primaryPollEndDate"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollSampleSize">
+            Sample size
+          </label>
+
+          <input
+            id="primaryPollSampleSize"
+            type="number"
+            min="1"
+            step="1"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollQualityWeight">
+            Quality weight
+          </label>
+
+          <input
+            id="primaryPollQualityWeight"
+            type="number"
+            min="0.1"
+            max="5"
+            step="0.1"
+            value="1"
+          >
+
+        </div>
+
+        <div class="field full">
+
+          <label for="primaryPollCandidates">
+            Candidate results
+          </label>
+
+          <textarea
+            id="primaryPollCandidates"
+            required
+            placeholder="Enter one candidate per line, for example:
+
+Gavin Newsom|24
+Alexandria Ocasio-Cortez|18
+Josh Shapiro|12
+Undecided|20"
+          ></textarea>
+
+          <p class="subtle">
+            Use the format
+            <b>Candidate name|percentage</b>,
+            with one candidate on each line.
+          </p>
+
+        </div>
+
+        <div class="field">
+
+          <label for="primaryPollStatus">
+            Status
+          </label>
+
+          <select id="primaryPollStatus">
+
+            <option value="draft">
+              Draft
+            </option>
+
+            <option value="published">
+              Published
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field full">
+
+          <button
+            class="btn green"
+            type="submit"
+          >
+            Save primary poll
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+       ===================================================== -->
+
+  <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
   ></script>
 
   <script src="config.js"></script>
   <script src="common.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="admin.js"></script>
 
 </body>
