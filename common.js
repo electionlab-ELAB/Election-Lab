@@ -925,7 +925,36 @@ async function getPublishedGenericBallotPolls() {
   return data || [];
 }
 
+async function getPublishedApprovalPolls() {
+  if (!sb) {
+    return [];
+  }
 
+  const {
+    data,
+    error
+  } = await sb
+    .from(
+      "approval_polls"
+    )
+    .select("*")
+    .eq(
+      "status",
+      "published"
+    )
+    .order(
+      "end_date",
+      {
+        ascending: false
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
 /* =========================================================
    POLL VALUE HELPERS
    ========================================================= */
