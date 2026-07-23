@@ -54,6 +54,1557 @@ let approvalPollingChart = null;
 
 let activeApprovalRange = "90";
 
+/* =========================================================
+   ELECTIONLAB MODEL 2.1 — PUBLIC DATA LAYER
+
+   Public pages always receive the EFFECTIVE forecast:
+   • automatic races use the latest model result
+   • manually overridden races use the private override output
+
+   Override mode, reasons, and model-vs-editor comparisons are
+   never exposed by this file.
+   ========================================================= */
+
+let publicControlForecasts = [];
+let activeRaceForecastHistory = [];
+let activeRaceForecastResult = null;
+let activeRaceDevelopments = [];
+let activeRaceFundraising = [];
+
+function publicNumber(
+  value,
+  fallback = null
+) {
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : fallback;
+}
+
+function effectiveRaceTimestamp(
+  race = {}
+) {
+  return (
+    race.effective_updated_at ||
+    race.published_updated_at ||
+    race.model_updated_at ||
+    race.updated_at ||
+    race.created_at ||
+    null
+  );
+}
+
+function applyEffectiveForecast(
+  race = {}
+) {
+  const margin =
+    publicNumber(
+      race.effective_projected_margin,
+      publicNumber(
+        race.model_projected_margin,
+        publicNumber(
+          race.projected_margin,
+          0
+        )
+      )
+    );
+
+  const rating =
+    race.effective_rating ||
+    race.model_rating ||
+    race.rating ||
+    "Toss-up";
+
+  const demProbability =
+    publicNumber(
+      race.effective_dem_probability,
+      publicNumber(
+        race.model_dem_probability,
+        null
+      )
+    );
+
+  const repProbability =
+    publicNumber(
+      race.effective_rep_probability,
+      publicNumber(
+        race.model_rep_probability,
+        demProbability === null
+          ? null
+          : 100 - demProbability
+      )
+    );
+
+  const candidates =
+    (race.candidates || []).map(
+      candidate => {
+        const party =
+          normalizeParty(
+            candidate.party
+          );
+
+        const next = {
+          ...candidate
+        };
+
+        if (
+          party === "D" &&
+          demProbability !== null
+        ) {
+          next.win_probability =
+            demProbability;
+
+          next.expected_vote_share =
+            roundTo(
+              clamp(
+                50 + margin / 2,
+                0,
+                100
+              ),
+              1
+            );
+        }
+
+        if (
+          party === "R" &&
+          repProbability !== null
+        ) {
+          next.win_probability =
+            repProbability;
+
+          next.expected_vote_share =
+            roundTo(
+              clamp(
+                50 - margin / 2,
+                0,
+                100
+              ),
+              1
+            );
+        }
+
+        return next;
+      }
+    );
+
+  return {
+    ...race,
+    projected_margin:
+      margin,
+    rating,
+    dem_win_probability:
+      demProbability,
+    rep_win_probability:
+      repProbability,
+    public_updated_at:
+      effectiveRaceTimestamp(
+        race
+      ),
+    candidates
+  };
+}
+
+async function hydrateEffectiveRaces(
+  races = []
+) {
+  if (
+    !sb ||
+    !races.length
+  ) {
+    return races.map(
+      applyEffectiveForecast
+    );
+  }
+
+  const raceIds =
+    races
+      .map(race => race.id)
+      .filter(Boolean);
+
+  const {
+    data: candidates,
+    error
+  } =
+    await sb
+      .from("candidates")
+      .select("*")
+      .in(
+        "race_id",
+        raceIds
+      )
+      .eq(
+        "active",
+        true
+      );
+
+  if (
+    error &&
+    !String(
+      error.message ||
+      ""
+    ).toLowerCase()
+      .includes("active")
+  ) {
+    throw error;
+  }
+
+  let candidateRows =
+    candidates || [];
+
+  if (
+    error &&
+    String(
+      error.message ||
+      ""
+    ).toLowerCase()
+      .includes("active")
+  ) {
+    const fallback =
+      await sb
+        .from("candidates")
+        .select("*")
+        .in(
+          "race_id",
+          raceIds
+        );
+
+    if (fallback.error) {
+      throw fallback.error;
+    }
+
+    candidateRows =
+      fallback.data || [];
+  }
+
+  const candidatesByRace =
+    candidateRows.reduce(
+      (
+        lookup,
+        candidate
+      ) => {
+        if (
+          !lookup[
+            candidate.race_id
+          ]
+        ) {
+          lookup[
+            candidate.race_id
+          ] = [];
+        }
+
+        lookup[
+          candidate.race_id
+        ].push(
+          candidate
+        );
+
+        return lookup;
+      },
+      {}
+    );
+
+  return races.map(
+    race =>
+      applyEffectiveForecast({
+        ...race,
+        candidates:
+          candidatesByRace[
+            race.id
+          ] ||
+          []
+      })
+  );
+}
+
+/*
+  These functions intentionally replace the matching helpers from
+  common.js. Maps, listing pages, homepage cards, and race pages all
+  receive the same effective public forecast.
+*/
+
+async function getPublishedRaces(
+  office = null
+) {
+  if (!sb) {
+    return [];
+  }
+
+  let query =
+    sb
+      .from(
+        "race_effective_forecasts"
+      )
+      .select("*")
+      .eq(
+        "status",
+        "published"
+      )
+      .eq(
+        "archived",
+        false
+      )
+      .order(
+        "state",
+        {
+          ascending:
+            true
+        }
+      );
+
+  const result =
+    await query;
+
+  if (result.error) {
+    /*
+      Fallback keeps the website online if the view has not reached
+      the PostgREST schema cache yet.
+    */
+    let fallbackQuery =
+      sb
+        .from("races")
+        .select("*")
+        .eq(
+          "status",
+          "published"
+        )
+        .order(
+          "state",
+          {
+            ascending:
+              true
+          }
+        );
+
+    const fallback =
+      await fallbackQuery;
+
+    if (fallback.error) {
+      throw fallback.error;
+    }
+
+    const hydratedFallback =
+      await hydrateEffectiveRaces(
+        fallback.data || []
+      );
+
+    return office
+      ? hydratedFallback.filter(
+          race =>
+            raceOffice(
+              race
+            ) ===
+            office
+        )
+      : hydratedFallback;
+  }
+
+  const hydrated =
+    await hydrateEffectiveRaces(
+      result.data || []
+    );
+
+  return office
+    ? hydrated.filter(
+        race =>
+          raceOffice(
+            race
+          ) ===
+          office
+      )
+    : hydrated;
+}
+
+async function getPublishedRaceBySlug(
+  slug
+) {
+  if (
+    !sb ||
+    !slug
+  ) {
+    return null;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "race_effective_forecasts"
+      )
+      .select("*")
+      .eq(
+        "slug",
+        slug
+      )
+      .eq(
+        "status",
+        "published"
+      )
+      .maybeSingle();
+
+  if (error) {
+    const fallback =
+      await sb
+        .from("races")
+        .select("*")
+        .eq(
+          "slug",
+          slug
+        )
+        .eq(
+          "status",
+          "published"
+        )
+        .maybeSingle();
+
+    if (fallback.error) {
+      throw fallback.error;
+    }
+
+    if (!fallback.data) {
+      return null;
+    }
+
+    const hydratedFallback =
+      await hydrateEffectiveRaces([
+        fallback.data
+      ]);
+
+    return (
+      hydratedFallback[0] ||
+      null
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const hydrated =
+    await hydrateEffectiveRaces([
+      data
+    ]);
+
+  return hydrated[0] || null;
+}
+
+async function getLatestControlForecasts() {
+  if (!sb) {
+    return [];
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "control_forecasts"
+      )
+      .select("*")
+      .order(
+        "calculated_at",
+        {
+          ascending:
+            false
+        }
+      )
+      .limit(30);
+
+  if (error) {
+    console.warn(
+      "Control forecasts are unavailable:",
+      error.message
+    );
+
+    return [];
+  }
+
+  const latest = {};
+
+  (data || []).forEach(
+    forecast => {
+      if (
+        !latest[
+          forecast.chamber
+        ]
+      ) {
+        latest[
+          forecast.chamber
+        ] =
+          forecast;
+      }
+    }
+  );
+
+  publicControlForecasts =
+    Object.values(
+      latest
+    );
+
+  return publicControlForecasts;
+}
+
+function controlForecastFor(
+  office
+) {
+  return (
+    publicControlForecasts.find(
+      forecast =>
+        forecast.chamber ===
+        office
+    ) ||
+    null
+  );
+}
+
+function controlMessage(
+  forecast,
+  office
+) {
+  if (!forecast) {
+    return null;
+  }
+
+  const rep =
+    publicNumber(
+      forecast
+        .republican_control_probability,
+      null
+    );
+
+  const dem =
+    publicNumber(
+      forecast
+        .democratic_control_probability,
+      null
+    );
+
+  const officeName =
+    office === "house"
+      ? "House"
+      : office === "senate"
+      ? "Senate"
+      : "governorships";
+
+  if (
+    rep === null ||
+    dem === null
+  ) {
+    return null;
+  }
+
+  const leader =
+    rep >= dem
+      ? "Republicans"
+      : "Democrats";
+
+  const probability =
+    Math.max(
+      rep,
+      dem
+    );
+
+  if (
+    office === "governor"
+  ) {
+    return `${leader} are projected to hold more governorships (${probability.toFixed(
+      0
+    )}% model probability)`;
+  }
+
+  return `${leader} are favored to control the ${officeName} (${probability.toFixed(
+    0
+  )}% chance)`;
+}
+
+function renderAutomaticControlForecasts() {
+  document
+    .querySelectorAll(
+      "[data-counter-office]"
+    )
+    .forEach(
+      counter => {
+        const office =
+          counter.dataset
+            .counterOffice;
+
+        const forecast =
+          controlForecastFor(
+            office
+          );
+
+        if (!forecast) {
+          return;
+        }
+
+        const republican =
+          safeSeatTotal(
+            forecast
+              .projected_republican_seats
+          );
+
+        const democratic =
+          safeSeatTotal(
+            forecast
+              .projected_democratic_seats
+          );
+
+        const tossup =
+          safeSeatTotal(
+            forecast
+              .projected_tossup_seats
+          );
+
+        const republicanBox =
+          counter.querySelector(
+            "[data-counter-value='republican']"
+          );
+
+        const democraticBox =
+          counter.querySelector(
+            "[data-counter-value='democratic']"
+          );
+
+        const tossupBox =
+          counter.querySelector(
+            "[data-counter-value='tossup']"
+          );
+
+        if (republicanBox) {
+          republicanBox.textContent =
+            String(
+              republican
+            );
+        }
+
+        if (democraticBox) {
+          democraticBox.textContent =
+            String(
+              democratic
+            );
+        }
+
+        if (tossupBox) {
+          tossupBox.textContent =
+            String(
+              tossup
+            );
+        }
+
+        const updated =
+          counter.querySelector(
+            ".forecastCounterUpdated"
+          ) ||
+          document.createElement(
+            "div"
+          );
+
+        updated.className =
+          "forecastCounterUpdated";
+
+        updated.textContent =
+          `Updated ${formatTimestamp(
+            forecast.calculated_at
+          )}`;
+
+        if (
+          !updated.parentElement
+        ) {
+          counter.appendChild(
+            updated
+          );
+        }
+      }
+    );
+
+  const senate =
+    controlForecastFor(
+      "senate"
+    );
+
+  const house =
+    controlForecastFor(
+      "house"
+    );
+
+  const senateText =
+    controlMessage(
+      senate,
+      "senate"
+    );
+
+  const houseText =
+    controlMessage(
+      house,
+      "house"
+    );
+
+  if (senateText) {
+    setTextForSelectors(
+      [
+        "#senateControlMessage",
+        "#senateForecastText"
+      ],
+      senateText
+    );
+  }
+
+  if (houseText) {
+    setTextForSelectors(
+      [
+        "#houseControlMessage",
+        "#houseForecastText"
+      ],
+      houseText
+    );
+  }
+}
+
+async function loadAutomaticControlForecasts() {
+  await getLatestControlForecasts();
+
+  renderAutomaticControlForecasts();
+}
+
+function relativeUpdateText(
+  value
+) {
+  if (!value) {
+    return "Update time unavailable";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "Update time unavailable";
+  }
+
+  const difference =
+    Date.now() -
+    date.getTime();
+
+  const minutes =
+    Math.max(
+      0,
+      Math.round(
+        difference /
+        60000
+      )
+    );
+
+  if (minutes < 1) {
+    return "Updated just now";
+  }
+
+  if (minutes < 60) {
+    return `Updated ${minutes} ${
+      minutes === 1
+        ? "minute"
+        : "minutes"
+    } ago`;
+  }
+
+  const hours =
+    Math.round(
+      minutes / 60
+    );
+
+  if (hours < 24) {
+    return `Updated ${hours} ${
+      hours === 1
+        ? "hour"
+        : "hours"
+    } ago`;
+  }
+
+  return `Updated ${fmtDate(
+    value
+  )}`;
+}
+
+function momentumMarkup(
+  race
+) {
+  const movement =
+    publicNumber(
+      race.momentum_7d,
+      null
+    );
+
+  if (
+    movement === null ||
+    Math.abs(
+      movement
+    ) < 0.05
+  ) {
+    return `
+      <span class="raceMomentum neutral">
+        Stable
+      </span>
+    `;
+  }
+
+  const party =
+    movement > 0
+      ? "D"
+      : "R";
+
+  return `
+    <span class="raceMomentum ${
+      party === "D"
+        ? "democratic"
+        : "republican"
+    }">
+      ${party} +${Math.abs(
+        movement
+      ).toFixed(1)}
+      this week
+    </span>
+  `;
+}
+
+async function getRaceForecastHistory(
+  raceId
+) {
+  if (
+    !sb ||
+    !raceId
+  ) {
+    return [];
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "forecast_history"
+      )
+      .select(
+        "published_margin,dem_probability,rep_probability,rating,created_at"
+      )
+      .eq(
+        "race_id",
+        raceId
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            true
+        }
+      )
+      .limit(500);
+
+  if (error) {
+    console.warn(
+      "Forecast history unavailable:",
+      error.message
+    );
+
+    return [];
+  }
+
+  return data || [];
+}
+
+async function getRaceForecastResult(
+  raceId
+) {
+  if (
+    !sb ||
+    !raceId
+  ) {
+    return null;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "forecast_results"
+      )
+      .select("*")
+      .eq(
+        "race_id",
+        raceId
+      )
+      .maybeSingle();
+
+  if (error) {
+    console.warn(
+      "Forecast result unavailable:",
+      error.message
+    );
+
+    return null;
+  }
+
+  return data || null;
+}
+
+async function getRaceDevelopments(
+  raceId
+) {
+  if (
+    !sb ||
+    !raceId
+  ) {
+    return [];
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "race_developments"
+      )
+      .select("*")
+      .eq(
+        "race_id",
+        raceId
+      )
+      .eq(
+        "status",
+        "published"
+      )
+      .order(
+        "event_date",
+        {
+          ascending:
+            false
+        }
+      )
+      .limit(8);
+
+  if (error) {
+    return [];
+  }
+
+  return data || [];
+}
+
+async function getRaceFundraising(
+  raceId
+) {
+  if (
+    !sb ||
+    !raceId
+  ) {
+    return [];
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from(
+        "fundraising"
+      )
+      .select(
+        "*,candidates(name,party)"
+      )
+      .eq(
+        "race_id",
+        raceId
+      )
+      .order(
+        "reporting_date",
+        {
+          ascending:
+            false
+        }
+      );
+
+  if (error) {
+    return [];
+  }
+
+  const latest = {};
+
+  (data || []).forEach(
+    row => {
+      if (
+        !latest[
+          row.candidate_id
+        ]
+      ) {
+        latest[
+          row.candidate_id
+        ] =
+          row;
+      }
+    }
+  );
+
+  return Object.values(
+    latest
+  );
+}
+
+function formatMoney(
+  value
+) {
+  const number =
+    publicNumber(
+      value,
+      0
+    );
+
+  if (
+    Math.abs(number) >=
+    1000000
+  ) {
+    return `$${(
+      number /
+      1000000
+    ).toFixed(1)}M`;
+  }
+
+  if (
+    Math.abs(number) >=
+    1000
+  ) {
+    return `$${(
+      number /
+      1000
+    ).toFixed(0)}K`;
+  }
+
+  return `$${number.toFixed(
+    0
+  )}`;
+}
+
+function modelBreakdownLabel(
+  value
+) {
+  const number =
+    publicNumber(
+      value,
+      0
+    );
+
+  if (
+    Math.abs(number) <
+    0.05
+  ) {
+    return "Even";
+  }
+
+  return formatMargin(
+    number
+  );
+}
+
+function insertRaceModelSections(
+  race
+) {
+  const root =
+    document.querySelector(
+      "#raceRoot"
+    );
+
+  if (!root) {
+    return;
+  }
+
+  const result =
+    activeRaceForecastResult;
+
+  const history =
+    activeRaceForecastHistory;
+
+  const developments =
+    activeRaceDevelopments;
+
+  const fundraising =
+    activeRaceFundraising;
+
+  const firstSection =
+    root.querySelector(
+      ".section"
+    );
+
+  if (
+    result &&
+    firstSection
+  ) {
+    const section =
+      document.createElement(
+        "section"
+      );
+
+    section.className =
+      "section publicModelSection";
+
+    section.innerHTML = `
+      <div class="sectionHead">
+        <div>
+          <div class="kicker">
+            Forecast Factors
+          </div>
+
+          <h2>
+            What is shaping this race
+          </h2>
+
+          <p>
+            Contributions shown as Democratic or Republican margin advantages.
+          </p>
+        </div>
+
+        <div class="publicForecastUpdated">
+          ${escapeHtml(
+            relativeUpdateText(
+              race.public_updated_at
+            )
+          )}
+          <br>
+          <small>
+            Model ${escapeHtml(
+              result.model_version ||
+              race.model_version ||
+              "2.1"
+            )}
+          </small>
+        </div>
+      </div>
+
+      <div class="modelFactorGrid">
+
+        <article class="modelFactor">
+          <span>Fundamentals</span>
+          <strong>
+            ${escapeHtml(
+              modelBreakdownLabel(
+                result.fundamentals_margin
+              )
+            )}
+          </strong>
+        </article>
+
+        <article class="modelFactor">
+          <span>Polling</span>
+          <strong>
+            ${escapeHtml(
+              modelBreakdownLabel(
+                result.polling_margin
+              )
+            )}
+          </strong>
+          <small>
+            ${(
+              publicNumber(
+                result.polling_weight,
+                0
+              ) * 100
+            ).toFixed(0)}% forecast weight
+          </small>
+        </article>
+
+        <article class="modelFactor">
+          <span>Candidate strength</span>
+          <strong>
+            ${escapeHtml(
+              modelBreakdownLabel(
+                result.candidate_margin
+              )
+            )}
+          </strong>
+        </article>
+
+        <article class="modelFactor">
+          <span>Fundraising</span>
+          <strong>
+            ${escapeHtml(
+              modelBreakdownLabel(
+                result.fundraising_margin
+              )
+            )}
+          </strong>
+        </article>
+
+        <article class="modelFactor">
+          <span>Incumbency</span>
+          <strong>
+            ${escapeHtml(
+              modelBreakdownLabel(
+                result.incumbency_margin
+              )
+            )}
+          </strong>
+        </article>
+
+        <article class="modelFactor">
+          <span>Approval</span>
+          <strong>
+            ${escapeHtml(
+              modelBreakdownLabel(
+                result.approval_margin
+              )
+            )}
+          </strong>
+        </article>
+
+      </div>
+    `;
+
+    firstSection.insertAdjacentElement(
+      "afterend",
+      section
+    );
+  }
+
+  if (
+    history.length >= 2
+  ) {
+    const section =
+      document.createElement(
+        "section"
+      );
+
+    section.className =
+      "section forecastHistoryPublic";
+
+    section.innerHTML = `
+      <div class="sectionHead">
+        <div>
+          <div class="kicker">
+            Forecast History
+          </div>
+
+          <h2>
+            How the forecast has moved
+          </h2>
+
+          <p>
+            Published ElectionLab margin over time.
+          </p>
+        </div>
+      </div>
+
+      <article class="card publicHistoryCard">
+        <div class="publicHistoryChartWrap">
+          <canvas
+            id="publicForecastHistoryChart"
+            aria-label="Forecast history chart"
+            role="img"
+          ></canvas>
+        </div>
+      </article>
+    `;
+
+    root.appendChild(
+      section
+    );
+
+    renderPublicForecastHistoryChart(
+      history
+    );
+  }
+
+  if (
+    fundraising.length
+  ) {
+    const section =
+      document.createElement(
+        "section"
+      );
+
+    section.className =
+      "section";
+
+    section.innerHTML = `
+      <div class="sectionHead">
+        <div>
+          <div class="kicker">
+            Campaign Finance
+          </div>
+
+          <h2>
+            Fundraising snapshot
+          </h2>
+        </div>
+      </div>
+
+      <div class="grid2">
+        ${fundraising
+          .slice(0, 4)
+          .map(
+            row => `
+              <article class="card fundraisingPublicCard">
+                <div class="candidateForecastIdentity">
+                  <i class="partyDot ${partyCssClass(
+                    row.candidates?.party ||
+                    "I"
+                  )}"></i>
+
+                  <strong>
+                    ${escapeHtml(
+                      row.candidates?.name ||
+                      "Candidate"
+                    )}
+                  </strong>
+                </div>
+
+                <div class="fundraisingPublicNumbers">
+                  <div>
+                    <span>Raised</span>
+                    <strong>
+                      ${formatMoney(
+                        row.total_raised
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Cash on hand</span>
+                    <strong>
+                      ${formatMoney(
+                        row.cash_on_hand
+                      )}
+                    </strong>
+                  </div>
+                </div>
+
+                <small class="subtle">
+                  Report through ${escapeHtml(
+                    fmtDate(
+                      row.reporting_date
+                    )
+                  )}
+                </small>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    `;
+
+    root.appendChild(
+      section
+    );
+  }
+
+  if (
+    developments.length
+  ) {
+    const section =
+      document.createElement(
+        "section"
+      );
+
+    section.className =
+      "section";
+
+    section.innerHTML = `
+      <div class="sectionHead">
+        <div>
+          <div class="kicker">
+            Latest Developments
+          </div>
+
+          <h2>
+            Race updates
+          </h2>
+        </div>
+      </div>
+
+      <div class="card developmentList">
+        ${developments
+          .map(
+            development => `
+              <article class="developmentItem">
+                <time>
+                  ${escapeHtml(
+                    fmtDate(
+                      development.event_date
+                    )
+                  )}
+                </time>
+
+                <div>
+                  <strong>
+                    ${escapeHtml(
+                      development.headline ||
+                      development.title ||
+                      "Race update"
+                    )}
+                  </strong>
+
+                  ${
+                    development.summary ||
+                    development.description
+                      ? `
+                        <p>
+                          ${escapeHtml(
+                            development.summary ||
+                            development.description
+                          )}
+                        </p>
+                      `
+                      : ""
+                  }
+                </div>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    `;
+
+    root.appendChild(
+      section
+    );
+  }
+}
+
+function renderPublicForecastHistoryChart(
+  history
+) {
+  const canvas =
+    document.querySelector(
+      "#publicForecastHistoryChart"
+    );
+
+  if (
+    !canvas ||
+    typeof Chart ===
+      "undefined"
+  ) {
+    return;
+  }
+
+  new Chart(
+    canvas,
+    {
+      type:
+        "line",
+
+      data: {
+        labels:
+          history.map(
+            point =>
+              fmtDate(
+                point.created_at
+              )
+          ),
+
+        datasets: [
+          {
+            label:
+              "Published margin",
+
+            data:
+              history.map(
+                point =>
+                  publicNumber(
+                    point.published_margin,
+                    0
+                  )
+              ),
+
+            borderWidth:
+              3,
+
+            pointRadius:
+              history.length > 25
+                ? 0
+                : 3,
+
+            pointHoverRadius:
+              5,
+
+            tension:
+              0.28,
+
+            fill:
+              false
+          }
+        ]
+      },
+
+      options: {
+        responsive:
+          true,
+
+        maintainAspectRatio:
+          false,
+
+        interaction: {
+          mode:
+            "index",
+
+          intersect:
+            false
+        },
+
+        plugins: {
+          legend: {
+            display:
+              false
+          },
+
+          tooltip: {
+            callbacks: {
+              label(
+                context
+              ) {
+                return formatMargin(
+                  context.parsed.y
+                );
+              }
+            }
+          }
+        },
+
+        scales: {
+          x: {
+            grid: {
+              display:
+                false
+            }
+          },
+
+          y: {
+            grid: {
+              color:
+                "rgba(130,149,178,.16)"
+            },
+
+            ticks: {
+              callback(
+                value
+              ) {
+                return formatMargin(
+                  value
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+  );
+}
+
+
 
 /* =========================================================
    WEBSITE SETTINGS
@@ -291,8 +1842,8 @@ function raceCard(
     officeLabel(office);
 
   const margin =
-    Number(
-      race.projected_margin ||
+    publicNumber(
+      race.projected_margin,
       0
     );
 
@@ -382,7 +1933,7 @@ function raceCard(
       <div class="raceMeta">
 
         <span>
-          Model margin
+          Projected margin
         </span>
 
         <strong>
@@ -391,6 +1942,20 @@ function raceCard(
           )}
         </strong>
 
+      </div>
+
+      <div class="raceCardUpdateRow">
+        ${momentumMarkup(
+          race
+        )}
+
+        <span>
+          ${escapeHtml(
+            relativeUpdateText(
+              race.public_updated_at
+            )
+          )}
+        </span>
       </div>
 
     </a>
@@ -419,10 +1984,13 @@ function raceImportanceScore(
     );
 
   let score =
-    100 -
-    Math.min(
-      100,
-      margin * 7
+    publicNumber(
+      race.auto_feature_score,
+      100 -
+      Math.min(
+        100,
+        margin * 7
+      )
     );
 
   if (
@@ -459,31 +2027,6 @@ function raceImportanceScore(
 function selectFeaturedRaces(
   races
 ) {
-  const explicitlyFeatured =
-    races.filter(
-      race =>
-        race.featured
-    );
-
-  if (
-    explicitlyFeatured.length
-  ) {
-    return explicitlyFeatured
-      .sort(
-        (
-          first,
-          second
-        ) =>
-          raceImportanceScore(
-            second
-          ) -
-          raceImportanceScore(
-            first
-          )
-      )
-      .slice(0, 6);
-  }
-
   return [...races]
     .sort(
       (
@@ -939,13 +2482,45 @@ async function loadRace() {
       return;
     }
 
-    const polls =
-      await getPublishedPolls(
-        race.id
-      );
+    const [
+      polls,
+      forecastHistory,
+      forecastResult,
+      developments,
+      fundraising
+    ] =
+      await Promise.all([
+        getPublishedPolls(
+          race.id
+        ),
+        getRaceForecastHistory(
+          race.id
+        ),
+        getRaceForecastResult(
+          race.id
+        ),
+        getRaceDevelopments(
+          race.id
+        ),
+        getRaceFundraising(
+          race.id
+        )
+      ]);
 
     activeRacePolls =
       polls;
+
+    activeRaceForecastHistory =
+      forecastHistory;
+
+    activeRaceForecastResult =
+      forecastResult;
+
+    activeRaceDevelopments =
+      developments;
+
+    activeRaceFundraising =
+      fundraising;
 
     activeRaceCandidates =
       sortCandidates(
@@ -1005,6 +2580,10 @@ async function loadRace() {
       polls,
       activeRaceCandidates,
       activeChartRange
+    );
+
+    insertRaceModelSections(
+      race
     );
   } catch (error) {
     console.error(
@@ -1581,7 +3160,10 @@ function renderRacePollingMetadata(
   );
 
   const updatedAt =
-    race.updated_at ||
+    race.public_updated_at ||
+    effectiveRaceTimestamp(
+      race
+    ) ||
     metadata.latestPoll
       ?.updated_at ||
     metadata.latestPoll
@@ -4281,6 +5863,7 @@ async function initializePublicWebsite() {
 
   const tasks = [
     loadWebsiteSettings(),
+    loadAutomaticControlForecasts(),
     loadHome(),
     loadRaceGrid(),
     loadRace(),
