@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    2028 Presidential Primary Tracker | ElectionLab
+  </title>
+
+  <meta
+    name="description"
+    content="Track national Democratic and Republican polling for the 2028 presidential primaries with ElectionLab."
+  >
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+</head>
+
+<body>
+
+  <header class="topbar">
+    <nav class="nav">
+
+      <a
+        class="brand"
+        href="index.html"
+      >
+        <img
+          src="electionlab-logo.png"
+          alt="ElectionLab logo"
+        >
+
+        <span>
+          ElectionLab
+        </span>
+      </a>
+
+      <button
+        class="menuBtn"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+
+      <div class="navlinks">
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="senate.html">
+          Senate
+        </a>
+
+        <a href="house.html">
+          House
+        </a>
+
+        <a href="governors.html">
+          Governors
+        </a>
+
+        <a href="polls.html">
+          Polling
+        </a>
+
+        <a href="approval.html">
+          Trump Approval
+        </a>
+
+        <a
+          class="active"
+          href="primary.html"
+        >
+          2028 Primary
+        </a>
+
+        <a href="methodology.html">
+          Methodology
+        </a>
+
+      </div>
+
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="hero">
+
+      <div class="heroGrid">
+
+        <div>
+
+          <div class="kicker">
+            2028 Presidential Election
+          </div>
+
+          <h1>
+            National Primary Polling
+          </h1>
+
+          <p>
+            ElectionLab tracks early national polling for the
+            Democratic and Republican presidential nomination contests.
+          </p>
+
+        </div>
+
+        <div class="probCard">
+
+          <div
+            id="primaryLeaderAverage"
+            class="bigProb"
+          >
+            —
+          </div>
+
+          <b id="primaryLeaderName">
+            No average yet
+          </b>
+
+          <div
+            id="primaryLeaderParty"
+            class="raceLeaderVote"
+          >
+            Loading published polls…
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            Select a Contest
+          </div>
+
+          <h2>
+            2028 primary polling averages
+          </h2>
+
+          <p>
+            Switch between the Democratic and Republican national
+            primary trackers.
+          </p>
+
+        </div>
+
+        <div
+          id="primaryPartyTabs"
+          class="trackerTabs"
+        >
+
+          <button
+            type="button"
+            data-party="D"
+            class="active"
+          >
+            Democratic
+          </button>
+
+          <button
+            type="button"
+            data-party="R"
+          >
+            Republican
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="grid2">
+
+        <article class="card">
+
+          <div class="sectionMiniHead">
+
+            <div>
+
+              <div class="kicker">
+                Current Average
+              </div>
+
+              <h2 id="primaryAverageTitle">
+                Democratic primary
+              </h2>
+
+            </div>
+
+            <span
+              id="primaryPollCountBadge"
+              class="badge blue"
+            >
+              0 polls
+            </span>
+
+          </div>
+
+          <div
+            id="primaryCandidateAverageList"
+            class="trackerCandidateList"
+          >
+
+            <p class="subtle">
+              Add published primary polls to calculate an average.
+            </p>
+
+          </div>
+
+        </article>
+
+        <article class="card">
+
+          <div class="kicker">
+            Polling Leader
+          </div>
+
+          <div
+            id="primaryTopCandidateAverage"
+            class="bigProb"
+            style="color:var(--blue)"
+          >
+            —%
+          </div>
+
+          <h2 id="primaryTopCandidateName">
+            No leader yet
+          </h2>
+
+          <p
+            id="primaryTopCandidateMeta"
+            class="subtle"
+          >
+            Waiting for published polls.
+          </p>
+
+          <div
+            id="primaryAverageBar"
+            class="primaryBar"
+            aria-label="Primary polling average"
+          ></div>
+
+          <div
+            id="primaryAverageLegend"
+            class="pollingBarLegend"
+          ></div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            Polling Trend
+          </div>
+
+          <h2>
+            Running primary average
+          </h2>
+
+          <p>
+            The chart follows each candidate's weighted national average
+            over time.
+          </p>
+
+        </div>
+
+        <div
+          id="primaryRangeControls"
+          class="chartRangeControls"
+        >
+
+          <button
+            type="button"
+            data-range="30"
+          >
+            30D
+          </button>
+
+          <button
+            type="button"
+            data-range="90"
+            class="active"
+          >
+            3M
+          </button>
+
+          <button
+            type="button"
+            data-range="180"
+          >
+            6M
+          </button>
+
+          <button
+            type="button"
+            data-range="all"
+          >
+            All
+          </button>
+
+        </div>
+
+      </div>
+
+      <article class="card pollingChartCard">
+
+        <div
+          id="primaryChartEmpty"
+          class="empty"
+          style="display:none"
+        >
+          Add published primary polls to display the running average.
+        </div>
+
+        <div
+          id="primaryChartWrap"
+          class="pollingChartWrap"
+        >
+          <canvas
+            id="primaryChart"
+            aria-label="2028 presidential primary polling trend"
+            role="img"
+          ></canvas>
+        </div>
+
+        <div class="pollingChartFooter">
+
+          <div id="primaryChartLatest">
+            Latest average: —
+          </div>
+
+          <div id="primaryChartUpdated">
+            Last updated: —
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+        <section class="section">
+
+      <div class="sectionHead">
+
+        <div>
+
+          <div class="kicker">
+            National Polling
+          </div>
+
+          <h2>
+            Published Primary Polls
+          </h2>
+
+          <p>
+            Every published national Democratic and Republican
+            presidential primary poll included in the ElectionLab
+            average.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="tableWrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Pollster
+              </th>
+
+              <th>
+                Dates
+              </th>
+
+              <th>
+                Sample
+              </th>
+
+              <th>
+                Party
+              </th>
+
+              <th>
+                Leader
+              </th>
+
+              <th>
+                Top Result
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="primaryPollTable">
+
+            <tr>
+
+              <td
+                colspan="6"
+                class="empty"
+              >
+                Loading primary polls…
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+    <section class="section">
+
+      <div class="card">
+
+        <div class="kicker">
+          About the Tracker
+        </div>
+
+        <h2>
+          How ElectionLab calculates the primary average
+        </h2>
+
+        <p>
+          ElectionLab combines published national primary polls using
+          a weighted average. Newer surveys receive more influence than
+          older surveys, while larger sample sizes and higher-quality
+          pollsters also receive additional weight.
+        </p>
+
+        <p>
+          Candidate averages are recalculated automatically whenever a
+          published poll is added through the ElectionLab admin portal.
+        </p>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+
+    <div class="footerInner">
+
+      <div>
+
+        <b>
+          ElectionLab
+        </b>
+
+        <p class="subtle">
+          Independent election forecasts and polling analysis.
+        </p>
+
+      </div>
+
+      <div class="subtle">
+        Polling averages express uncertainty, not certainty.
+      </div>
+
+    </div>
+
+  </footer>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+  ></script>
+
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="public.js"></script>
+
+</body>
+</html>
