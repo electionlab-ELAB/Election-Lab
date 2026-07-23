@@ -3032,3 +3032,203 @@ hr {
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   ELECTIONLAB MODEL 2.1 — PUBLIC FORECAST COMPONENTS
+   ========================================================= */
+
+.forecastCounterUpdated {
+  margin-top: 9px;
+  color: #bcd0e8;
+  font-size: 11px;
+  text-align: center;
+}
+
+.raceCardUpdateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line2);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.raceMomentum {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 850;
+}
+
+.raceMomentum.democratic {
+  color: #1761ad;
+  background: var(--blue-soft);
+}
+
+.raceMomentum.republican {
+  color: #b9253d;
+  background: var(--red-soft);
+}
+
+.raceMomentum.neutral {
+  color: #596579;
+  background: #edf1f6;
+}
+
+.publicForecastUpdated {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.modelFactorGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modelFactor {
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--shadow-small);
+}
+
+.modelFactor span,
+.modelFactor strong,
+.modelFactor small {
+  display: block;
+}
+
+.modelFactor span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.modelFactor strong {
+  margin-top: 6px;
+  font-size: 24px;
+  letter-spacing: -.035em;
+}
+
+.modelFactor small {
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.publicHistoryCard {
+  padding: 18px;
+}
+
+.publicHistoryChartWrap {
+  position: relative;
+  height: 340px;
+}
+
+.fundraisingPublicCard {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fundraisingPublicNumbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fundraisingPublicNumbers > div {
+  padding: 12px;
+  border: 1px solid var(--line2);
+  border-radius: 13px;
+  background: #f8fbff;
+}
+
+.fundraisingPublicNumbers span,
+.fundraisingPublicNumbers strong {
+  display: block;
+}
+
+.fundraisingPublicNumbers span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.fundraisingPublicNumbers strong {
+  margin-top: 4px;
+  font-size: 21px;
+}
+
+.developmentList {
+  padding: 0;
+  overflow: hidden;
+}
+
+.developmentItem {
+  display: grid;
+  grid-template-columns: 125px minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px 21px;
+  border-bottom: 1px solid var(--line2);
+}
+
+.developmentItem:last-child {
+  border-bottom: 0;
+}
+
+.developmentItem time {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.developmentItem p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .modelFactorGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .raceCardUpdateRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .publicForecastUpdated {
+    text-align: left;
+  }
+
+  .modelFactorGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .developmentItem {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modelFactorGrid,
+  .fundraisingPublicNumbers {
+    grid-template-columns: 1fr;
+  }
+}
