@@ -33,70 +33,57 @@ const PUBLIC_DEFAULT_SETTINGS = {
     "0",
 
   governor_democratic_seats:
-    "23"
+    "23",
+
+  homepage_featured_title:
+    "America's Closest Races",
+
+  homepage_featured_subtitle:
+    "The elections most likely to shape control of Congress and the governorships."
 };
 
-let racePollingChart = null;
+let racePollingChart =
+  null;
+
+let activeRacePolls =
+  [];
+
+let activeRaceCandidates =
+  [];
+
+let activeChartRange =
+  "90";
+
+
+/* =========================================================
+   WEBSITE SETTINGS
+   ========================================================= */
 
 async function getPublicSettings() {
-  if (!configured) {
-    return {
-      ...PUBLIC_DEFAULT_SETTINGS
-    };
-  }
-
-  const {
-    data,
-    error
-  } = await sb
-    .from("site_settings")
-    .select(
-      "setting_key, setting_value"
-    );
-
-  if (error) {
-    console.warn(
-      "Could not load website settings:",
-      error.message
-    );
-
-    return {
-      ...PUBLIC_DEFAULT_SETTINGS
-    };
-  }
-
-  return {
-    ...PUBLIC_DEFAULT_SETTINGS,
-
-    ...(data || []).reduce(
-      (settings, row) => {
-        settings[
-          row.setting_key
-        ] =
-          row.setting_value;
-
-        return settings;
-      },
-      {}
-    )
-  };
+  return getSiteSettings(
+    PUBLIC_DEFAULT_SETTINGS
+  );
 }
 
 function setTextForSelectors(
   selectors,
   text
 ) {
-  selectors.forEach(selector => {
-    const element =
-      document.querySelector(
-        selector
-      );
+  selectors.forEach(
+    selector => {
+      const elements =
+        document.querySelectorAll(
+          selector
+        );
 
-    if (element) {
-      element.textContent =
-        text;
+      elements.forEach(
+        element => {
+          element.textContent =
+            text;
+        }
+      );
     }
-  });
+  );
 }
 
 function safeSeatTotal(
@@ -119,78 +106,79 @@ function safeSeatTotal(
 function renderForecastCounter(
   settings
 ) {
-  const counter =
-    document.querySelector(
+  const counters =
+    document.querySelectorAll(
       "[data-counter-office]"
     );
 
-  if (!counter) {
-    return;
-  }
+  counters.forEach(
+    counter => {
+      const office =
+        counter.dataset
+          .counterOffice;
 
-  const office =
-    counter.dataset.counterOffice;
+      if (
+        ![
+          "senate",
+          "house",
+          "governor"
+        ].includes(office)
+      ) {
+        return;
+      }
 
-  if (
-    ![
-      "senate",
-      "house",
-      "governor"
-    ].includes(office)
-  ) {
-    return;
-  }
+      const republican =
+        safeSeatTotal(
+          settings[
+            `${office}_republican_seats`
+          ]
+        );
 
-  const republican =
-    safeSeatTotal(
-      settings[
-        `${office}_republican_seats`
-      ]
-    );
+      const tossup =
+        safeSeatTotal(
+          settings[
+            `${office}_tossup_seats`
+          ]
+        );
 
-  const tossup =
-    safeSeatTotal(
-      settings[
-        `${office}_tossup_seats`
-      ]
-    );
+      const democratic =
+        safeSeatTotal(
+          settings[
+            `${office}_democratic_seats`
+          ]
+        );
 
-  const democratic =
-    safeSeatTotal(
-      settings[
-        `${office}_democratic_seats`
-      ]
-    );
+      const republicanBox =
+        counter.querySelector(
+          "[data-counter-value='republican']"
+        );
 
-  const republicanBox =
-    counter.querySelector(
-      "[data-counter-value='republican']"
-    );
+      const tossupBox =
+        counter.querySelector(
+          "[data-counter-value='tossup']"
+        );
 
-  const tossupBox =
-    counter.querySelector(
-      "[data-counter-value='tossup']"
-    );
+      const democraticBox =
+        counter.querySelector(
+          "[data-counter-value='democratic']"
+        );
 
-  const democraticBox =
-    counter.querySelector(
-      "[data-counter-value='democratic']"
-    );
+      if (republicanBox) {
+        republicanBox.textContent =
+          String(republican);
+      }
 
-  if (republicanBox) {
-    republicanBox.textContent =
-      String(republican);
-  }
+      if (tossupBox) {
+        tossupBox.textContent =
+          String(tossup);
+      }
 
-  if (tossupBox) {
-    tossupBox.textContent =
-      String(tossup);
-  }
-
-  if (democraticBox) {
-    democraticBox.textContent =
-      String(democratic);
-  }
+      if (democraticBox) {
+        democraticBox.textContent =
+          String(democratic);
+      }
+    }
+  );
 }
 
 async function loadWebsiteSettings() {
@@ -205,10 +193,10 @@ async function loadWebsiteSettings() {
       "#congressControlMessage"
     ) ||
     document.querySelector(
-      "#senateForecastText"
+      "#featuredRacesTitle"
     ) ||
     document.querySelector(
-      "#houseForecastText"
+      "#featuredRacesSubtitle"
     ) ||
     document.querySelector(
       "[data-setting]"
@@ -254,6 +242,24 @@ async function loadWebsiteSettings() {
         .congress_control_message
     );
 
+    setTextForSelectors(
+      [
+        "#featuredRacesTitle",
+        "[data-setting='homepage_featured_title']"
+      ],
+      settings
+        .homepage_featured_title
+    );
+
+    setTextForSelectors(
+      [
+        "#featuredRacesSubtitle",
+        "[data-setting='homepage_featured_subtitle']"
+      ],
+      settings
+        .homepage_featured_subtitle
+    );
+
     renderForecastCounter(
       settings
     );
@@ -263,6 +269,235 @@ async function loadWebsiteSettings() {
       error
     );
   }
+}
+
+
+/* =========================================================
+   RACE CARDS
+   ========================================================= */
+
+function raceCard(
+  race
+) {
+  const candidates =
+    sortCandidates(
+      race.candidates || []
+    );
+
+  const office =
+    raceOffice(race);
+
+  const label =
+    officeLabel(office);
+
+  const margin =
+    Number(
+      race.projected_margin ||
+      0
+    );
+
+  const candidateMarkup =
+    candidates.length
+      ? candidates
+          .slice(0, 3)
+          .map(
+            candidate => `
+              <div class="candidateLine">
+
+                <span>
+
+                  <i
+                    class="partyDot ${partyCssClass(
+                      candidate.party
+                    )}"
+                  ></i>
+
+                  ${escapeHtml(
+                    candidate.name ||
+                    "Unnamed candidate"
+                  )}
+
+                </span>
+
+                <strong>
+                  ${Number(
+                    candidate
+                      .win_probability ||
+                    0
+                  ).toFixed(0)}%
+                </strong>
+
+              </div>
+            `
+          )
+          .join("")
+      : `
+        <p class="subtle">
+          No candidates added yet.
+        </p>
+      `;
+
+  return `
+    <a
+      class="card raceCard"
+      href="race.html?id=${encodeURIComponent(
+        race.slug || ""
+      )}"
+    >
+
+      <div class="raceMeta">
+
+        <span>
+          ${escapeHtml(
+            race.state || ""
+          )}
+          ·
+          ${escapeHtml(label)}
+        </span>
+
+        <span
+          class="badge ${ratingClass(
+            race.rating
+          )}"
+        >
+          ${escapeHtml(
+            race.rating ||
+            "Toss-up"
+          )}
+        </span>
+
+      </div>
+
+      <h3>
+        ${escapeHtml(
+          race.title ||
+          "Untitled race"
+        )}
+      </h3>
+
+      <div class="candidates">
+        ${candidateMarkup}
+      </div>
+
+      <div class="raceMeta">
+
+        <span>
+          Model margin
+        </span>
+
+        <strong>
+          ${formatMargin(
+            margin
+          )}
+        </strong>
+
+      </div>
+
+    </a>
+  `;
+}
+
+
+/* =========================================================
+   HOMEPAGE
+   ========================================================= */
+
+function raceImportanceScore(
+  race
+) {
+  const rating =
+    normalizeText(
+      race.rating
+    );
+
+  const margin =
+    Math.abs(
+      Number(
+        race.projected_margin ||
+        0
+      )
+    );
+
+  let score =
+    100 -
+    Math.min(
+      100,
+      margin * 7
+    );
+
+  if (
+    rating.includes("toss")
+  ) {
+    score += 50;
+  } else if (
+    rating.includes("tilt")
+  ) {
+    score += 40;
+  } else if (
+    rating.includes("lean")
+  ) {
+    score += 25;
+  } else if (
+    rating.includes("likely")
+  ) {
+    score += 10;
+  }
+
+  if (race.featured) {
+    score += 100;
+  }
+
+  if (
+    race.race_of_the_day
+  ) {
+    score += 200;
+  }
+
+  return score;
+}
+
+function selectFeaturedRaces(
+  races
+) {
+  const explicitlyFeatured =
+    races.filter(
+      race =>
+        race.featured
+    );
+
+  if (
+    explicitlyFeatured.length
+  ) {
+    return explicitlyFeatured
+      .sort(
+        (
+          first,
+          second
+        ) =>
+          raceImportanceScore(
+            second
+          ) -
+          raceImportanceScore(
+            first
+          )
+      )
+      .slice(0, 6);
+  }
+
+  return [...races]
+    .sort(
+      (
+        first,
+        second
+      ) =>
+        raceImportanceScore(
+          second
+        ) -
+        raceImportanceScore(
+          first
+        )
+    )
+    .slice(0, 6);
 }
 
 async function loadHome() {
@@ -276,8 +511,11 @@ async function loadHome() {
   }
 
   if (!configured) {
-    box.innerHTML =
-      '<div class="empty">Connect Supabase to load published races.</div>';
+    box.innerHTML = `
+      <div class="empty">
+        Connect Supabase to load published races.
+      </div>
+    `;
 
     return;
   }
@@ -285,14 +523,6 @@ async function loadHome() {
   try {
     const races =
       await getPublishedRaces();
-
-    const featured =
-      races
-        .filter(
-          race =>
-            race.featured
-        )
-        .slice(0, 6);
 
     const count =
       document.querySelector(
@@ -306,164 +536,228 @@ async function loadHome() {
         );
     }
 
-    const racesToShow =
-      featured.length
-        ? featured
-        : races.slice(0, 6);
+    const featured =
+      selectFeaturedRaces(
+        races
+      );
 
     box.innerHTML =
-      racesToShow
-        .map(
-          race =>
-            raceCard(race)
-        )
-        .join("") ||
-      '<div class="empty">No published races yet.</div>';
+      featured.length
+        ? featured
+            .map(raceCard)
+            .join("")
+        : `
+          <div class="empty">
+            No published races yet.
+          </div>
+        `;
+
+    renderRaceOfTheDay(
+      races
+    );
   } catch (error) {
     console.error(
       "Homepage failed:",
       error
     );
 
-    box.innerHTML =
-      '<div class="empty">' +
-      escapeHtml(
-        error.message ||
-          "Unable to load published races."
-      ) +
-      "</div>";
+    renderLoadError(
+      box,
+      error,
+      "Unable to load published races."
+    );
   }
 }
 
-function raceCard(race) {
-  const candidates =
-    [
-      ...(
-        race.candidates ||
-        []
-      )
-    ].sort(
-      (a, b) =>
-        Number(
-          b.win_probability ||
-            0
-        ) -
-        Number(
-          a.win_probability ||
-            0
-        )
+function renderRaceOfTheDay(
+  races
+) {
+  const container =
+    document.querySelector(
+      "#raceOfTheDay"
     );
 
-  const office =
-    raceOffice(race);
+  if (!container) {
+    return;
+  }
 
-  const label =
-    officeLabel(office);
+  const selected =
+    races.find(
+      race =>
+        race.race_of_the_day
+    ) ||
+    races.find(
+      race =>
+        race.featured
+    ) ||
+    [...races].sort(
+      (
+        first,
+        second
+      ) =>
+        raceImportanceScore(
+          second
+        ) -
+        raceImportanceScore(
+          first
+        )
+    )[0];
+
+  if (!selected) {
+    container.style.display =
+      "none";
+
+    return;
+  }
+
+  const candidates =
+    sortCandidates(
+      selected.candidates ||
+      []
+    );
 
   const margin =
     Number(
-      race.projected_margin ||
-        0
+      selected.projected_margin ||
+      0
     );
 
-  return `
+  container.style.display =
+    "";
+
+  container.innerHTML = `
     <a
-      class="card raceCard"
+      class="raceOfDayCard"
       href="race.html?id=${encodeURIComponent(
-        race.slug || ""
+        selected.slug ||
+        ""
       )}"
     >
-      <div class="raceMeta">
-        <span>
-          ${escapeHtml(
-            race.state || ""
-          )}
-          ·
-          ${escapeHtml(
-            label
-          )}
+
+      <div class="raceOfDayTopline">
+
+        <span class="raceOfDayBadge">
+          ★ Race of the Day
         </span>
 
         <span
           class="badge ${ratingClass(
-            race.rating
+            selected.rating
           )}"
         >
           ${escapeHtml(
-            race.rating ||
-              "Toss-up"
+            selected.rating ||
+            "Toss-up"
           )}
         </span>
+
       </div>
 
-      <h3>
-        ${escapeHtml(
-          race.title ||
-            "Untitled race"
-        )}
-      </h3>
+      <div class="raceOfDayGrid">
 
-      <div class="candidates">
+        <div>
+
+          <div class="kicker">
+            ${escapeHtml(
+              selected.state ||
+              ""
+            )}
+            ·
+            ${escapeHtml(
+              officeLabel(
+                raceOffice(
+                  selected
+                )
+              )
+            )}
+          </div>
+
+          <h2>
+            ${escapeHtml(
+              selected.title ||
+              "Featured race"
+            )}
+          </h2>
+
+          <p>
+            ${escapeHtml(
+              selected.summary ||
+              "One of the most closely watched elections in the country."
+            )}
+          </p>
+
+        </div>
+
+        <div class="raceOfDayNumbers">
+
+          <strong>
+            ${formatMargin(
+              margin
+            )}
+          </strong>
+
+          <span>
+            ElectionLab model margin
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="raceOfDayCandidates">
+
         ${
           candidates.length
             ? candidates
                 .slice(0, 3)
                 .map(
                   candidate => `
-                    <div class="candidateLine">
-                      <span>
-                        <i
-                          class="partyDot party-${escapeHtml(
-                            candidate.party ||
-                              ""
-                          )}"
-                        ></i>
+                    <span>
 
-                        ${escapeHtml(
-                          candidate.name ||
-                            ""
-                        )}
-                      </span>
+                      <i
+                        class="partyDot ${partyCssClass(
+                          candidate.party
+                        )}"
+                      ></i>
 
-                      <strong>
+                      ${escapeHtml(
+                        candidate.name ||
+                        ""
+                      )}
+
+                      <b>
                         ${Number(
                           candidate
                             .win_probability ||
-                            0
+                          0
                         ).toFixed(0)}%
-                      </strong>
-                    </div>
+                      </b>
+
+                    </span>
                   `
                 )
                 .join("")
             : `
-              <p class="subtle">
-                No candidates added yet.
-              </p>
+              <span>
+                Candidate information coming soon.
+              </span>
             `
         }
+
       </div>
 
-      <div class="raceMeta">
-        <span>
-          Model margin
-        </span>
-
-        <strong>
-          ${
-            margin >= 0
-              ? "D +"
-              : "R +"
-          }
-
-          ${Math.abs(
-            margin
-          ).toFixed(1)}
-        </strong>
+      <div class="raceOfDayLink">
+        View full forecast →
       </div>
+
     </a>
   `;
 }
+
+
+/* =========================================================
+   RACE LISTING PAGES
+   ========================================================= */
 
 async function loadRaceGrid() {
   const box =
@@ -479,13 +773,17 @@ async function loadRaceGrid() {
     currentPageOffice();
 
   const label =
-    officeLabel(office);
+    officeLabel(
+      office
+    );
 
   if (!configured) {
-    box.innerHTML =
-      `<div class="empty">Connect Supabase to display published ${escapeHtml(
-        label
-      )} races.</div>`;
+    box.innerHTML = `
+      <div class="empty">
+        Connect Supabase to display published
+        ${escapeHtml(label)} races.
+      </div>
+    `;
 
     return;
   }
@@ -496,20 +794,26 @@ async function loadRaceGrid() {
         office
       );
 
-    function displayRaces(list) {
+    function displayRaces(
+      list
+    ) {
       box.innerHTML =
-        list
-          .map(
-            race =>
-              raceCard(race)
-          )
-          .join("") ||
-        `<div class="empty">No published ${escapeHtml(
-          label
-        )} races yet.</div>`;
+        list.length
+          ? list
+              .map(raceCard)
+              .join("")
+          : `
+            <div class="empty">
+              No published
+              ${escapeHtml(label)}
+              races found.
+            </div>
+          `;
     }
 
-    displayRaces(races);
+    displayRaces(
+      races
+    );
 
     const input =
       document.querySelector(
@@ -517,36 +821,54 @@ async function loadRaceGrid() {
       );
 
     if (input) {
-      input.oninput = () => {
-        const query =
-          input.value
-            .toLowerCase()
-            .trim();
-
-        const filtered =
-          races.filter(race => {
-            const searchable = [
-              race.title || "",
-              race.state || "",
-              ...(
-                race.candidates ||
-                []
-              ).map(
-                candidate =>
-                  candidate.name ||
-                  ""
-              )
-            ]
-              .join(" ")
-              .toLowerCase();
-
-            return searchable.includes(
-              query
+      input.addEventListener(
+        "input",
+        () => {
+          const query =
+            normalizeText(
+              input.value
             );
-          });
 
-        displayRaces(filtered);
-      };
+          if (!query) {
+            displayRaces(
+              races
+            );
+
+            return;
+          }
+
+          const filtered =
+            races.filter(
+              race => {
+                const searchable =
+                  [
+                    race.title,
+                    race.state,
+                    race.slug,
+                    race.rating,
+                    ...(
+                      race.candidates ||
+                      []
+                    ).map(
+                      candidate =>
+                        candidate.name
+                    )
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+                return searchable.includes(
+                  query
+                );
+              }
+            );
+
+          displayRaces(
+            filtered
+          );
+        }
+      );
     }
   } catch (error) {
     console.error(
@@ -554,144 +876,16 @@ async function loadRaceGrid() {
       error
     );
 
-    box.innerHTML =
-      '<div class="empty">' +
-      escapeHtml(
-        error.message ||
-          "Unable to load races."
-      ) +
-      "</div>";
+    renderLoadError(
+      box,
+      error,
+      "Unable to load races."
+    );
   }
 }
-function recentPollsMarkup(polls) {
-  return `
-    <section class="section">
-
-      <div class="sectionHead">
-        <div>
-          <h2>
-            Recent polls
-          </h2>
-
-          <p>
-            Published polling used in the race average
-            and trend graph.
-          </p>
-        </div>
-      </div>
-
-      <div class="tableWrap">
-
-        <table>
-
-          <thead>
-            <tr>
-              <th>Pollster</th>
-              <th>Dates</th>
-              <th>Sample</th>
-              <th>Dem</th>
-              <th>Rep</th>
-              <th>Margin</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            ${
-              polls.length
-                ? polls
-                    .map(poll => {
-                      const pollMargin =
-                        Number(
-                          poll.dem_pct || 0
-                        ) -
-                        Number(
-                          poll.rep_pct || 0
-                        );
-
-                      return `
-                        <tr>
-
-                          <td>
-                            <b>
-                              ${escapeHtml(
-                                poll.pollster ||
-                                  "Unknown pollster"
-                              )}
-                            </b>
-                          </td>
-
-                          <td>
-                            ${fmtDate(
-                              poll.start_date
-                            )}
-                            –
-                            ${fmtDate(
-                              poll.end_date
-                            )}
-                          </td>
-
-                          <td>
-                            ${
-                              poll.sample_size ||
-                              "—"
-                            }
-
-                            ${escapeHtml(
-                              poll.population ||
-                                ""
-                            )}
-                          </td>
-
-                          <td>
-                            ${Number(
-                              poll.dem_pct || 0
-                            ).toFixed(1)}%
-                          </td>
-
-                          <td>
-                            ${Number(
-                              poll.rep_pct || 0
-                            ).toFixed(1)}%
-                          </td>
-
-                          <td>
-                            <b>
-                              ${
-                                pollMargin >= 0
-                                  ? "D +"
-                                  : "R +"
-                              }
-
-                              ${Math.abs(
-                                pollMargin
-                              ).toFixed(1)}
-                            </b>
-                          </td>
-
-                        </tr>
-                      `;
-                    })
-                    .join("")
-                : `
-                  <tr>
-                    <td
-                      colspan="6"
-                      class="empty"
-                    >
-                      No published polls yet.
-                    </td>
-                  </tr>
-                `
-            }
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </section>
-  `;
-}
+/* =========================================================
+   RACE PAGE
+   ========================================================= */
 
 async function loadRace() {
   const root =
@@ -704,8 +898,11 @@ async function loadRace() {
   }
 
   if (!configured) {
-    root.innerHTML =
-      '<div class="empty">Connect Supabase to load this race.</div>';
+    root.innerHTML = `
+      <div class="empty">
+        Connect Supabase to load this race.
+      </div>
+    `;
 
     return;
   }
@@ -717,37 +914,26 @@ async function loadRace() {
       ).get("id");
 
     if (!slug) {
-      root.innerHTML =
-        '<div class="empty">No race was selected.</div>';
+      root.innerHTML = `
+        <div class="empty">
+          No race was selected.
+        </div>
+      `;
 
       return;
     }
 
-    const {
-      data: race,
-      error
-    } = await sb
-      .from("races")
-      .select(
-        "*,candidates(*)"
-      )
-      .eq(
-        "slug",
+    const race =
+      await getPublishedRaceBySlug(
         slug
-      )
-      .eq(
-        "status",
-        "published"
-      )
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
+      );
 
     if (!race) {
-      root.innerHTML =
-        '<div class="empty">Published race not found.</div>';
+      root.innerHTML = `
+        <div class="empty">
+          Published race not found.
+        </div>
+      `;
 
       return;
     }
@@ -757,364 +943,1328 @@ async function loadRace() {
         race.id
       );
 
-    const average =
-      weightedAverage(
-        polls
+    activeRacePolls =
+      polls;
+
+    activeRaceCandidates =
+      sortCandidates(
+        race.candidates ||
+        []
       );
 
-    const candidates =
-      [
-        ...(
-          race.candidates ||
-          []
-        )
-      ].sort(
-        (a, b) =>
-          Number(
-            b.win_probability ||
-              0
-          ) -
-          Number(
-            a.win_probability ||
-              0
-          )
+    const template =
+      document.querySelector(
+        "#racePageTemplate"
       );
 
-    const office =
-      raceOffice(race);
-
-    const label =
-      officeLabel(office);
-
-    const margin =
-      Number(
-        race.projected_margin ||
-          0
-      );
-
-    const leader =
-      candidates[0];
-
-    document.title =
-      `${race.title} | ElectionLab`;
-
-    root.innerHTML = `
-      <section class="hero">
-
-        <div class="heroGrid">
-
-          <div>
-
-            <div class="kicker">
-              2026
-              ${escapeHtml(label)}
-              Forecast
-            </div>
-
-            <h1>
-              ${escapeHtml(
-                race.title ||
-                  "Election Forecast"
-              )}
-            </h1>
-
-            <p>
-              ${escapeHtml(
-                race.summary ||
-                  "ElectionLab's published forecast and polling average."
-              )}
-            </p>
-
-            <span
-              class="badge ${ratingClass(
-                race.rating
-              )}"
-            >
-              ${escapeHtml(
-                race.rating ||
-                  "Toss-up"
-              )}
-            </span>
-
-          </div>
-
-          <div class="probCard">
-
-            ${
-              leader
-                ? `
-                  <div class="bigProb">
-                    ${Number(
-                      leader
-                        .win_probability ||
-                        0
-                    ).toFixed(0)}%
-                  </div>
-
-                  <b>
-                    ${escapeHtml(
-                      leader.name ||
-                        "Leading candidate"
-                    )}
-                  </b>
-
-                  <div>
-                    chance to win
-                  </div>
-
-                  <div
-                    style="
-                      margin-top:8px;
-                      color:#dceaff;
-                    "
-                  >
-                    ${Number(
-                      leader
-                        .expected_vote_share ||
-                        0
-                    ).toFixed(1)}%
-                    projected vote
-                  </div>
-                `
-                : `
-                  <div class="bigProb">
-                    —
-                  </div>
-
-                  <b>
-                    No candidates added
-                  </b>
-                `
-            }
-
-          </div>
-
-        </div>
-
-      </section>
-
-      <section class="section">
-
-        <div class="grid2">
-
-          <div class="card">
-
-            <h2>
-              Forecast
-            </h2>
-
-            ${
-              candidates.length
-                ? candidates
-                    .map(
-                      candidate => `
-                        <div class="candidateLine">
-
-                          <span>
-
-                            <i
-                              class="partyDot party-${escapeHtml(
-                                candidate.party ||
-                                  ""
-                              )}"
-                            ></i>
-
-                            <b>
-                              ${escapeHtml(
-                                candidate.name ||
-                                  ""
-                              )}
-                            </b>
-
-                            <small class="subtle">
-                              ${escapeHtml(
-                                partyName(
-                                  candidate.party
-                                )
-                              )}
-                            </small>
-
-                          </span>
-
-                          <strong>
-                            ${Number(
-                              candidate
-                                .win_probability ||
-                                0
-                            ).toFixed(0)}%
-                            win
-                            ·
-                            ${Number(
-                              candidate
-                                .expected_vote_share ||
-                                0
-                            ).toFixed(1)}%
-                            vote
-                          </strong>
-
-                        </div>
-                      `
-                    )
-                    .join("")
-                : `
-                  <p class="subtle">
-                    No candidates have been added yet.
-                  </p>
-                `
-            }
-
-            <p class="subtle">
-              Projected margin:
-
-              <b>
-                ${
-                  margin >= 0
-                    ? "D +"
-                    : "R +"
-                }
-
-                ${Math.abs(
-                  margin
-                ).toFixed(1)}
-              </b>
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <h2>
-              Polling average
-            </h2>
-
-            ${
-              average
-                ? `
-                  <div
-                    class="bigProb"
-                    style="
-                      font-size:48px;
-                      color:var(--ink);
-                    "
-                  >
-                    ${
-                      average.margin >= 0
-                        ? "D +"
-                        : "R +"
-                    }
-
-                    ${Math.abs(
-                      average.margin
-                    ).toFixed(1)}
-                  </div>
-
-                  <div class="raceMeta">
-                    <b>
-                      D
-                      ${average.dem.toFixed(
-                        1
-                      )}%
-                    </b>
-
-                    <b>
-                      R
-                      ${average.rep.toFixed(
-                        1
-                      )}%
-                    </b>
-                  </div>
-                `
-                : `
-                  <p class="subtle">
-                    No published polls yet.
-                  </p>
-                `
-            }
-
-          </div>
-
-        </div>
-
-      </section>
-
-      <section class="section">
-
-        <div class="sectionHead">
-
-          <div>
-            <div class="kicker">
-              Polling Trend
-            </div>
-
-            <h2>
-              Polling over time
-            </h2>
-
-            <p>
-              Each point represents a published poll,
-              ordered by its ending date.
-            </p>
-          </div>
-
-        </div>
-
-        <div class="card">
-
-          ${
-            polls.length
-              ? `
-                <div
-                  style="
-                    position:relative;
-                    width:100%;
-                    height:360px;
-                  "
-                >
-                  <canvas
-                    id="racePollingChart"
-                    aria-label="Polling trend chart"
-                    role="img"
-                  ></canvas>
-                </div>
-              `
-              : `
-                <div class="empty">
-                  Add published polls to create a trend graph.
-                </div>
-              `
-          }
-
-        </div>
-
-      </section>
-
-      ${recentPollsMarkup(polls)}
-    `;
-
-    if (polls.length) {
-      renderRacePollingChart(
-        polls
+    if (!template) {
+      throw new Error(
+        "The race page template could not be found."
       );
     }
+
+    root.innerHTML =
+      template.innerHTML;
+
+    document.title =
+      `${race.title || "Election Forecast"} | ElectionLab`;
+
+    renderRaceHeader(
+      race
+    );
+
+    renderRaceForecast(
+      race,
+      activeRaceCandidates,
+      polls
+    );
+
+    renderRacePollingAverage(
+      race,
+      activeRaceCandidates,
+      polls
+    );
+
+    renderRacePollingMetadata(
+      race,
+      polls
+    );
+
+    renderRacePollTable(
+      race,
+      polls
+    );
+
+    initializeRaceChartControls(
+      polls,
+      activeRaceCandidates
+    );
+
+    renderRacePollingChart(
+      polls,
+      activeRaceCandidates,
+      activeChartRange
+    );
   } catch (error) {
     console.error(
       "Race page failed:",
       error
     );
 
-    root.innerHTML =
-      '<div class="empty">' +
-      escapeHtml(
-        error.message ||
-          "Unable to load this race."
-      ) +
-      "</div>";
+    renderLoadError(
+      root,
+      error,
+      "Unable to load this race."
+    );
   }
 }
-function renderRacePollingChart(polls) {
+
+function renderRaceHeader(
+  race
+) {
+  const office =
+    raceOffice(
+      race
+    );
+
+  const label =
+    officeLabel(
+      office
+    );
+
+  const candidates =
+    sortCandidates(
+      race.candidates ||
+      []
+    );
+
+  const leader =
+    candidates[0];
+
+  setElementText(
+    "#raceKicker",
+    `2026 ${label} Forecast`
+  );
+
+  setElementText(
+    "#raceTitle",
+    race.title ||
+    "Election Forecast"
+  );
+
+  setElementText(
+    "#raceSummary",
+    race.summary ||
+    "ElectionLab's published forecast and polling average."
+  );
+
+  const ratingBadge =
+    document.querySelector(
+      "#raceRatingBadge"
+    );
+
+  if (ratingBadge) {
+    ratingBadge.textContent =
+      race.rating ||
+      "Toss-up";
+
+    ratingBadge.className =
+      `badge ${ratingClass(
+        race.rating
+      )}`;
+  }
+
+  setElementText(
+    "#raceOfficeBadge",
+    label
+  );
+
+  setElementText(
+    "#raceStateBadge",
+    race.state ||
+    "National"
+  );
+
+  if (leader) {
+    setElementText(
+      "#raceLeaderProbability",
+      `${Number(
+        leader.win_probability ||
+        0
+      ).toFixed(0)}%`
+    );
+
+    setElementText(
+      "#raceLeaderName",
+      leader.name ||
+      "Leading candidate"
+    );
+
+    setElementText(
+      "#raceLeaderVote",
+      `${Number(
+        leader.expected_vote_share ||
+        0
+      ).toFixed(1)}% projected vote`
+    );
+
+    const leaderCard =
+      document.querySelector(
+        ".raceLeaderCard"
+      );
+
+    if (leaderCard) {
+      leaderCard.dataset.party =
+        normalizeParty(
+          leader.party
+        );
+    }
+  } else {
+    setElementText(
+      "#raceLeaderProbability",
+      "—"
+    );
+
+    setElementText(
+      "#raceLeaderName",
+      "No candidate data"
+    );
+
+    setElementText(
+      "#raceLeaderVote",
+      "Add candidates in the admin portal"
+    );
+  }
+}
+
+function renderRaceForecast(
+  race,
+  candidates,
+  polls
+) {
+  const list =
+    document.querySelector(
+      "#candidateForecastList"
+    );
+
+  const margin =
+    Number(
+      race.projected_margin ||
+      0
+    );
+
+  setElementText(
+    "#raceProjectedMargin",
+    formatMargin(
+      margin
+    )
+  );
+
+  const confidence =
+    forecastConfidence(
+      polls
+    );
+
+  setElementText(
+    "#forecastConfidenceText",
+    `${confidence.level} · ${confidence.score}/100`
+  );
+
+  const badge =
+    document.querySelector(
+      "#forecastConfidenceBadge"
+    );
+
+  if (badge) {
+    badge.textContent =
+      `${confidence.level} confidence`;
+
+    badge.className =
+      `confidenceBadge confidence-${normalizeText(
+        confidence.level
+      )}`;
+  }
+
+  if (!list) {
+    return;
+  }
+
+  if (!candidates.length) {
+    list.innerHTML = `
+      <p class="subtle">
+        No candidates have been added yet.
+      </p>
+    `;
+
+    return;
+  }
+
+  list.innerHTML =
+    candidates
+      .map(
+        candidate => {
+          const party =
+            normalizeParty(
+              candidate.party
+            );
+
+          const winProbability =
+            clamp(
+              candidate.win_probability,
+              0,
+              100
+            );
+
+          const expectedVote =
+            Number(
+              candidate.expected_vote_share ||
+              0
+            );
+
+          return `
+            <div class="candidateForecastRow">
+
+              <div class="candidateForecastIdentity">
+
+                <i
+                  class="partyDot ${partyCssClass(
+                    party
+                  )}"
+                ></i>
+
+                <div>
+
+                  <strong>
+                    ${escapeHtml(
+                      candidate.name ||
+                      "Unnamed candidate"
+                    )}
+                  </strong>
+
+                  <span>
+                    ${escapeHtml(
+                      partyName(
+                        party
+                      )
+                    )}
+                  </span>
+
+                </div>
+
+              </div>
+
+              <div class="candidateForecastNumbers">
+
+                <div>
+
+                  <span>
+                    Win chance
+                  </span>
+
+                  <strong>
+                    ${winProbability.toFixed(
+                      0
+                    )}%
+                  </strong>
+
+                </div>
+
+                <div>
+
+                  <span>
+                    Projected vote
+                  </span>
+
+                  <strong>
+                    ${expectedVote.toFixed(
+                      1
+                    )}%
+                  </strong>
+
+                </div>
+
+              </div>
+
+              <div class="candidateForecastMeter">
+
+                <span
+                  style="
+                    width:${winProbability}%;
+                    background:${partyColor(
+                      party
+                    )};
+                  "
+                ></span>
+
+              </div>
+
+            </div>
+          `;
+        }
+      )
+      .join("");
+}
+
+function renderRacePollingAverage(
+  race,
+  candidates,
+  polls
+) {
+  const average =
+    weightedAverage(
+      polls
+    );
+
+  const marginBox =
+    document.querySelector(
+      "#pollingAverageMargin"
+    );
+
+  const rows =
+    document.querySelector(
+      "#pollingCandidateRows"
+    );
+
+  const bar =
+    document.querySelector(
+      "#pollingShareBar"
+    );
+
+  const legend =
+    document.querySelector(
+      "#pollingBarLegend"
+    );
+
+  const meta =
+    document.querySelector(
+      "#pollingAverageMeta"
+    );
+
+  if (!average) {
+    if (marginBox) {
+      marginBox.textContent =
+        "—";
+    }
+
+    if (rows) {
+      rows.innerHTML = `
+        <p class="subtle">
+          No published polls yet.
+        </p>
+      `;
+    }
+
+    if (bar) {
+      bar.innerHTML =
+        "";
+    }
+
+    if (legend) {
+      legend.innerHTML =
+        "";
+    }
+
+    if (meta) {
+      meta.textContent =
+        "Add published polls to calculate an average.";
+    }
+
+    return;
+  }
+
+  const segments =
+    pollingBarSegments(
+      average,
+      candidates
+    );
+
+  const majorSegments =
+    segments.filter(
+      segment =>
+        segment.party !==
+        "OTHER"
+    );
+
+  if (marginBox) {
+    marginBox.textContent =
+      formatMargin(
+        average.margin
+      );
+
+    marginBox.className =
+      `pollingAverageMargin ${
+        average.margin >= 0
+          ? "democratic"
+          : "republican"
+      }`;
+  }
+
+  if (rows) {
+    rows.innerHTML =
+      majorSegments
+        .map(
+          segment => `
+            <div class="pollingCandidateRow">
+
+              <div class="pollingCandidateName">
+
+                <i
+                  class="partyDot ${partyCssClass(
+                    segment.party
+                  )}"
+                ></i>
+
+                <span>
+                  ${escapeHtml(
+                    segment.label
+                  )}
+                </span>
+
+              </div>
+
+              <strong
+                style="
+                  color:${segment.color};
+                "
+              >
+                ${Number(
+                  segment.value
+                ).toFixed(1)}%
+              </strong>
+
+            </div>
+          `
+        )
+        .join("");
+  }
+
+  if (bar) {
+    bar.innerHTML =
+      segments
+        .map(
+          segment => `
+            <span
+              class="pollingShareSegment"
+              title="${escapeHtml(
+                segment.label
+              )}: ${Number(
+                segment.value
+              ).toFixed(1)}%"
+              style="
+                width:${Math.max(
+                  0,
+                  Number(
+                    segment.value
+                  )
+                )}%;
+                background:${segment.color};
+              "
+            ></span>
+          `
+        )
+        .join("");
+  }
+
+  if (legend) {
+    legend.innerHTML =
+      segments
+        .map(
+          segment => `
+            <span>
+
+              <i
+                style="
+                  background:${segment.color};
+                "
+              ></i>
+
+              ${escapeHtml(
+                segment.label
+              )}
+
+              <b>
+                ${Number(
+                  segment.value
+                ).toFixed(1)}%
+              </b>
+
+            </span>
+          `
+        )
+        .join("");
+  }
+
+  if (meta) {
+    const metadata =
+      pollingMetadata(
+        polls
+      );
+
+    const parts = [
+      `${metadata.pollCount} ${
+        metadata.pollCount === 1
+          ? "poll"
+          : "polls"
+      }`
+    ];
+
+    if (
+      metadata.startDate &&
+      metadata.endDate
+    ) {
+      parts.push(
+        `${fmtDate(
+          metadata.startDate
+        )} – ${fmtDate(
+          metadata.endDate
+        )}`
+      );
+    }
+
+    if (
+      metadata.latestPollster
+    ) {
+      parts.push(
+        `Latest: ${metadata.latestPollster}`
+      );
+    }
+
+    meta.textContent =
+      parts.join(" · ");
+  }
+}
+
+function renderRacePollingMetadata(
+  race,
+  polls
+) {
+  const metadata =
+    pollingMetadata(
+      polls
+    );
+
+  setElementText(
+    "#racePollCount",
+    String(
+      metadata.pollCount
+    )
+  );
+
+  setElementText(
+    "#racePollFieldDates",
+    metadata.startDate &&
+    metadata.endDate
+      ? `${fmtDate(
+          metadata.startDate
+        )} – ${fmtDate(
+          metadata.endDate
+        )}`
+      : "—"
+  );
+
+  setElementText(
+    "#raceLatestPollster",
+    metadata.latestPollster ||
+    "—"
+  );
+
+  setElementText(
+    "#raceLatestPollDate",
+    metadata.latestPoll
+      ? fmtDateRange(
+          metadata.latestPoll
+            .start_date,
+          metadata.latestPoll
+            .end_date
+        )
+      : "—"
+  );
+
+  const updatedAt =
+    race.updated_at ||
+    metadata.latestPoll
+      ?.updated_at ||
+    metadata.latestPoll
+      ?.created_at ||
+    metadata.endDate;
+
+  setElementText(
+    "#pollingChartUpdated",
+    `Forecast updated: ${formatTimestamp(
+      updatedAt
+    )}`
+  );
+}
+
+function renderRacePollTable(
+  race,
+  polls
+) {
+  const body =
+    document.querySelector(
+      "#racePollTable"
+    );
+
+  if (!body) {
+    return;
+  }
+
+  if (!polls.length) {
+    body.innerHTML = `
+      <tr>
+
+        <td
+          colspan="7"
+          class="empty"
+        >
+          No published polls yet.
+        </td>
+
+      </tr>
+    `;
+
+    return;
+  }
+
+  body.innerHTML =
+    polls
+      .map(
+        poll => {
+          const dem =
+            Number(
+              poll.dem_pct
+            );
+
+          const rep =
+            Number(
+              poll.rep_pct
+            );
+
+          const ind =
+            pollPartyValue(
+              poll,
+              "I"
+            );
+
+          const margin =
+            dem - rep;
+
+          return `
+            <tr>
+
+              <td>
+
+                <b>
+                  ${escapeHtml(
+                    poll.pollster ||
+                    "Unknown pollster"
+                  )}
+                </b>
+
+              </td>
+
+              <td>
+                ${fmtDateRange(
+                  poll.start_date,
+                  poll.end_date
+                )}
+              </td>
+
+              <td>
+
+                ${
+                  poll.sample_size ||
+                  "—"
+                }
+
+                ${escapeHtml(
+                  poll.population ||
+                  ""
+                )}
+
+              </td>
+
+              <td class="pollCellDem">
+                ${
+                  Number.isFinite(
+                    dem
+                  )
+                    ? `${dem.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td class="pollCellRep">
+                ${
+                  Number.isFinite(
+                    rep
+                  )
+                    ? `${rep.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td class="pollCellInd">
+                ${
+                  Number.isFinite(
+                    ind
+                  )
+                    ? `${ind.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td>
+
+                <b
+                  class="${
+                    margin >= 0
+                      ? "marginDem"
+                      : "marginRep"
+                  }"
+                >
+                  ${formatMargin(
+                    margin
+                  )}
+                </b>
+
+              </td>
+
+            </tr>
+          `;
+        }
+      )
+      .join("");
+}
+/* =========================================================
+   RUNNING-AVERAGE CHART
+   ========================================================= */
+
+function initializeRaceChartControls(
+  polls,
+  candidates
+) {
+  const controls =
+    document.querySelector(
+      "#pollingRangeControls"
+    );
+
+  if (!controls) {
+    return;
+  }
+
+  controls
+    .querySelectorAll(
+      "button[data-range]"
+    )
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => {
+          controls
+            .querySelectorAll(
+              "button[data-range]"
+            )
+            .forEach(item => {
+              item.classList.remove(
+                "active"
+              );
+            });
+
+          button.classList.add(
+            "active"
+          );
+
+          activeChartRange =
+            button.dataset.range ||
+            "90";
+
+          renderRacePollingChart(
+            polls,
+            candidates,
+            activeChartRange
+          );
+        }
+      );
+    });
+}
+
+function filterRunningAverageByRange(
+  points,
+  range
+) {
+  if (
+    range === "all" ||
+    !points.length
+  ) {
+    return points;
+  }
+
+  const days =
+    Number(range);
+
+  if (
+    !Number.isFinite(days)
+  ) {
+    return points;
+  }
+
+  const finalDate =
+    new Date(
+      `${points[
+        points.length - 1
+      ].date}T12:00:00`
+    );
+
+  const cutoff =
+    new Date(finalDate);
+
+  cutoff.setDate(
+    cutoff.getDate() -
+    days
+  );
+
+  return points.filter(
+    point =>
+      new Date(
+        `${point.date}T12:00:00`
+      ) >= cutoff
+  );
+}
+
+function chartCandidateLabel(
+  candidates,
+  party
+) {
+  const candidate =
+    candidateForParty(
+      candidates,
+      party
+    );
+
+  if (
+    candidate?.name
+  ) {
+    return candidate.name;
+  }
+
+  return partyName(
+    party
+  );
+}
+
+function buildRaceChartDatasets(
+  points,
+  candidates
+) {
+  const datasets = [
+    {
+      label:
+        chartCandidateLabel(
+          candidates,
+          "D"
+        ),
+
+      party:
+        "D",
+
+      data:
+        points.map(
+          point => ({
+            x:
+              point.date,
+
+            y:
+              point.dem
+          })
+        ),
+
+      borderColor:
+        partyColor("D"),
+
+      backgroundColor:
+        partyColor("D"),
+
+      borderWidth:
+        3,
+
+      pointRadius:
+        0,
+
+      pointHoverRadius:
+        5,
+
+      tension:
+        0.32,
+
+      cubicInterpolationMode:
+        "monotone",
+
+      spanGaps:
+        true
+    },
+
+    {
+      label:
+        chartCandidateLabel(
+          candidates,
+          "R"
+        ),
+
+      party:
+        "R",
+
+      data:
+        points.map(
+          point => ({
+            x:
+              point.date,
+
+            y:
+              point.rep
+          })
+        ),
+
+      borderColor:
+        partyColor("R"),
+
+      backgroundColor:
+        partyColor("R"),
+
+      borderWidth:
+        3,
+
+      pointRadius:
+        0,
+
+      pointHoverRadius:
+        5,
+
+      tension:
+        0.32,
+
+      cubicInterpolationMode:
+        "monotone",
+
+      spanGaps:
+        true
+    }
+  ];
+
+  const hasIndependent =
+    points.some(
+      point =>
+        Number.isFinite(
+          Number(
+            point.ind
+          )
+        )
+    );
+
+  if (hasIndependent) {
+    datasets.push({
+      label:
+        chartCandidateLabel(
+          candidates,
+          "I"
+        ),
+
+      party:
+        "I",
+
+      data:
+        points.map(
+          point => ({
+            x:
+              point.date,
+
+            y:
+              Number.isFinite(
+                Number(
+                  point.ind
+                )
+              )
+                ? point.ind
+                : null
+          })
+        ),
+
+      borderColor:
+        partyColor("I"),
+
+      backgroundColor:
+        partyColor("I"),
+
+      borderWidth:
+        3,
+
+      pointRadius:
+        0,
+
+      pointHoverRadius:
+        5,
+
+      tension:
+        0.32,
+
+      cubicInterpolationMode:
+        "monotone",
+
+      spanGaps:
+        true
+    });
+  }
+
+  const hasLibertarian =
+    points.some(
+      point =>
+        Number.isFinite(
+          Number(
+            point.lib
+          )
+        )
+    );
+
+  if (hasLibertarian) {
+    datasets.push({
+      label:
+        chartCandidateLabel(
+          candidates,
+          "L"
+        ),
+
+      party:
+        "L",
+
+      data:
+        points.map(
+          point => ({
+            x:
+              point.date,
+
+            y:
+              Number.isFinite(
+                Number(
+                  point.lib
+                )
+              )
+                ? point.lib
+                : null
+          })
+        ),
+
+      borderColor:
+        partyColor("L"),
+
+      backgroundColor:
+        partyColor("L"),
+
+      borderWidth:
+        2.5,
+
+      pointRadius:
+        0,
+
+      pointHoverRadius:
+        5,
+
+      tension:
+        0.32,
+
+      cubicInterpolationMode:
+        "monotone",
+
+      spanGaps:
+        true
+    });
+  }
+
+  const hasGreen =
+    points.some(
+      point =>
+        Number.isFinite(
+          Number(
+            point.green
+          )
+        )
+    );
+
+  if (hasGreen) {
+    datasets.push({
+      label:
+        chartCandidateLabel(
+          candidates,
+          "G"
+        ),
+
+      party:
+        "G",
+
+      data:
+        points.map(
+          point => ({
+            x:
+              point.date,
+
+            y:
+              Number.isFinite(
+                Number(
+                  point.green
+                )
+              )
+                ? point.green
+                : null
+          })
+        ),
+
+      borderColor:
+        partyColor("G"),
+
+      backgroundColor:
+        partyColor("G"),
+
+      borderWidth:
+        2.5,
+
+      pointRadius:
+        0,
+
+      pointHoverRadius:
+        5,
+
+      tension:
+        0.32,
+
+      cubicInterpolationMode:
+        "monotone",
+
+      spanGaps:
+        true
+    });
+  }
+
+  return datasets;
+}
+
+function calculateChartBounds(
+  points
+) {
+  const values =
+    points.flatMap(
+      point => [
+        point.dem,
+        point.rep,
+        point.ind,
+        point.lib,
+        point.green
+      ]
+    )
+      .map(Number)
+      .filter(
+        Number.isFinite
+      );
+
+  if (!values.length) {
+    return {
+      minimum: 0,
+      maximum: 60
+    };
+  }
+
+  const minimumValue =
+    Math.min(
+      ...values
+    );
+
+  const maximumValue =
+    Math.max(
+      ...values
+    );
+
+  const spread =
+    Math.max(
+      4,
+      maximumValue -
+      minimumValue
+    );
+
+  const padding =
+    Math.max(
+      2,
+      spread * 0.18
+    );
+
+  return {
+    minimum:
+      Math.max(
+        0,
+        Math.floor(
+          minimumValue -
+          padding
+        )
+      ),
+
+    maximum:
+      Math.min(
+        100,
+        Math.ceil(
+          maximumValue +
+          padding
+        )
+      )
+  };
+}
+
+function chartTooltipLabel(
+  context
+) {
+  const value =
+    Number(
+      context.parsed.y
+    );
+
+  if (
+    !Number.isFinite(value)
+  ) {
+    return (
+      context.dataset.label
+    );
+  }
+
+  return `${context.dataset.label}: ${value.toFixed(
+    1
+  )}%`;
+}
+
+function renderRacePollingChart(
+  polls,
+  candidates,
+  range = "90"
+) {
   const canvas =
     document.querySelector(
       "#racePollingChart"
+    );
+
+  const chartWrap =
+    document.querySelector(
+      "#pollingChartWrap"
+    );
+
+  const empty =
+    document.querySelector(
+      "#pollingChartEmpty"
+    );
+
+  const latestBox =
+    document.querySelector(
+      "#pollingChartLatest"
     );
 
   if (
@@ -1125,39 +2275,762 @@ function renderRacePollingChart(polls) {
     return;
   }
 
-  const sortedPolls =
-    [...polls].sort(
-      (a, b) =>
-        new Date(
-          a.end_date || 0
-        ) -
-        new Date(
-          b.end_date || 0
-        )
+  const points =
+    runningAverage(
+      polls,
+      {
+        halfLifeDays: 28,
+        maxPollAgeDays: 90,
+        minimumPolls: 1,
+        smoothingDays: 3
+      }
     );
+
+  const filteredPoints =
+    filterRunningAverageByRange(
+      points,
+      range
+    );
+
+  if (!filteredPoints.length) {
+    if (racePollingChart) {
+      racePollingChart.destroy();
+      racePollingChart =
+        null;
+    }
+
+    if (chartWrap) {
+      chartWrap.style.display =
+        "none";
+    }
+
+    if (empty) {
+      empty.style.display =
+        "";
+    }
+
+    if (latestBox) {
+      latestBox.textContent =
+        "Latest average: —";
+    }
+
+    return;
+  }
+
+  if (chartWrap) {
+    chartWrap.style.display =
+      "";
+  }
+
+  if (empty) {
+    empty.style.display =
+      "none";
+  }
+
+  const latest =
+    filteredPoints[
+      filteredPoints.length - 1
+    ];
+
+  if (latestBox) {
+    latestBox.textContent =
+      `Latest average: ${formatMargin(
+        latest.margin
+      )} · ${fmtDate(
+        latest.date
+      )}`;
+  }
+
+  const datasets =
+    buildRaceChartDatasets(
+      filteredPoints,
+      candidates
+    );
+
+  const bounds =
+    calculateChartBounds(
+      filteredPoints
+    );
+
+  if (racePollingChart) {
+    racePollingChart.destroy();
+  }
+
+  racePollingChart =
+    new Chart(
+      canvas,
+      {
+        type: "line",
+
+        data: {
+          datasets
+        },
+
+        options: {
+          responsive: true,
+
+          maintainAspectRatio:
+            false,
+
+          interaction: {
+            mode: "index",
+            intersect: false
+          },
+
+          animation: {
+            duration: 450
+          },
+
+          layout: {
+            padding: {
+              top: 8,
+              right: 8,
+              bottom: 0,
+              left: 0
+            }
+          },
+
+          plugins: {
+            legend: {
+              display: true,
+
+              position:
+                "top",
+
+              align:
+                "start",
+
+              labels: {
+                usePointStyle:
+                  true,
+
+                pointStyle:
+                  "circle",
+
+                boxWidth:
+                  8,
+
+                boxHeight:
+                  8,
+
+                padding:
+                  18,
+
+                color:
+                  "#34435a",
+
+                font: {
+                  size: 12,
+                  weight:
+                    "700"
+                }
+              }
+            },
+
+            tooltip: {
+              backgroundColor:
+                "rgba(7, 26, 54, 0.96)",
+
+              titleColor:
+                "#ffffff",
+
+              bodyColor:
+                "#ffffff",
+
+              borderColor:
+                "rgba(255,255,255,.14)",
+
+              borderWidth:
+                1,
+
+              padding:
+                12,
+
+              displayColors:
+                true,
+
+              callbacks: {
+                title(
+                  items
+                ) {
+                  if (
+                    !items.length
+                  ) {
+                    return "";
+                  }
+
+                  return fmtDate(
+                    items[0]
+                      .parsed.x
+                  );
+                },
+
+                label:
+                  chartTooltipLabel
+              }
+            }
+          },
+
+          scales: {
+            x: {
+              type:
+                "time",
+
+              time: {
+                parser:
+                  "yyyy-MM-dd",
+
+                unit:
+                  range === "30"
+                    ? "day"
+                    : "month",
+
+                tooltipFormat:
+                  "MMM d, yyyy",
+
+                displayFormats: {
+                  day:
+                    "MMM d",
+
+                  month:
+                    "MMM yyyy"
+                }
+              },
+
+              grid: {
+                display:
+                  false
+              },
+
+              ticks: {
+                color:
+                  "#718096",
+
+                maxRotation:
+                  0,
+
+                autoSkip:
+                  true,
+
+                maxTicksLimit:
+                  range === "30"
+                    ? 6
+                    : 8
+              },
+
+              border: {
+                color:
+                  "#dce5f2"
+              }
+            },
+
+            y: {
+              min:
+                bounds.minimum,
+
+              max:
+                bounds.maximum,
+
+              ticks: {
+                color:
+                  "#718096",
+
+                callback(
+                  value
+                ) {
+                  return `${value}%`;
+                }
+              },
+
+              grid: {
+                color:
+                  "rgba(130, 149, 178, 0.16)"
+              },
+
+              border: {
+                display:
+                  false
+              }
+            }
+          }
+        }
+      }
+    );
+}
+
+
+/* =========================================================
+   GENERIC BALLOT
+   ========================================================= */
+
+function genericBallotAverage(
+  polls
+) {
+  if (
+    !Array.isArray(polls) ||
+    !polls.length
+  ) {
+    return null;
+  }
+
+  const normalizedPolls =
+    polls.map(
+      poll => ({
+        ...poll,
+
+        dem_pct:
+          poll.dem_pct,
+
+        rep_pct:
+          poll.rep_pct
+      })
+    );
+
+  return weightedAverage(
+    normalizedPolls
+  );
+}
+
+async function loadGenericBallotPage() {
+  const table =
+    document.querySelector(
+      "#genericBallotTable"
+    );
+
+  if (!table) {
+    return;
+  }
+
+  if (!configured) {
+    table.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="empty"
+        >
+          Connect Supabase to load generic ballot polls.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  try {
+    const polls =
+      await getPublishedGenericBallotPolls();
+
+    const average =
+      genericBallotAverage(
+        polls
+      );
+
+    renderGenericBallotSummary(
+      average,
+      polls
+    );
+
+    renderGenericBallotTable(
+      table,
+      polls
+    );
+  } catch (error) {
+    console.error(
+      "Generic ballot failed:",
+      error
+    );
+
+    table.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="empty"
+        >
+          ${escapeHtml(
+            friendlyErrorMessage(
+              error,
+              "Unable to load generic ballot polls."
+            )
+          )}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function renderGenericBallotSummary(
+  average,
+  polls
+) {
+  const margin =
+    document.querySelector(
+      "#genericMargin"
+    );
+
+  const leader =
+    document.querySelector(
+      "#genericLeader"
+    );
+
+  const count =
+    document.querySelector(
+      "#genericPollCount"
+    );
+
+  const dem =
+    document.querySelector(
+      "#genericDemAverage"
+    );
+
+  const rep =
+    document.querySelector(
+      "#genericRepAverage"
+    );
+
+  const demStatus =
+    document.querySelector(
+      "#genericDemStatus"
+    );
+
+  const repStatus =
+    document.querySelector(
+      "#genericRepStatus"
+    );
+
+  if (!average) {
+    if (margin) {
+      margin.textContent =
+        "—";
+    }
+
+    if (leader) {
+      leader.textContent =
+        "No average yet";
+    }
+
+    if (count) {
+      count.textContent =
+        "No published polls";
+    }
+
+    if (dem) {
+      dem.textContent =
+        "—%";
+    }
+
+    if (rep) {
+      rep.textContent =
+        "—%";
+    }
+
+    if (demStatus) {
+      demStatus.textContent =
+        "Add published polls.";
+    }
+
+    if (repStatus) {
+      repStatus.textContent =
+        "Add published polls.";
+    }
+
+    return;
+  }
+
+  if (margin) {
+    margin.textContent =
+      formatMargin(
+        average.margin
+      );
+  }
+
+  if (leader) {
+    leader.textContent =
+      average.margin >= 0
+        ? "Democrats lead"
+        : "Republicans lead";
+  }
+
+  if (count) {
+    count.textContent =
+      `${polls.length} published ${
+        polls.length === 1
+          ? "poll"
+          : "polls"
+      }`;
+  }
+
+  if (dem) {
+    dem.textContent =
+      formatPercent(
+        average.dem
+      );
+  }
+
+  if (rep) {
+    rep.textContent =
+      formatPercent(
+        average.rep
+      );
+  }
+
+  if (demStatus) {
+    demStatus.textContent =
+      "Weighted national average";
+  }
+
+  if (repStatus) {
+    repStatus.textContent =
+      "Weighted national average";
+  }
+}
+
+function renderGenericBallotTable(
+  table,
+  polls
+) {
+  if (!polls.length) {
+    table.innerHTML = `
+      <tr>
+        <td
+          colspan="6"
+          class="empty"
+        >
+          No published generic ballot polls yet.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML =
+    polls
+      .map(
+        poll => {
+          const dem =
+            Number(
+              poll.dem_pct
+            );
+
+          const rep =
+            Number(
+              poll.rep_pct
+            );
+
+          const margin =
+            dem - rep;
+
+          return `
+            <tr>
+
+              <td>
+                <b>
+                  ${escapeHtml(
+                    poll.pollster ||
+                    "Unknown pollster"
+                  )}
+                </b>
+              </td>
+
+              <td>
+                ${fmtDateRange(
+                  poll.start_date,
+                  poll.end_date
+                )}
+              </td>
+
+              <td>
+                ${
+                  poll.sample_size ||
+                  "—"
+                }
+
+                ${escapeHtml(
+                  poll.population ||
+                  ""
+                )}
+              </td>
+
+              <td class="pollCellDem">
+                ${
+                  Number.isFinite(
+                    dem
+                  )
+                    ? `${dem.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td class="pollCellRep">
+                ${
+                  Number.isFinite(
+                    rep
+                  )
+                    ? `${rep.toFixed(
+                        1
+                      )}%`
+                    : "—"
+                }
+              </td>
+
+              <td>
+                <b
+                  class="${
+                    margin >= 0
+                      ? "marginDem"
+                      : "marginRep"
+                  }"
+                >
+                  ${formatMargin(
+                    margin
+                  )}
+                </b>
+              </td>
+
+            </tr>
+          `;
+        }
+      )
+      .join("");
+}
+/* =========================================================
+   CHART.JS COMPATIBILITY VERSION
+
+   This final definition intentionally uses a category axis,
+   so the chart works without installing a separate
+   Chart.js date-adapter library.
+   ========================================================= */
+
+function renderRacePollingChart(
+  polls,
+  candidates,
+  range = "90"
+) {
+  const canvas =
+    document.querySelector(
+      "#racePollingChart"
+    );
+
+  const chartWrap =
+    document.querySelector(
+      "#pollingChartWrap"
+    );
+
+  const empty =
+    document.querySelector(
+      "#pollingChartEmpty"
+    );
+
+  const latestBox =
+    document.querySelector(
+      "#pollingChartLatest"
+    );
+
+  if (
+    !canvas ||
+    typeof Chart ===
+      "undefined"
+  ) {
+    return;
+  }
+
+  const points =
+    runningAverage(
+      polls,
+      {
+        halfLifeDays: 28,
+        maxPollAgeDays: 90,
+        minimumPolls: 1,
+        smoothingDays: 3
+      }
+    );
+
+  const filteredPoints =
+    filterRunningAverageByRange(
+      points,
+      range
+    );
+
+  if (!filteredPoints.length) {
+    if (racePollingChart) {
+      racePollingChart.destroy();
+
+      racePollingChart =
+        null;
+    }
+
+    if (chartWrap) {
+      chartWrap.style.display =
+        "none";
+    }
+
+    if (empty) {
+      empty.style.display =
+        "";
+    }
+
+    if (latestBox) {
+      latestBox.textContent =
+        "Latest average: —";
+    }
+
+    return;
+  }
+
+  if (chartWrap) {
+    chartWrap.style.display =
+      "";
+  }
+
+  if (empty) {
+    empty.style.display =
+      "none";
+  }
+
+  const latest =
+    filteredPoints[
+      filteredPoints.length - 1
+    ];
+
+  if (latestBox) {
+    latestBox.textContent =
+      `Latest average: ${formatMargin(
+        latest.margin
+      )} · ${fmtDate(
+        latest.date
+      )}`;
+  }
 
   const labels =
-    sortedPolls.map(
-      poll =>
-        fmtDate(
-          poll.end_date
-        )
+    filteredPoints.map(
+      point =>
+        point.date
     );
 
-  const democraticData =
-    sortedPolls.map(
-      poll =>
-        Number(
-          poll.dem_pct || 0
-        )
+  const rawDatasets =
+    buildRaceChartDatasets(
+      filteredPoints,
+      candidates
     );
 
-  const republicanData =
-    sortedPolls.map(
-      poll =>
-        Number(
-          poll.rep_pct || 0
-        )
+  const datasets =
+    rawDatasets.map(
+      dataset => ({
+        ...dataset,
+
+        data:
+          dataset.data.map(
+            item =>
+              item.y
+          )
+      })
+    );
+
+  const bounds =
+    calculateChartBounds(
+      filteredPoints
     );
 
   if (racePollingChart) {
@@ -1172,183 +3045,123 @@ function renderRacePollingChart(polls) {
 
         data: {
           labels,
-
-          datasets: [
-            {
-              label: "Democratic",
-
-              data:
-                democraticData,
-
-              borderColor:
-                "#1677ff",
-
-              backgroundColor:
-                "rgba(22,119,255,.12)",
-
-              pointBackgroundColor:
-                "#1677ff",
-
-              pointBorderColor:
-                "#ffffff",
-
-              pointBorderWidth:
-                2,
-
-              pointRadius:
-                4,
-
-              pointHoverRadius:
-                6,
-
-              borderWidth:
-                3,
-
-              tension:
-                0.28,
-
-              fill:
-                false
-            },
-
-            {
-              label: "Republican",
-
-              data:
-                republicanData,
-
-              borderColor:
-                "#ef4444",
-
-              backgroundColor:
-                "rgba(239,68,68,.12)",
-
-              pointBackgroundColor:
-                "#ef4444",
-
-              pointBorderColor:
-                "#ffffff",
-
-              pointBorderWidth:
-                2,
-
-              pointRadius:
-                4,
-
-              pointHoverRadius:
-                6,
-
-              borderWidth:
-                3,
-
-              tension:
-                0.28,
-
-              fill:
-                false
-            }
-          ]
+          datasets
         },
 
         options: {
-          responsive:
-            true,
+          responsive: true,
 
           maintainAspectRatio:
             false,
 
           interaction: {
-            mode:
-              "index",
+            mode: "index",
+            intersect: false
+          },
 
-            intersect:
-              false
+          animation: {
+            duration: 450
+          },
+
+          layout: {
+            padding: {
+              top: 8,
+              right: 8,
+              bottom: 0,
+              left: 0
+            }
           },
 
           plugins: {
             legend: {
-              position:
-                "top",
+              display: true,
+
+              position: "top",
+
+              align: "start",
 
               labels: {
                 usePointStyle:
                   true,
 
-                boxWidth:
-                  10,
+                pointStyle:
+                  "circle",
 
-                padding:
-                  18,
+                boxWidth: 8,
+
+                boxHeight: 8,
+
+                padding: 18,
+
+                color:
+                  "#34435a",
 
                 font: {
-                  weight:
-                    "700"
+                  size: 12,
+                  weight: "700"
                 }
               }
             },
 
             tooltip: {
+              backgroundColor:
+                "rgba(7, 26, 54, 0.96)",
+
+              titleColor:
+                "#ffffff",
+
+              bodyColor:
+                "#ffffff",
+
+              borderColor:
+                "rgba(255,255,255,.14)",
+
+              borderWidth: 1,
+
+              padding: 12,
+
+              displayColors:
+                true,
+
               callbacks: {
                 title(
-                  tooltipItems
+                  items
                 ) {
-                  const index =
-                    tooltipItems[0]
-                      ?.dataIndex;
-
-                  const poll =
-                    sortedPolls[
-                      index
-                    ];
-
-                  if (!poll) {
+                  if (
+                    !items.length
+                  ) {
                     return "";
                   }
 
-                  return (
-                    poll.pollster ||
-                    "Published poll"
-                  );
-                },
-
-                afterTitle(
-                  tooltipItems
-                ) {
                   const index =
-                    tooltipItems[0]
-                      ?.dataIndex;
+                    items[0]
+                      .dataIndex;
 
-                  const poll =
-                    sortedPolls[
-                      index
-                    ];
-
-                  if (!poll) {
-                    return "";
-                  }
-
-                  return [
-                    `${fmtDate(
-                      poll.start_date
-                    )} – ${fmtDate(
-                      poll.end_date
-                    )}`,
-
-                    `${
-                      poll.sample_size ||
-                      "—"
-                    } ${poll.population ||
-                      ""}`
-                  ];
+                  return fmtDate(
+                    labels[index]
+                  );
                 },
 
-                label(context) {
-                  return (
-                    `${context.dataset.label}: ` +
-                    `${Number(
-                      context.raw || 0
-                    ).toFixed(1)}%`
-                  );
+                label(
+                  context
+                ) {
+                  const value =
+                    Number(
+                      context.raw
+                    );
+
+                  return `${
+                    context.dataset
+                      .label
+                  }: ${
+                    Number.isFinite(
+                      value
+                    )
+                      ? value.toFixed(
+                          1
+                        )
+                      : "—"
+                  }%`;
                 }
               }
             }
@@ -1356,55 +3169,74 @@ function renderRacePollingChart(polls) {
 
           scales: {
             x: {
+              type: "category",
+
               grid: {
-                display:
-                  false
+                display: false
               },
 
               ticks: {
-                maxRotation:
-                  0,
+                color:
+                  "#718096",
 
-                autoSkip:
-                  true,
+                maxRotation: 0,
+
+                autoSkip: true,
 
                 maxTicksLimit:
-                  8
+                  range === "30"
+                    ? 6
+                    : 8,
+
+                callback(
+                  value,
+                  index
+                ) {
+                  const date =
+                    labels[index];
+
+                  return fmtDate(
+                    date,
+                    {
+                      includeYear:
+                        range ===
+                        "all"
+                    }
+                  );
+                }
+              },
+
+              border: {
+                color:
+                  "#dce5f2"
               }
             },
 
             y: {
-              suggestedMin:
-                Math.max(
-                  0,
-                  Math.floor(
-                    Math.min(
-                      ...democraticData,
-                      ...republicanData
-                    ) - 5
-                  )
-                ),
+              min:
+                bounds.minimum,
 
-              suggestedMax:
-                Math.min(
-                  100,
-                  Math.ceil(
-                    Math.max(
-                      ...democraticData,
-                      ...republicanData
-                    ) + 5
-                  )
-                ),
+              max:
+                bounds.maximum,
 
               ticks: {
-                callback(value) {
+                color:
+                  "#718096",
+
+                callback(
+                  value
+                ) {
                   return `${value}%`;
                 }
               },
 
               grid: {
                 color:
-                  "rgba(104,117,141,.15)"
+                  "rgba(130, 149, 178, 0.16)"
+              },
+
+              border: {
+                display: false
               }
             }
           }
@@ -1412,432 +3244,132 @@ function renderRacePollingChart(polls) {
       }
     );
 }
-async function loadGenericBallot() {
-  const homepageBox =
-    document.querySelector(
-      "#genericBallotPolls"
-    );
 
-  const table =
-    document.querySelector(
-      "#genericBallotTable"
-    );
 
-  const hasGenericBallotSection =
-    homepageBox ||
-    table ||
-    document.querySelector(
-      "#genericMargin"
-    );
+/* =========================================================
+   ACTIVE NAVIGATION LINK
+   ========================================================= */
 
-  if (!hasGenericBallotSection) {
-    return;
-  }
+function markActiveNavigation() {
+  const currentFile =
+    (
+      location.pathname
+        .split("/")
+        .pop() ||
+      "index.html"
+    )
+      .split("?")[0]
+      .toLowerCase();
 
-  if (!configured) {
-    if (homepageBox) {
-      homepageBox.innerHTML =
-        '<div class="empty">Connect Supabase to load generic ballot polls.</div>';
-    }
-
-    if (table) {
-      table.innerHTML = `
-        <tr>
-          <td
-            colspan="6"
-            class="empty"
-          >
-            Connect Supabase to load generic ballot polls.
-          </td>
-        </tr>
-      `;
-    }
-
-    return;
-  }
-
-  try {
-    const {
-      data,
-      error
-    } = await sb
-      .from(
-        "generic_ballot_polls"
-      )
-      .select("*")
-      .eq(
-        "status",
-        "published"
-      )
-      .order(
-        "end_date",
-        {
-          ascending: false
-        }
-      );
-
-    if (error) {
-      throw error;
-    }
-
-    const polls =
-      data || [];
-
-    const average =
-      weightedAverage(
-        polls
-      );
-
-    const marginBox =
-      document.querySelector(
-        "#genericMargin"
-      );
-
-    const leaderBox =
-      document.querySelector(
-        "#genericLeader"
-      );
-
-    const countBox =
-      document.querySelector(
-        "#genericPollCount"
-      );
-
-    const demBox =
-      document.querySelector(
-        "#genericDemAverage"
-      );
-
-    const repBox =
-      document.querySelector(
-        "#genericRepAverage"
-      );
-
-    const demStatus =
-      document.querySelector(
-        "#genericDemStatus"
-      );
-
-    const repStatus =
-      document.querySelector(
-        "#genericRepStatus"
-      );
-
-    if (average) {
-      const democraticLead =
-        average.margin >= 0;
-
-      const marginText =
-        `${
-          democraticLead
-            ? "D +"
-            : "R +"
-        }${Math.abs(
-          average.margin
-        ).toFixed(1)}`;
-
-      const pollCountText =
-        `${polls.length} published poll${
-          polls.length === 1
-            ? ""
-            : "s"
-        }`;
-
-      if (marginBox) {
-        marginBox.textContent =
-          marginText;
-      }
-
-      if (leaderBox) {
-        leaderBox.textContent =
-          democraticLead
-            ? "Democrats lead"
-            : "Republicans lead";
-      }
-
-      if (countBox) {
-        countBox.textContent =
-          pollCountText;
-      }
-
-      if (demBox) {
-        demBox.textContent =
-          `${average.dem.toFixed(
-            1
-          )}%`;
-      }
-
-      if (repBox) {
-        repBox.textContent =
-          `${average.rep.toFixed(
-            1
-          )}%`;
-      }
-
-      if (demStatus) {
-        demStatus.textContent =
-          `Average of ${pollCountText}.`;
-      }
-
-      if (repStatus) {
-        repStatus.textContent =
-          `Average of ${pollCountText}.`;
-      }
-
-      if (homepageBox) {
-        homepageBox.innerHTML = `
-          <div
-            class="bigProb"
-            style="
-              font-size:48px;
-              color:var(--ink);
-            "
-          >
-            ${marginText}
-          </div>
-
-          <div class="controlBar">
-
-            <span
-              class="dem"
-              style="width:${Math.max(
-                0,
-                Math.min(
-                  100,
-                  average.dem
-                )
-              )}%"
-            ></span>
-
-            <span
-              class="rep"
-              style="width:${Math.max(
-                0,
-                Math.min(
-                  100,
-                  average.rep
-                )
-              )}%"
-            ></span>
-
-          </div>
-
-          <div class="raceMeta">
-
-            <b>
-              D ${average.dem.toFixed(
-                1
-              )}%
-            </b>
-
-            <b>
-              R ${average.rep.toFixed(
-                1
-              )}%
-            </b>
-
-          </div>
-
-          <p class="subtle">
-            Based on ${pollCountText}.
-          </p>
-        `;
-      }
-    } else {
-      if (marginBox) {
-        marginBox.textContent =
-          "—";
-      }
-
-      if (leaderBox) {
-        leaderBox.textContent =
-          "No average yet";
-      }
-
-      if (countBox) {
-        countBox.textContent =
-          "Add published polls to begin";
-      }
-
-      if (demBox) {
-        demBox.textContent =
-          "—%";
-      }
-
-      if (repBox) {
-        repBox.textContent =
-          "—%";
-      }
-
-      if (demStatus) {
-        demStatus.textContent =
-          "No published polls yet.";
-      }
-
-      if (repStatus) {
-        repStatus.textContent =
-          "No published polls yet.";
-      }
-
-      if (homepageBox) {
-        homepageBox.innerHTML =
-          '<div class="empty">No published generic ballot polls yet.</div>';
-      }
-    }
-
-    if (table) {
-      table.innerHTML =
-        polls.length
-          ? polls
-              .map(poll => {
-                const pollMargin =
-                  Number(
-                    poll.dem_pct || 0
-                  ) -
-                  Number(
-                    poll.rep_pct || 0
-                  );
-
-                return `
-                  <tr>
-
-                    <td>
-                      <b>
-                        ${escapeHtml(
-                          poll.pollster ||
-                            "Unknown pollster"
-                        )}
-                      </b>
-                    </td>
-
-                    <td>
-                      ${fmtDate(
-                        poll.start_date
-                      )}
-                      –
-                      ${fmtDate(
-                        poll.end_date
-                      )}
-                    </td>
-
-                    <td>
-                      ${
-                        poll.sample_size ||
-                        "—"
-                      }
-
-                      ${escapeHtml(
-                        poll.population ||
-                          ""
-                      )}
-                    </td>
-
-                    <td>
-                      ${Number(
-                        poll.dem_pct || 0
-                      ).toFixed(1)}%
-                    </td>
-
-                    <td>
-                      ${Number(
-                        poll.rep_pct || 0
-                      ).toFixed(1)}%
-                    </td>
-
-                    <td>
-                      <b>
-                        ${
-                          pollMargin >= 0
-                            ? "D +"
-                            : "R +"
-                        }
-
-                        ${Math.abs(
-                          pollMargin
-                        ).toFixed(1)}
-                      </b>
-                    </td>
-
-                  </tr>
-                `;
-              })
-              .join("")
-          : `
-            <tr>
-              <td
-                colspan="6"
-                class="empty"
-              >
-                No generic ballot polls have been published.
-              </td>
-            </tr>
-          `;
-    }
-  } catch (error) {
-    console.error(
-      "Generic ballot failed:",
-      error
-    );
-
-    const message =
-      escapeHtml(
-        error.message ||
-          "Unable to load generic ballot polls."
-      );
-
-    if (homepageBox) {
-      homepageBox.innerHTML =
-        `<div class="empty">${message}</div>`;
-    }
-
-    if (table) {
-      table.innerHTML = `
-        <tr>
-          <td
-            colspan="6"
-            class="empty"
-          >
-            ${message}
-          </td>
-        </tr>
-      `;
-    }
-  }
-}
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-    const tasks = [
-      loadWebsiteSettings,
-      loadHome,
-      loadGenericBallot,
-      loadRaceGrid,
-      loadRace
-    ];
-
-    tasks.forEach(task => {
-      try {
-        const result =
-          task();
+  document
+    .querySelectorAll(
+      ".navlinks a"
+    )
+    .forEach(
+      link => {
+        const linkFile =
+          (
+            link.getAttribute(
+              "href"
+            ) ||
+            ""
+          )
+            .split("?")[0]
+            .toLowerCase();
 
         if (
-          result &&
-          typeof result.catch ===
-            "function"
+          linkFile ===
+          currentFile
         ) {
-          result.catch(error => {
-            console.error(
-              `${task.name} failed:`,
-              error
-            );
-          });
+          link.classList.add(
+            "active"
+          );
         }
-      } catch (error) {
-        console.error(
-          `${task.name} failed:`,
-          error
+      }
+    );
+}
+
+
+/* =========================================================
+   EXTERNAL-LINK SAFETY
+   ========================================================= */
+
+function protectExternalLinks() {
+  document
+    .querySelectorAll(
+      "a[target='_blank']"
+    )
+    .forEach(
+      link => {
+        const existing =
+          link.getAttribute(
+            "rel"
+          ) || "";
+
+        const values =
+          new Set(
+            existing
+              .split(/\s+/)
+              .filter(Boolean)
+          );
+
+        values.add(
+          "noopener"
+        );
+
+        values.add(
+          "noreferrer"
+        );
+
+        link.setAttribute(
+          "rel",
+          [
+            ...values
+          ].join(" ")
         );
       }
-    });
-  }
+    );
+}
+
+
+/* =========================================================
+   PAGE INITIALIZATION
+   ========================================================= */
+
+async function initializePublicWebsite() {
+  markActiveNavigation();
+
+  protectExternalLinks();
+
+  const tasks = [
+    loadWebsiteSettings(),
+    loadHome(),
+    loadRaceGrid(),
+    loadRace(),
+    loadGenericBallotPage()
+  ];
+
+  const results =
+    await Promise.allSettled(
+      tasks
+    );
+
+  results.forEach(
+    result => {
+      if (
+        result.status ===
+        "rejected"
+      ) {
+        console.error(
+          "ElectionLab page initialization error:",
+          result.reason
+        );
+      }
+    }
+  );
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initializePublicWebsite
 );
