@@ -2717,3 +2717,318 @@ hr {
       0.01ms !important;
   }
 }
+
+
+/* =========================================================
+   ELECTIONLAB NEWSROOM — MODEL 2.0
+   ========================================================= */
+
+.modelDashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.modelCardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.modelCardHead h2,
+.engineHealthCard h2 {
+  margin: 4px 0 0;
+}
+
+.readinessPercent {
+  color: var(--blue);
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.progressTrack {
+  overflow: hidden;
+  height: 16px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background: #e7edf6;
+}
+
+.progressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+  transition: width 0.35s ease;
+}
+
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.readinessBreakdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.readinessBreakdown button {
+  padding: 12px 10px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  color: var(--ink);
+  background: #f8fbff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.readinessBreakdown button:hover {
+  border-color: #a9c8ef;
+  background: #f2f7ff;
+}
+
+.readinessBreakdown strong,
+.readinessBreakdown span {
+  display: block;
+}
+
+.readinessBreakdown strong {
+  font-size: 24px;
+}
+
+.readinessBreakdown span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.engineHealthLine {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 20px 0;
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tossup);
+  box-shadow: 0 0 0 5px rgba(139, 143, 151, 0.13);
+}
+
+.statusDot.healthy {
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgba(22, 163, 106, 0.13);
+}
+
+.statusDot.warning {
+  background: var(--gold);
+  box-shadow: 0 0 0 5px rgba(245, 185, 66, 0.18);
+}
+
+.engineMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+.engineMeta div {
+  padding: 11px;
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.engineMeta dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.engineMeta dd {
+  margin: 4px 0 0;
+  font-weight: 850;
+}
+
+.v2EngineStats {
+  margin-top: 18px;
+}
+
+.engineToolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) repeat(3, minmax(150px, 0.32fr));
+  gap: 10px;
+}
+
+.forecastEngineTable {
+  min-width: 1180px;
+}
+
+.modeBadge,
+.readinessBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 27px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.modeBadge.automatic {
+  color: #1761ad;
+  background: var(--blue-soft);
+}
+
+.modeBadge.manual {
+  color: #6b3dc4;
+  background: var(--purple-soft);
+}
+
+.readinessBadge.v2-ready {
+  color: #08744b;
+  background: var(--green-soft);
+}
+
+.readinessBadge.v2-review,
+.readinessBadge.v2-model-ready {
+  color: #1761ad;
+  background: var(--blue-soft);
+}
+
+.readinessBadge.v2-attention {
+  color: #996700;
+  background: var(--gold-soft);
+}
+
+.readinessBadge.v2-missing {
+  color: #b9253d;
+  background: var(--red-soft);
+}
+
+.miniProgress {
+  overflow: hidden;
+  width: 110px;
+  height: 6px;
+  margin: 8px 0 4px;
+  border-radius: 999px;
+  background: #e8edf5;
+}
+
+.miniProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+}
+
+.v2WarningsCell {
+  max-width: 280px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.tableActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.tableActions .btn {
+  padding: 8px 10px;
+  font-size: 11px;
+}
+
+.v2OverrideModalCard {
+  max-width: 760px;
+}
+
+.modelComparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modelComparison > div {
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+.modelComparison span,
+.modelComparison strong {
+  display: block;
+}
+
+.modelComparison span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.modelComparison strong {
+  margin-top: 5px;
+  font-size: 17px;
+}
+
+.overrideActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 1050px) {
+  .modelDashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .engineToolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .readinessBreakdown {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .engineToolbar,
+  .modelComparison {
+    grid-template-columns: 1fr;
+  }
+
+  .progressMeta {
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .overrideActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .overrideActions .btn {
+    width: 100%;
+  }
+}
