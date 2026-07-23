@@ -2066,6 +2066,144 @@ function renderRaceForecast(
       .join("");
 
 }
+function renderRacePollingAverage(
+  race,
+  candidates,
+  polls
+) {
+
+  const rows =
+    document.querySelector(
+      "#pollingCandidateRows"
+    );
+
+  const marginBox =
+    document.querySelector(
+      "#pollingAverageMargin"
+    );
+
+  const bar =
+    document.querySelector(
+      "#pollingShareBar"
+    );
+
+  const legend =
+    document.querySelector(
+      "#pollingBarLegend"
+    );
+
+  const meta =
+    document.querySelector(
+      "#pollingAverageMeta"
+    );
+
+
+  if (!rows) {
+    return;
+  }
+
+
+  if (!polls || !polls.length) {
+
+    rows.innerHTML = `
+      <p class="subtle">
+        No published polls yet.
+      </p>
+    `;
+
+    if (marginBox) {
+      marginBox.textContent = "—";
+    }
+
+    if (bar) {
+      bar.innerHTML = "";
+    }
+
+    if (legend) {
+      legend.innerHTML = "";
+    }
+
+    if (meta) {
+      meta.textContent =
+        "Add published polls to calculate an average.";
+    }
+
+    return;
+
+  }
+
+
+  const average =
+    weightedAverage(
+      polls
+    );
+
+
+  if (!average) {
+    return;
+  }
+
+
+
+  rows.innerHTML = `
+
+    <div class="pollingCandidateRow">
+
+      <span>
+        Democrat
+      </span>
+
+      <strong>
+        ${Number(
+          average.dem || 0
+        ).toFixed(1)}%
+      </strong>
+
+    </div>
+
+
+    <div class="pollingCandidateRow">
+
+      <span>
+        Republican
+      </span>
+
+      <strong>
+        ${Number(
+          average.rep || 0
+        ).toFixed(1)}%
+      </strong>
+
+    </div>
+
+  `;
+
+
+
+  if (marginBox) {
+
+    marginBox.textContent =
+      formatMargin(
+        Number(
+          average.dem || 0
+        ) -
+        Number(
+          average.rep || 0
+        )
+      );
+
+  }
+
+
+
+  if (meta) {
+
+    meta.textContent =
+      `${polls.length} published polls included in average.`;
+
+  }
+
+}
 /* =========================================================
    POLLING METADATA
    ========================================================= */
