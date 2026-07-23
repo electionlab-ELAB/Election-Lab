@@ -630,8 +630,6 @@ async function optionalTableQuery(
     throw error;
   }
 }
-
-
 /* =========================================================
    SETTINGS
    ========================================================= */
@@ -1024,6 +1022,8 @@ function renderDashboard() {
       : "None"
   );
 }
+
+
 /* =========================================================
    WEBSITE SETTINGS SAVE
    ========================================================= */
@@ -1297,8 +1297,6 @@ async function saveHomepageSettings(
     );
   }
 }
-
-
 /* =========================================================
    RACE RENDERING
    ========================================================= */
@@ -1699,11 +1697,14 @@ function readRacePayload() {
 
   return {
     office,
+
     state:
       stateCode,
 
     title,
+
     slug,
+
     rating,
 
     projected_margin:
@@ -2164,8 +2165,6 @@ async function deleteRace(
     );
   }
 }
-
-
 /* =========================================================
    FORECAST HISTORY RENDERING
    ========================================================= */
@@ -2324,6 +2323,8 @@ function renderForecastHistory() {
       </tr>
     `;
 }
+
+
 /* =========================================================
    FORECAST HISTORY EDITOR
    ========================================================= */
@@ -2518,7 +2519,9 @@ async function saveForecastChange(
       if (error) {
         throw error;
       }
+
     } else {
+
       payload.created_by =
         state.session
           ?.user
@@ -3033,7 +3036,9 @@ async function saveCandidate(
             "id",
             candidateId
           );
+
     } else {
+
       result =
         await sb
           .from(
@@ -3070,7 +3075,9 @@ async function saveCandidate(
               "id",
               candidateId
             );
+
       } else {
+
         result =
           await sb
             .from(
@@ -3209,8 +3216,6 @@ function isMissingColumnError(
     )
   );
 }
-
-
 /* =========================================================
    RACE POLLS
    ========================================================= */
@@ -3663,7 +3668,9 @@ async function savePoll(
             "id",
             pollId
           );
+
     } else {
+
       result =
         await sb
           .from(
@@ -3706,7 +3713,9 @@ async function savePoll(
               "id",
               pollId
             );
+
       } else {
+
         result =
           await sb
             .from(
@@ -4047,12 +4056,14 @@ function renderGenericBallotPolls() {
       .join("") ||
     `
       <tr>
+
         <td
           colspan="8"
           class="empty"
         >
           No generic ballot polls yet.
         </td>
+
       </tr>
     `;
 }
@@ -4367,8 +4378,6 @@ async function deleteGenericBallotPoll(
     );
   }
 }
-
-
 /* =========================================================
    TRUMP APPROVAL
    ========================================================= */
@@ -4454,7 +4463,9 @@ function approvalAverage(
 
   return {
     approve,
+
     disapprove,
+
     net:
       approve -
       disapprove
@@ -4472,6 +4483,7 @@ function renderApprovalPolls() {
 
   setElementText(
     "#approvalAverageApprove",
+
     average
       ? `${average.approve.toFixed(
           1
@@ -4481,6 +4493,7 @@ function renderApprovalPolls() {
 
   setElementText(
     "#approvalAverageDisapprove",
+
     average
       ? `${average.disapprove.toFixed(
           1
@@ -4490,6 +4503,7 @@ function renderApprovalPolls() {
 
   setElementText(
     "#approvalAverageNet",
+
     average
       ? formatNetApproval(
           average.approve,
@@ -4520,12 +4534,14 @@ function renderApprovalPolls() {
             <tr>
 
               <td>
+
                 <b>
                   ${escapeHtml(
                     poll.pollster ||
                     ""
                   )}
                 </b>
+
               </td>
 
               <td>
@@ -4572,6 +4588,7 @@ function renderApprovalPolls() {
               </td>
 
               <td>
+
                 <span
                   class="badge ${
                     poll.status ===
@@ -4585,6 +4602,7 @@ function renderApprovalPolls() {
                     "draft"
                   )}
                 </span>
+
               </td>
 
               <td>
@@ -4614,12 +4632,14 @@ function renderApprovalPolls() {
       .join("") ||
     `
       <tr>
+
         <td
           colspan="9"
           class="empty"
         >
           No approval polls yet.
         </td>
+
       </tr>
     `;
 }
@@ -4934,6 +4954,8 @@ async function deleteApprovalPoll(
     );
   }
 }
+
+
 /* =========================================================
    2028 PRIMARY POLLS
    ========================================================= */
@@ -4959,10 +4981,13 @@ function parsePrimaryCandidateLines(
       value
     )
       .split(/\r?\n/)
-      .map(line =>
-        line.trim()
+      .map(
+        line =>
+          line.trim()
       )
-      .filter(Boolean);
+      .filter(
+        Boolean
+      );
 
   if (!lines.length) {
     throw new Error(
@@ -4976,7 +5001,9 @@ function parsePrimaryCandidateLines(
     const line of lines
   ) {
     const separatorIndex =
-      line.lastIndexOf("|");
+      line.lastIndexOf(
+        "|"
+      );
 
     if (
       separatorIndex === -1
@@ -4997,7 +5024,8 @@ function parsePrimaryCandidateLines(
     const percentageText =
       cleanText(
         line.slice(
-          separatorIndex + 1
+          separatorIndex +
+          1
         )
       )
         .replace(
@@ -5065,7 +5093,10 @@ function parsePrimaryCandidateLines(
       0
     );
 
-  if (total > 100.5) {
+  if (
+    total >
+    100.5
+  ) {
     throw new Error(
       `Primary candidate percentages total ${total.toFixed(
         1
@@ -5080,7 +5111,9 @@ function normalizePrimaryResults(
   value
 ) {
   if (
-    Array.isArray(value)
+    Array.isArray(
+      value
+    )
   ) {
     return value
       .map(
@@ -5151,16 +5184,21 @@ function normalizePrimaryResults(
   ) {
     try {
       const parsed =
-        JSON.parse(value);
+        JSON.parse(
+          value
+        );
 
       return normalizePrimaryResults(
         parsed
       );
+
     } catch {
+
       try {
         return parsePrimaryCandidateLines(
           value
         );
+
       } catch {
         return [];
       }
@@ -5182,7 +5220,9 @@ function primaryResultsToTextarea(
           result.percentage
         ).toFixed(1)}`
     )
-    .join("\n");
+    .join(
+      "\n"
+    );
 }
 
 function primaryResultsSummary(
@@ -5297,15 +5337,18 @@ function renderPrimaryPolls() {
             <tr>
 
               <td>
+
                 <b>
                   ${escapeHtml(
                     poll.pollster ||
                     ""
                   )}
                 </b>
+
               </td>
 
               <td>
+
                 <span
                   class="badge ${
                     party === "R"
@@ -5319,6 +5362,7 @@ function renderPrimaryPolls() {
                       : "Democratic"
                   }
                 </span>
+
               </td>
 
               <td>
@@ -5351,6 +5395,7 @@ function renderPrimaryPolls() {
               </td>
 
               <td>
+
                 <span
                   class="badge ${
                     poll.status ===
@@ -5364,6 +5409,7 @@ function renderPrimaryPolls() {
                     "draft"
                   )}
                 </span>
+
               </td>
 
               <td>
@@ -5614,7 +5660,9 @@ async function savePrimaryPoll(
             "id",
             pollId
           );
+
     } else {
+
       result =
         await sb
           .from(
@@ -5682,7 +5730,9 @@ async function savePrimaryPoll(
               "id",
               pollId
             );
+
       } else {
+
         result =
           await sb
             .from(
@@ -5808,7 +5858,17 @@ function spreadsheetCellText(
     return "";
   }
 
-  return String(value)
+  return String(
+    value
+  )
+    .replace(
+      /[\u0000-\u001F\u007F-\u009F]/g,
+      ""
+    )
+    .replace(
+      /\u00A0/g,
+      " "
+    )
     .trim();
 }
 
@@ -5824,9 +5884,17 @@ function spreadsheetNumber(
   }
 
   const cleaned =
-    String(value)
-      .replace(/,/g, "")
-      .replace(/%/g, "")
+    String(
+      value
+    )
+      .replace(
+        /,/g,
+        ""
+      )
+      .replace(
+        /%/g,
+        ""
+      )
       .trim();
 
   if (!cleaned) {
@@ -5834,9 +5902,13 @@ function spreadsheetNumber(
   }
 
   const number =
-    Number(cleaned);
+    Number(
+      cleaned
+    );
 
-  return Number.isFinite(number)
+  return Number.isFinite(
+    number
+  )
     ? number
     : null;
 }
@@ -5861,7 +5933,9 @@ function spreadsheetBoolean(
   }
 
   const normalized =
-    cleanText(value)
+    cleanText(
+      value
+    )
       .toLowerCase();
 
   if (
@@ -5872,7 +5946,9 @@ function spreadsheetBoolean(
       "1",
       "checked",
       "published"
-    ].includes(normalized)
+    ].includes(
+      normalized
+    )
   ) {
     return true;
   }
@@ -5885,7 +5961,9 @@ function spreadsheetBoolean(
       "0",
       "unchecked",
       "draft"
-    ].includes(normalized)
+    ].includes(
+      normalized
+    )
   ) {
     return false;
   }
@@ -5912,13 +5990,24 @@ function spreadsheetDate(
   ) {
     return [
       value.getFullYear(),
+
       String(
-        value.getMonth() + 1
-      ).padStart(2, "0"),
+        value.getMonth() +
+        1
+      ).padStart(
+        2,
+        "0"
+      ),
+
       String(
         value.getDate()
-      ).padStart(2, "0")
-    ].join("-");
+      ).padStart(
+        2,
+        "0"
+      )
+    ].join(
+      "-"
+    );
   }
 
   if (
@@ -5934,13 +6023,23 @@ function spreadsheetDate(
     if (parsed) {
       return [
         parsed.y,
+
         String(
           parsed.m
-        ).padStart(2, "0"),
+        ).padStart(
+          2,
+          "0"
+        ),
+
         String(
           parsed.d
-        ).padStart(2, "0")
-      ].join("-");
+        ).padStart(
+          2,
+          "0"
+        )
+      ].join(
+        "-"
+      );
     }
   }
 
@@ -5958,7 +6057,9 @@ function spreadsheetDate(
   }
 
   const parsedDate =
-    new Date(text);
+    new Date(
+      text
+    );
 
   if (
     Number.isNaN(
@@ -5970,22 +6071,41 @@ function spreadsheetDate(
 
   return [
     parsedDate.getFullYear(),
+
     String(
-      parsedDate.getMonth() + 1
-    ).padStart(2, "0"),
+      parsedDate.getMonth() +
+      1
+    ).padStart(
+      2,
+      "0"
+    ),
+
     String(
       parsedDate.getDate()
-    ).padStart(2, "0")
-  ].join("-");
+    ).padStart(
+      2,
+      "0"
+    )
+  ].join(
+    "-"
+  );
 }
 
 function normalizeSpreadsheetHeader(
   value
 ) {
-  return cleanText(value)
+  return spreadsheetCellText(
+    value
+  )
     .toLowerCase()
-    .replace(/[%]/g, " pct ")
-    .replace(/[^a-z0-9]+/g, "_")
+    .replace(
+      /[%]/g,
+      " pct "
+    )
+    .replace(
+      /[^a-z0-9]+/g,
+      "_"
+    )
     .replace(
       /^_+|_+$/g,
       ""
@@ -5996,7 +6116,8 @@ function normalizeSpreadsheetRecord(
   rawRow
 ) {
   return Object.entries(
-    rawRow || {}
+    rawRow ||
+    {}
   ).reduce(
     (
       normalized,
@@ -6010,7 +6131,9 @@ function normalizeSpreadsheetRecord(
           key
         );
 
-      if (normalizedKey) {
+      if (
+        normalizedKey
+      ) {
         normalized[
           normalizedKey
         ] =
@@ -6028,7 +6151,8 @@ function firstSpreadsheetValue(
   aliases
 ) {
   for (
-    const alias of aliases
+    const alias of
+    aliases
   ) {
     const normalizedAlias =
       normalizeSpreadsheetHeader(
@@ -6043,7 +6167,9 @@ function firstSpreadsheetValue(
     if (
       value !== undefined &&
       value !== null &&
-      value !== ""
+      spreadsheetCellText(
+        value
+      ) !== ""
     ) {
       return value;
     }
@@ -6052,18 +6178,40 @@ function firstSpreadsheetValue(
   return "";
 }
 
+
+/* =========================================================
+   RECORD-TYPE NORMALIZATION
+   ========================================================= */
+
 function normalizeRecordType(
   value
 ) {
-  const normalized =
-    cleanText(value)
+  let normalized =
+    spreadsheetCellText(
+      value
+    )
       .toLowerCase()
       .replace(
-        /[\s-]+/g,
+        /^["'`]+|["'`]+$/g,
+        ""
+      )
+      .replace(
+        /[\u200B-\u200D\uFEFF]/g,
+        ""
+      )
+      .replace(
+        /[^a-z0-9]+/g,
         "_"
+      )
+      .replace(
+        /^_+|_+$/g,
+        ""
       );
 
   const aliases = {
+    race:
+      "race",
+
     races:
       "race",
 
@@ -6073,8 +6221,17 @@ function normalizeRecordType(
     elections:
       "race",
 
+    candidate:
+      "candidate",
+
     candidates:
       "candidate",
+
+    poll:
+      "poll",
+
+    polls:
+      "poll",
 
     race_poll:
       "poll",
@@ -6082,13 +6239,22 @@ function normalizeRecordType(
     race_polls:
       "poll",
 
-    polls:
+    election_poll:
+      "poll",
+
+    election_polls:
       "poll",
 
     generic:
       "generic_ballot",
 
+    generic_ballot:
+      "generic_ballot",
+
     generic_poll:
+      "generic_ballot",
+
+    generic_polls:
       "generic_ballot",
 
     generic_ballot_poll:
@@ -6100,6 +6266,9 @@ function normalizeRecordType(
     approval:
       "approval_poll",
 
+    approval_poll:
+      "approval_poll",
+
     approval_polls:
       "approval_poll",
 
@@ -6109,22 +6278,35 @@ function normalizeRecordType(
     trump_approval_poll:
       "approval_poll",
 
+    trump_approval_polls:
+      "approval_poll",
+
     primary:
       "primary_poll",
 
     primaries:
       "primary_poll",
 
+    primary_poll:
+      "primary_poll",
+
     primary_polls:
+      "primary_poll",
+
+    presidential_primary:
+      "primary_poll",
+
+    presidential_primary_poll:
       "primary_poll"
   };
 
-  return (
+  normalized =
     aliases[
       normalized
     ] ||
-    normalized
-  );
+    normalized;
+
+  return normalized;
 }
 
 function supportedRecordType(
@@ -6141,6 +6323,191 @@ function supportedRecordType(
     recordType
   );
 }
+
+
+/* =========================================================
+   RECORD-TYPE INFERENCE
+
+   If record_type is blank or malformed, the importer can
+   identify the row from its other spreadsheet columns.
+   ========================================================= */
+
+function inferSpreadsheetRecordType(
+  row
+) {
+  const keys =
+    new Set(
+      Object.keys(
+        row ||
+        {}
+      )
+    );
+
+  const hasAny =
+    aliases =>
+      aliases.some(
+        alias =>
+          keys.has(
+            normalizeSpreadsheetHeader(
+              alias
+            )
+          )
+      );
+
+  if (
+    hasAny([
+      "approve_pct",
+      "approve",
+      "approval"
+    ]) &&
+    hasAny([
+      "disapprove_pct",
+      "disapprove",
+      "disapproval"
+    ])
+  ) {
+    return "approval_poll";
+  }
+
+  if (
+    hasAny([
+      "candidate_results",
+      "candidate_results_json",
+      "results"
+    ]) ||
+    (
+      hasAny([
+        "primary_party"
+      ]) &&
+      hasAny([
+        "pollster"
+      ])
+    )
+  ) {
+    return "primary_poll";
+  }
+
+  if (
+    hasAny([
+      "race_slug"
+    ]) &&
+    hasAny([
+      "pollster"
+    ]) &&
+    hasAny([
+      "dem_pct",
+      "dem",
+      "democratic"
+    ]) &&
+    hasAny([
+      "rep_pct",
+      "rep",
+      "republican"
+    ])
+  ) {
+    return "poll";
+  }
+
+  if (
+    !hasAny([
+      "race_slug"
+    ]) &&
+    hasAny([
+      "pollster"
+    ]) &&
+    hasAny([
+      "dem_pct",
+      "dem",
+      "democratic"
+    ]) &&
+    hasAny([
+      "rep_pct",
+      "rep",
+      "republican"
+    ])
+  ) {
+    return "generic_ballot";
+  }
+
+  if (
+    hasAny([
+      "candidate_name",
+      "candidate"
+    ]) &&
+    hasAny([
+      "party"
+    ]) &&
+    hasAny([
+      "race_slug"
+    ])
+  ) {
+    return "candidate";
+  }
+
+  if (
+    hasAny([
+      "title",
+      "race_title",
+      "race_name"
+    ]) &&
+    hasAny([
+      "office",
+      "office_type"
+    ])
+  ) {
+    return "race";
+  }
+
+  return "";
+}
+
+function spreadsheetRecordType(
+  row
+) {
+  const rawValue =
+    firstSpreadsheetValue(
+      row,
+      [
+        "record_type",
+        "record type",
+        "recordtype",
+        "type"
+      ]
+    );
+
+  const normalized =
+    normalizeRecordType(
+      rawValue
+    );
+
+  if (
+    supportedRecordType(
+      normalized
+    )
+  ) {
+    return normalized;
+  }
+
+  const inferred =
+    inferSpreadsheetRecordType(
+      row
+    );
+
+  if (
+    supportedRecordType(
+      inferred
+    )
+  ) {
+    return inferred;
+  }
+
+  return normalized;
+}
+
+
+/* =========================================================
+   READ WORKBOOK
+   ========================================================= */
 
 async function readElectionWorkbook(
   file
@@ -6199,8 +6566,11 @@ async function readElectionWorkbook(
             .sheet_to_json(
               worksheet,
               {
-                defval: "",
-                raw: true
+                defval:
+                  "",
+
+                raw:
+                  true
               }
             );
 
@@ -6219,12 +6589,14 @@ async function readElectionWorkbook(
                 normalizedRow
               ).some(
                 value =>
-                  cleanText(
+                  spreadsheetCellText(
                     value
                   )
               );
 
-            if (!hasContent) {
+            if (
+              !hasContent
+            ) {
               return;
             }
 
@@ -6235,14 +6607,17 @@ async function readElectionWorkbook(
                 sheetName,
 
               __row_number:
-                index + 2
+                index +
+                2
             });
           }
         );
       }
     );
 
-  if (!rows.length) {
+  if (
+    !rows.length
+  ) {
     throw new Error(
       "No spreadsheet records were found."
     );
@@ -6250,784 +6625,882 @@ async function readElectionWorkbook(
 
   return rows;
 }
-
-
 /* =========================================================
-   SPREADSHEET RECORD NORMALIZATION
+   SPREADSHEET IMPORT — ROW NORMALIZATION
    ========================================================= */
 
-function spreadsheetRaceSlug(
-  row
-) {
-  return slugify(
-    firstSpreadsheetValue(
-      row,
-      [
-        "race_slug",
-        "race slug",
-        "slug",
-        "race",
-        "race_id"
-      ]
-    )
-  );
-}
-
-function spreadsheetStatus(
-  row
-) {
-  const explicitStatus =
-    firstSpreadsheetValue(
-      row,
-      [
-        "status",
-        "publication_status"
-      ]
-    );
-
-  if (explicitStatus) {
-    return normalizeStatus(
-      explicitStatus
-    );
-  }
-
-  const published =
-    firstSpreadsheetValue(
-      row,
-      [
-        "published",
-        "is_published"
-      ]
-    );
-
-  return spreadsheetBoolean(
-    published,
-    false
-  )
-    ? "published"
-    : "draft";
-}
-
-function normalizeOfficeValue(
+function normalizeImportedPrimaryResults(
   value
 ) {
-  const normalized =
-    cleanText(value)
-      .toLowerCase();
-
   if (
-    normalized.includes(
-      "governor"
-    ) ||
-    normalized === "gov"
+    Array.isArray(
+      value
+    )
   ) {
-    return "governor";
+    return normalizePrimaryResults(
+      value
+    );
   }
 
-  if (
-    normalized.includes(
-      "house"
-    ) ||
-    normalized.includes(
-      "district"
-    ) ||
-    normalized === "us house"
-  ) {
-    return "house";
-  }
-
-  if (
-    normalized.includes(
-      "senate"
-    ) ||
-    normalized === "sen"
-  ) {
-    return "senate";
-  }
-
-  return normalized;
-}
-
-function normalizeImportedRace(
-  row
-) {
-  const title =
+  const text =
     spreadsheetCellText(
-      firstSpreadsheetValue(
-        row,
-        [
-          "title",
-          "race_title",
-          "race name",
-          "race_name"
-        ]
-      )
+      value
     );
 
-  let slug =
-    spreadsheetRaceSlug(
+  if (!text) {
+    return [];
+  }
+
+  try {
+    const parsed =
+      JSON.parse(
+        text
+      );
+
+    return normalizePrimaryResults(
+      parsed
+    );
+
+  } catch {
+    // Continue into text parsing.
+  }
+
+  const pieces =
+    text
+      .split(
+        /\r?\n|;/
+      )
+      .map(
+        item =>
+          item.trim()
+      )
+      .filter(
+        Boolean
+      );
+
+  const results = [];
+
+  pieces.forEach(
+    piece => {
+      let candidateName =
+        "";
+
+      let percentageText =
+        "";
+
+
+      if (
+        piece.includes(
+          "|"
+        )
+      ) {
+        const separatorIndex =
+          piece.lastIndexOf(
+            "|"
+          );
+
+        candidateName =
+          cleanText(
+            piece.slice(
+              0,
+              separatorIndex
+            )
+          );
+
+        percentageText =
+          cleanText(
+            piece.slice(
+              separatorIndex +
+              1
+            )
+          );
+
+      } else {
+
+        const match =
+          piece.match(
+            /^(.*?)[\s,:=-]+(-?\d+(?:\.\d+)?)%?$/
+          );
+
+        if (match) {
+          candidateName =
+            cleanText(
+              match[1]
+            );
+
+          percentageText =
+            cleanText(
+              match[2]
+            );
+        }
+      }
+
+
+      const percentage =
+        spreadsheetNumber(
+          percentageText
+        );
+
+
+      if (
+        candidateName &&
+        percentage !==
+        null
+      ) {
+        results.push({
+          candidate_name:
+            candidateName,
+
+          percentage
+        });
+      }
+    }
+  );
+
+  return results;
+}
+
+
+
+function normalizeImportedRecord(
+  rawRow
+) {
+  const row =
+    normalizeSpreadsheetRecord(
+      rawRow
+    );
+
+
+  const recordType =
+    spreadsheetRecordType(
       row
     );
 
+
+  const base = {
+    record_type:
+      recordType,
+
+    __sheet:
+      rawRow.__sheet ||
+      "",
+
+    __row_number:
+      rawRow.__row_number ||
+      0,
+
+    __errors:
+      [],
+
+    __warnings:
+      []
+  };
+
+
   if (
-    !slug &&
-    title
+    recordType ===
+    "race"
   ) {
-    slug =
-      slugify(title);
+    return {
+      ...base,
+
+      office:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "office",
+              "office_type"
+            ]
+          )
+        )
+          .toLowerCase(),
+
+      state:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "state",
+              "state_code"
+            ]
+          )
+        )
+          .toUpperCase()
+          .slice(
+            0,
+            2
+          ),
+
+      title:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "title",
+              "race_title",
+              "race_name"
+            ]
+          )
+        ),
+
+      slug:
+        slugify(
+          firstSpreadsheetValue(
+            row,
+            [
+              "slug",
+              "race_slug"
+            ]
+          )
+        ),
+
+      rating:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "rating",
+              "forecast_rating"
+            ]
+          )
+        ) ||
+        "Toss-up",
+
+      projected_margin:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "projected_margin",
+              "margin",
+              "model_margin"
+            ]
+          )
+        ),
+
+      featured:
+        spreadsheetBoolean(
+          firstSpreadsheetValue(
+            row,
+            [
+              "featured"
+            ]
+          ),
+          false
+        ),
+
+      race_of_the_day:
+        spreadsheetBoolean(
+          firstSpreadsheetValue(
+            row,
+            [
+              "race_of_the_day",
+              "race of the day"
+            ]
+          ),
+          false
+        ),
+
+      summary:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "summary",
+              "race_summary"
+            ]
+          )
+        ),
+
+      status:
+        normalizeStatus(
+          firstSpreadsheetValue(
+            row,
+            [
+              "status"
+            ]
+          )
+        )
+    };
   }
 
-  return {
-    record_type:
-      "race",
 
-    office:
-      normalizeOfficeValue(
-        firstSpreadsheetValue(
-          row,
-          [
-            "office",
-            "office_type",
-            "race_type",
-            "chamber"
-          ]
+  if (
+    recordType ===
+    "candidate"
+  ) {
+    return {
+      ...base,
+
+      race_slug:
+        slugify(
+          firstSpreadsheetValue(
+            row,
+            [
+              "race_slug",
+              "slug"
+            ]
+          )
+        ),
+
+      name:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "name",
+              "candidate_name",
+              "candidate"
+            ]
+          )
+        ),
+
+      party:
+        normalizePartyCode(
+          firstSpreadsheetValue(
+            row,
+            [
+              "party",
+              "candidate_party"
+            ]
+          )
+        ),
+
+      incumbent:
+        spreadsheetBoolean(
+          firstSpreadsheetValue(
+            row,
+            [
+              "incumbent"
+            ]
+          ),
+          false
+        ),
+
+      win_probability:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "win_probability",
+              "win_chance",
+              "probability"
+            ]
+          )
+        ),
+
+      expected_vote_share:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "expected_vote_share",
+              "projected_vote_share",
+              "vote_share"
+            ]
+          )
+        ),
+
+      photo_url:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "photo_url",
+              "image_url"
+            ]
+          )
+        ) ||
+        null,
+
+      candidate_to_watch:
+        spreadsheetBoolean(
+          firstSpreadsheetValue(
+            row,
+            [
+              "candidate_to_watch"
+            ]
+          ),
+          false
         )
-      ),
+    };
+  }
 
-    state:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "state",
-            "state_code",
-            "state abbreviation"
-          ]
+
+  if (
+    recordType ===
+    "poll"
+  ) {
+    return {
+      ...base,
+
+      race_slug:
+        slugify(
+          firstSpreadsheetValue(
+            row,
+            [
+              "race_slug",
+              "slug"
+            ]
+          )
+        ),
+
+      pollster:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "pollster",
+              "pollster_name"
+            ]
+          )
+        ),
+
+      start_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "start_date",
+              "field_start"
+            ]
+          )
+        ),
+
+      end_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "end_date",
+              "field_end",
+              "date"
+            ]
+          )
+        ),
+
+      sample_size:
+        integerOrNull(
+          spreadsheetNumber(
+            firstSpreadsheetValue(
+              row,
+              [
+                "sample_size",
+                "sample",
+                "n"
+              ]
+            )
+          )
+        ),
+
+      population:
+        normalizePopulation(
+          firstSpreadsheetValue(
+            row,
+            [
+              "population",
+              "sample_type"
+            ]
+          )
+        ),
+
+      dem_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "dem_pct",
+              "democratic_pct",
+              "dem",
+              "democratic"
+            ]
+          )
+        ),
+
+      rep_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "rep_pct",
+              "republican_pct",
+              "rep",
+              "republican"
+            ]
+          )
+        ),
+
+      ind_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "ind_pct",
+              "independent_pct",
+              "independent",
+              "other_pct",
+              "other"
+            ]
+          )
+        ),
+
+      lib_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "lib_pct",
+              "libertarian_pct"
+            ]
+          )
+        ),
+
+      green_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "green_pct"
+            ]
+          )
+        ),
+
+      quality_weight:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "quality_weight",
+              "weight"
+            ]
+          )
+        ) ||
+        1,
+
+      status:
+        normalizeStatus(
+          firstSpreadsheetValue(
+            row,
+            [
+              "status"
+            ]
+          )
         )
-      )
-        .toUpperCase()
-        .slice(0, 2),
+    };
+  }
 
-    title,
 
-    slug,
+  if (
+    recordType ===
+    "generic_ballot"
+  ) {
+    return {
+      ...base,
 
-    rating:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "rating",
-            "forecast_rating"
-          ]
+      pollster:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "pollster",
+              "pollster_name"
+            ]
+          )
+        ),
+
+      start_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "start_date",
+              "field_start"
+            ]
+          )
+        ),
+
+      end_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "end_date",
+              "field_end",
+              "date"
+            ]
+          )
+        ),
+
+      sample_size:
+        integerOrNull(
+          spreadsheetNumber(
+            firstSpreadsheetValue(
+              row,
+              [
+                "sample_size",
+                "sample",
+                "n"
+              ]
+            )
+          )
+        ),
+
+      population:
+        normalizePopulation(
+          firstSpreadsheetValue(
+            row,
+            [
+              "population",
+              "sample_type"
+            ]
+          )
+        ),
+
+      dem_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "dem_pct",
+              "democratic_pct",
+              "dem"
+            ]
+          )
+        ),
+
+      rep_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "rep_pct",
+              "republican_pct",
+              "rep"
+            ]
+          )
+        ),
+
+      quality_weight:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "quality_weight",
+              "weight"
+            ]
+          )
+        ) ||
+        1,
+
+      status:
+        normalizeStatus(
+          firstSpreadsheetValue(
+            row,
+            [
+              "status"
+            ]
+          )
         )
-      ) ||
-      "Toss-up",
+    };
+  }
 
-    projected_margin:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "projected_margin",
-            "margin",
-            "model_margin"
-          ]
+
+  if (
+    recordType ===
+    "approval_poll"
+  ) {
+    return {
+      ...base,
+
+      pollster:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "pollster",
+              "pollster_name"
+            ]
+          )
+        ),
+
+      start_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "start_date",
+              "field_start"
+            ]
+          )
+        ),
+
+      end_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "end_date",
+              "field_end",
+              "date"
+            ]
+          )
+        ),
+
+      sample_size:
+        integerOrNull(
+          spreadsheetNumber(
+            firstSpreadsheetValue(
+              row,
+              [
+                "sample_size",
+                "sample",
+                "n"
+              ]
+            )
+          )
+        ),
+
+      population:
+        normalizePopulation(
+          firstSpreadsheetValue(
+            row,
+            [
+              "population",
+              "sample_type"
+            ]
+          )
+        ),
+
+      approve_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "approve_pct",
+              "approval_pct",
+              "approve",
+              "approval"
+            ]
+          )
+        ),
+
+      disapprove_pct:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "disapprove_pct",
+              "disapproval_pct",
+              "disapprove",
+              "disapproval"
+            ]
+          )
+        ),
+
+      quality_weight:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "quality_weight",
+              "weight"
+            ]
+          )
+        ) ||
+        1,
+
+      status:
+        normalizeStatus(
+          firstSpreadsheetValue(
+            row,
+            [
+              "status"
+            ]
+          )
         )
-      ),
+    };
+  }
 
-    featured:
-      spreadsheetBoolean(
-        firstSpreadsheetValue(
-          row,
-          [
-            "featured",
-            "is_featured"
-          ]
-        )
-      ),
 
-    race_of_the_day:
-      spreadsheetBoolean(
-        firstSpreadsheetValue(
-          row,
-          [
-            "race_of_the_day",
-            "race of the day"
-          ]
-        )
-      ),
+  if (
+    recordType ===
+    "primary_poll"
+  ) {
+    const resultValue =
+      firstSpreadsheetValue(
+        row,
+        [
+          "candidate_results",
+          "candidate_results_json",
+          "results",
+          "candidates"
+        ]
+      );
 
-    summary:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "summary",
-            "race_summary",
-            "analysis"
-          ]
-        )
-      ),
 
-    status:
-      spreadsheetStatus(
-        row
-      )
-  };
-}
+    let candidateResults =
+      normalizeImportedPrimaryResults(
+        resultValue
+      );
 
-function normalizeImportedCandidate(
-  row
-) {
-  return {
-    record_type:
-      "candidate",
 
-    race_slug:
-      spreadsheetRaceSlug(
-        row
-      ),
-
-    name:
+    const singleCandidateName =
       spreadsheetCellText(
         firstSpreadsheetValue(
           row,
           [
             "candidate_name",
-            "candidate",
-            "name"
+            "candidate"
           ]
         )
-      ),
+      );
 
-    party:
-      normalizePartyCode(
-        firstSpreadsheetValue(
-          row,
-          [
-            "party",
-            "candidate_party"
-          ]
-        )
-      ),
 
-    incumbent:
-      spreadsheetBoolean(
-        firstSpreadsheetValue(
-          row,
-          [
-            "incumbent",
-            "is_incumbent"
-          ]
-        )
-      ),
-
-    win_probability:
+    const singleCandidatePct =
       spreadsheetNumber(
         firstSpreadsheetValue(
           row,
           [
-            "win_probability",
-            "win probability",
-            "win_pct",
-            "win_percent",
-            "odds"
+            "candidate_pct",
+            "candidate_percentage",
+            "percentage",
+            "pct"
           ]
         )
-      ),
+      );
 
-    expected_vote_share:
-      spreadsheetNumber(
+
+    if (
+      !candidateResults.length &&
+      singleCandidateName &&
+      singleCandidatePct !==
+      null
+    ) {
+      candidateResults = [
+        {
+          candidate_name:
+            singleCandidateName,
+
+          percentage:
+            singleCandidatePct
+        }
+      ];
+    }
+
+
+    const raceSlug =
+      slugify(
         firstSpreadsheetValue(
           row,
           [
-            "expected_vote_share",
-            "projected_vote_share",
-            "vote_share",
-            "expected vote"
+            "race_slug"
           ]
         )
-      ),
+      );
 
-    candidate_to_watch:
-      spreadsheetBoolean(
-        firstSpreadsheetValue(
-          row,
-          [
-            "candidate_to_watch",
-            "candidate to watch"
-          ]
-        )
-      ),
 
-    photo_url:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "photo_url",
-            "image_url"
-          ]
-        )
-      )
-  };
-}
-
-function normalizeImportedPoll(
-  row
-) {
-  return {
-    record_type:
-      "poll",
-
-    race_slug:
-      spreadsheetRaceSlug(
-        row
-      ),
-
-    pollster:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "pollster",
-            "polling_firm",
-            "firm"
-          ]
-        )
-      ),
-
-    start_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "start_date",
-            "start date",
-            "field_start"
-          ]
-        )
-      ),
-
-    end_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "end_date",
-            "end date",
-            "field_end",
-            "date"
-          ]
-        )
-      ),
-
-    sample_size:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "sample_size",
-            "sample",
-            "n"
-          ]
-        )
-      ),
-
-    population:
-      normalizePopulation(
-        firstSpreadsheetValue(
-          row,
-          [
-            "population",
-            "sample_type",
-            "pop"
-          ]
-        )
-      ),
-
-    dem_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "dem_pct",
-            "dem",
-            "democratic",
-            "democrat"
-          ]
-        )
-      ),
-
-    rep_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "rep_pct",
-            "rep",
-            "republican"
-          ]
-        )
-      ),
-
-    ind_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "ind_pct",
-            "ind",
-            "independent",
-            "independent_pct"
-          ]
-        )
-      ),
-
-    lib_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "lib_pct",
-            "lib",
-            "libertarian",
-            "libertarian_pct"
-          ]
-        )
-      ),
-
-    green_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "green_pct",
-            "green"
-          ]
-        )
-      ),
-
-    quality_weight:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "quality_weight",
-            "weight",
-            "pollster_weight"
-          ]
-        )
-      ) ||
-      1,
-
-    status:
-      spreadsheetStatus(
-        row
-      )
-  };
-}
-
-function normalizeImportedGenericBallot(
-  row
-) {
-  return {
-    record_type:
-      "generic_ballot",
-
-    pollster:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "pollster",
-            "polling_firm",
-            "firm"
-          ]
-        )
-      ),
-
-    start_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "start_date",
-            "field_start"
-          ]
-        )
-      ),
-
-    end_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "end_date",
-            "field_end",
-            "date"
-          ]
-        )
-      ),
-
-    sample_size:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "sample_size",
-            "sample",
-            "n"
-          ]
-        )
-      ),
-
-    population:
-      normalizePopulation(
-        firstSpreadsheetValue(
-          row,
-          [
-            "population",
-            "sample_type",
-            "pop"
-          ]
-        )
-      ),
-
-    dem_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "dem_pct",
-            "dem",
-            "democratic"
-          ]
-        )
-      ),
-
-    rep_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "rep_pct",
-            "rep",
-            "republican"
-          ]
-        )
-      ),
-
-    quality_weight:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "quality_weight",
-            "weight"
-          ]
-        )
-      ) ||
-      1,
-
-    status:
-      spreadsheetStatus(
-        row
-      )
-  };
-}
-
-function normalizeImportedApprovalPoll(
-  row
-) {
-  return {
-    record_type:
-      "approval_poll",
-
-    pollster:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "pollster",
-            "polling_firm",
-            "firm"
-          ]
-        )
-      ),
-
-    start_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "start_date",
-            "field_start"
-          ]
-        )
-      ),
-
-    end_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "end_date",
-            "field_end",
-            "date"
-          ]
-        )
-      ),
-
-    sample_size:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "sample_size",
-            "sample",
-            "n"
-          ]
-        )
-      ),
-
-    population:
-      normalizePopulation(
-        firstSpreadsheetValue(
-          row,
-          [
-            "population",
-            "sample_type",
-            "pop"
-          ]
-        )
-      ),
-
-    approve_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "approve_pct",
-            "approve",
-            "approval"
-          ]
-        )
-      ),
-
-    disapprove_pct:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "disapprove_pct",
-            "disapprove",
-            "disapproval"
-          ]
-        )
-      ),
-
-    quality_weight:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "quality_weight",
-            "weight"
-          ]
-        )
-      ) ||
-      1,
-
-    status:
-      spreadsheetStatus(
-        row
-      )
-  };
-}
-
-function parsePrimaryResultsFromRow(
-  row
-) {
-  const directResults =
-    firstSpreadsheetValue(
-      row,
-      [
-        "candidate_results",
-        "results",
-        "candidates"
-      ]
-    );
-
-  if (directResults) {
-    return normalizePrimaryResults(
-      directResults
-    );
-  }
-
-  const candidateName =
-    spreadsheetCellText(
-      firstSpreadsheetValue(
-        row,
-        [
-          "candidate_name",
-          "candidate"
-        ]
-      )
-    );
-
-  const percentage =
-    spreadsheetNumber(
-      firstSpreadsheetValue(
-        row,
-        [
-          "candidate_pct",
-          "candidate_percent",
-          "percentage",
-          "pct",
-          "support"
-        ]
-      )
-    );
-
-  if (
-    candidateName &&
-    percentage !== null
-  ) {
-    return [
-      {
-        candidate_name:
-          candidateName,
-
-        percentage
-      }
-    ];
-  }
-
-  return [];
-}
-
-function normalizeImportedPrimaryPoll(
-  row
-) {
-  return {
-    record_type:
-      "primary_poll",
-
-    pollster:
-      spreadsheetCellText(
-        firstSpreadsheetValue(
-          row,
-          [
-            "pollster",
-            "polling_firm",
-            "firm"
-          ]
-        )
-      ),
-
-    primary_party:
+    let primaryParty =
       normalizePrimaryParty(
         firstSpreadsheetValue(
           row,
@@ -7036,288 +7509,296 @@ function normalizeImportedPrimaryPoll(
             "party"
           ]
         )
-      ),
+      );
 
-    start_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "start_date",
-            "field_start"
-          ]
-        )
-      ),
 
-    end_date:
-      spreadsheetDate(
-        firstSpreadsheetValue(
-          row,
-          [
-            "end_date",
-            "field_end",
-            "date"
-          ]
-        )
-      ),
-
-    sample_size:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "sample_size",
-            "sample",
-            "n"
-          ]
-        )
-      ),
-
-    population:
-      normalizePopulation(
-        firstSpreadsheetValue(
-          row,
-          [
-            "population",
-            "sample_type",
-            "pop"
-          ]
-        )
-      ),
-
-    candidate_results:
-      parsePrimaryResultsFromRow(
-        row
-      ),
-
-    quality_weight:
-      spreadsheetNumber(
-        firstSpreadsheetValue(
-          row,
-          [
-            "quality_weight",
-            "weight"
-          ]
-        )
+    if (
+      raceSlug.includes(
+        "rep"
       ) ||
-      1,
-
-    status:
-      spreadsheetStatus(
-        row
+      raceSlug.includes(
+        "gop"
       )
-  };
-}
+    ) {
+      primaryParty =
+        "R";
+    }
 
-function normalizeImportedRecord(
-  row
-) {
-  const recordType =
-    normalizeRecordType(
-      firstSpreadsheetValue(
-        row,
-        [
-          "record_type",
-          "record type",
-          "type"
-        ]
+
+    if (
+      raceSlug.includes(
+        "dem"
       )
-    );
+    ) {
+      primaryParty =
+        "D";
+    }
 
-  let normalized;
 
-  if (
-    recordType ===
-    "race"
-  ) {
-    normalized =
-      normalizeImportedRace(
-        row
-      );
-  } else if (
-    recordType ===
-    "candidate"
-  ) {
-    normalized =
-      normalizeImportedCandidate(
-        row
-      );
-  } else if (
-    recordType ===
-    "poll"
-  ) {
-    normalized =
-      normalizeImportedPoll(
-        row
-      );
-  } else if (
-    recordType ===
-    "generic_ballot"
-  ) {
-    normalized =
-      normalizeImportedGenericBallot(
-        row
-      );
-  } else if (
-    recordType ===
-    "approval_poll"
-  ) {
-    normalized =
-      normalizeImportedApprovalPoll(
-        row
-      );
-  } else if (
-    recordType ===
-    "primary_poll"
-  ) {
-    normalized =
-      normalizeImportedPrimaryPoll(
-        row
-      );
-  } else {
-    normalized = {
-      record_type:
-        recordType
+    return {
+      ...base,
+
+      race_slug:
+        raceSlug,
+
+      pollster:
+        spreadsheetCellText(
+          firstSpreadsheetValue(
+            row,
+            [
+              "pollster",
+              "pollster_name"
+            ]
+          )
+        ),
+
+      primary_party:
+        primaryParty,
+
+      start_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "start_date",
+              "field_start"
+            ]
+          )
+        ),
+
+      end_date:
+        spreadsheetDate(
+          firstSpreadsheetValue(
+            row,
+            [
+              "end_date",
+              "field_end",
+              "date"
+            ]
+          )
+        ),
+
+      sample_size:
+        integerOrNull(
+          spreadsheetNumber(
+            firstSpreadsheetValue(
+              row,
+              [
+                "sample_size",
+                "sample",
+                "n"
+              ]
+            )
+          )
+        ),
+
+      population:
+        normalizePopulation(
+          firstSpreadsheetValue(
+            row,
+            [
+              "population",
+              "sample_type"
+            ]
+          )
+        ),
+
+      candidate_results:
+        candidateResults,
+
+      quality_weight:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "quality_weight",
+              "weight"
+            ]
+          )
+        ) ||
+        1,
+
+      status:
+        normalizeStatus(
+          firstSpreadsheetValue(
+            row,
+            [
+              "status"
+            ]
+          )
+        )
     };
   }
 
+
   return {
-    ...normalized,
-
-    __sheet:
-      row.__sheet,
-
-    __row_number:
-      row.__row_number,
-
-    __errors: [],
-
-    __warnings: []
+    ...base
   };
 }
 
 
+
 /* =========================================================
-   PRIMARY-POLL ROW GROUPING
+   MERGE PRIMARY CANDIDATE ROWS
    ========================================================= */
-
-function primaryPollGroupingKey(
-  row
-) {
-  return [
-    cleanText(
-      row.pollster
-    ).toLowerCase(),
-
-    row.primary_party,
-
-    row.start_date,
-
-    row.end_date,
-
-    row.sample_size ?? "",
-
-    row.population
-  ].join("|");
-}
 
 function mergeImportedPrimaryRows(
   rows
 ) {
+  const nonPrimaryRows =
+    rows.filter(
+      row =>
+        row.record_type !==
+        "primary_poll"
+    );
+
+
   const grouped =
     new Map();
 
-  const nonPrimaryRows =
-    [];
 
-  rows.forEach(
-    row => {
-      if (
-        row.record_type !==
+  rows
+    .filter(
+      row =>
+        row.record_type ===
         "primary_poll"
-      ) {
-        nonPrimaryRows.push(
-          row
+    )
+    .forEach(
+      row => {
+        const key = [
+          row.pollster,
+          row.primary_party,
+          row.start_date,
+          row.end_date,
+          row.sample_size,
+          row.population,
+          row.status
+        ]
+          .map(
+            value =>
+              cleanText(
+                value
+              )
+                .toLowerCase()
+          )
+          .join(
+            "|"
+          );
+
+
+        if (
+          !grouped.has(
+            key
+          )
+        ) {
+          grouped.set(
+            key,
+            {
+              ...row,
+
+              candidate_results:
+                []
+            }
+          );
+        }
+
+
+        const target =
+          grouped.get(
+            key
+          );
+
+
+        target.candidate_results.push(
+          ...normalizePrimaryResults(
+            row.candidate_results
+          )
         );
 
-        return;
+
+        target.__row_number =
+          Math.min(
+            Number(
+              target.__row_number ||
+              0
+            ),
+            Number(
+              row.__row_number ||
+              0
+            )
+          );
       }
+    );
 
-      const key =
-        primaryPollGroupingKey(
-          row
-        );
-
-      if (
-        !grouped.has(key)
-      ) {
-        grouped.set(
-          key,
-          {
-            ...row,
-
-            candidate_results:
-              []
-          }
-        );
-      }
-
-      const target =
-        grouped.get(key);
-
-      target.candidate_results.push(
-        ...normalizePrimaryResults(
-          row.candidate_results
-        )
-      );
-
-      target.__row_number =
-        Math.min(
-          target.__row_number,
-          row.__row_number
-        );
-    }
-  );
 
   const mergedPrimaryRows =
     [
       ...grouped.values()
-    ].map(
-      row => {
-        const candidateMap =
-          new Map();
+    ]
+      .map(
+        row => {
+          const candidateMap =
+            new Map();
 
-        row.candidate_results
-          .forEach(
-            result => {
-              const key =
-                result.candidate_name
-                  .toLowerCase();
 
-              candidateMap.set(
-                key,
-                result
-              );
-            }
-          );
+          row.candidate_results
+            .forEach(
+              result => {
+                const candidateName =
+                  cleanText(
+                    result.candidate_name
+                  );
 
-        return {
-          ...row,
 
-          candidate_results:
-            [
-              ...candidateMap
-                .values()
-            ]
-        };
-      }
-    );
+                const percentage =
+                  Number(
+                    result.percentage
+                  );
+
+
+                if (
+                  !candidateName ||
+                  !Number.isFinite(
+                    percentage
+                  )
+                ) {
+                  return;
+                }
+
+
+                candidateMap.set(
+                  candidateName
+                    .toLowerCase(),
+                  {
+                    candidate_name:
+                      candidateName,
+
+                    percentage
+                  }
+                );
+              }
+            );
+
+
+          return {
+            ...row,
+
+            candidate_results:
+              [
+                ...candidateMap
+                  .values()
+              ]
+          };
+        }
+      );
+
 
   return [
     ...nonPrimaryRows,
     ...mergedPrimaryRows
   ];
 }
+
 
 
 /* =========================================================
@@ -7363,12 +7844,19 @@ function validatePercentage(
     return;
   }
 
+
   if (
     !Number.isFinite(
-      Number(value)
+      Number(
+        value
+      )
     ) ||
-    Number(value) < 0 ||
-    Number(value) > 100
+    Number(
+      value
+    ) < 0 ||
+    Number(
+      value
+    ) > 100
   ) {
     addRowError(
       row,
@@ -7380,13 +7868,6 @@ function validatePercentage(
 function validateImportedRace(
   row
 ) {
-  if (!row.office) {
-    addRowError(
-      row,
-      "Office is required."
-    );
-  }
-
   if (
     ![
       "senate",
@@ -7402,12 +7883,14 @@ function validateImportedRace(
     );
   }
 
+
   if (!row.state) {
     addRowError(
       row,
       "State is required."
     );
   }
+
 
   if (!row.title) {
     addRowError(
@@ -7416,12 +7899,14 @@ function validateImportedRace(
     );
   }
 
+
   if (!row.slug) {
     addRowError(
       row,
       "Race slug is required."
     );
   }
+
 
   if (
     row.projected_margin ===
@@ -7443,6 +7928,7 @@ function validateImportedCandidate(
       row,
       "race_slug is required."
     );
+
   } else if (
     !knownRaceSlugs.has(
       row.race_slug
@@ -7454,6 +7940,7 @@ function validateImportedCandidate(
     );
   }
 
+
   if (!row.name) {
     addRowError(
       row,
@@ -7461,12 +7948,14 @@ function validateImportedCandidate(
     );
   }
 
+
   validatePercentage(
     row,
     row.win_probability,
     "Win probability",
     true
   );
+
 
   validatePercentage(
     row,
@@ -7476,7 +7965,7 @@ function validateImportedCandidate(
   );
 }
 
-function validateImportedPoll(
+function validateImportedRacePoll(
   row,
   knownRaceSlugs
 ) {
@@ -7485,6 +7974,7 @@ function validateImportedPoll(
       row,
       "race_slug is required."
     );
+
   } else if (
     !knownRaceSlugs.has(
       row.race_slug
@@ -7496,6 +7986,7 @@ function validateImportedPoll(
     );
   }
 
+
   if (!row.pollster) {
     addRowError(
       row,
@@ -7503,15 +7994,22 @@ function validateImportedPoll(
     );
   }
 
-  if (
-    !row.start_date ||
-    !row.end_date
-  ) {
+
+  if (!row.start_date) {
     addRowError(
       row,
-      "Valid start_date and end_date values are required."
+      "Start date is required."
     );
   }
+
+
+  if (!row.end_date) {
+    addRowError(
+      row,
+      "End date is required."
+    );
+  }
+
 
   if (
     row.start_date &&
@@ -7524,6 +8022,7 @@ function validateImportedPoll(
       "End date cannot be before start date."
     );
   }
+
 
   validatePercentage(
     row,
@@ -7532,6 +8031,7 @@ function validateImportedPoll(
     true
   );
 
+
   validatePercentage(
     row,
     row.rep_pct,
@@ -7539,11 +8039,13 @@ function validateImportedPoll(
     true
   );
 
+
   validatePercentage(
     row,
     row.ind_pct,
     "Independent percentage"
   );
+
 
   validatePercentage(
     row,
@@ -7551,54 +8053,16 @@ function validateImportedPoll(
     "Libertarian percentage"
   );
 
+
   validatePercentage(
     row,
     row.green_pct,
     "Green percentage"
   );
-
-  const total =
-    [
-      row.dem_pct,
-      row.rep_pct,
-      row.ind_pct,
-      row.lib_pct,
-      row.green_pct
-    ]
-      .filter(
-        value =>
-          value !== null &&
-          value !== undefined
-      )
-      .reduce(
-        (
-          sum,
-          value
-        ) =>
-          sum +
-          Number(value),
-        0
-      );
-
-  if (
-    total >
-    100.5
-  ) {
-    addRowError(
-      row,
-      `Candidate percentages total ${total.toFixed(
-        1
-      )}%.`
-    );
-  }
 }
 
-function validateImportedTwoWayPoll(
-  row,
-  firstField,
-  secondField,
-  firstLabel,
-  secondLabel
+function validateImportedGenericBallot(
+  row
 ) {
   if (!row.pollster) {
     addRowError(
@@ -7607,39 +8071,78 @@ function validateImportedTwoWayPoll(
     );
   }
 
-  if (
-    !row.start_date ||
-    !row.end_date
-  ) {
+
+  if (!row.start_date) {
     addRowError(
       row,
-      "Valid start_date and end_date values are required."
+      "Start date is required."
     );
   }
 
-  if (
-    row.start_date &&
-    row.end_date &&
-    row.end_date <
-    row.start_date
-  ) {
+
+  if (!row.end_date) {
     addRowError(
       row,
-      "End date cannot be before start date."
+      "End date is required."
     );
   }
+
 
   validatePercentage(
     row,
-    row[firstField],
-    firstLabel,
+    row.dem_pct,
+    "Democratic percentage",
     true
   );
 
+
   validatePercentage(
     row,
-    row[secondField],
-    secondLabel,
+    row.rep_pct,
+    "Republican percentage",
+    true
+  );
+}
+
+function validateImportedApprovalPoll(
+  row
+) {
+  if (!row.pollster) {
+    addRowError(
+      row,
+      "Pollster is required."
+    );
+  }
+
+
+  if (!row.start_date) {
+    addRowError(
+      row,
+      "Start date is required."
+    );
+  }
+
+
+  if (!row.end_date) {
+    addRowError(
+      row,
+      "End date is required."
+    );
+  }
+
+
+  validatePercentage(
+    row,
+    row.approve_pct,
+    "Approval percentage",
+    true
+  );
+
+
+  validatePercentage(
+    row,
+    row.disapprove_pct,
+    "Disapproval percentage",
     true
   );
 }
@@ -7654,15 +8157,6 @@ function validateImportedPrimaryPoll(
     );
   }
 
-  if (
-    !row.start_date ||
-    !row.end_date
-  ) {
-    addRowError(
-      row,
-      "Valid start_date and end_date values are required."
-    );
-  }
 
   if (
     ![
@@ -7678,12 +8172,29 @@ function validateImportedPrimaryPoll(
     );
   }
 
-  const results =
-    normalizePrimaryResults(
-      row.candidate_results
-    );
 
-  if (!results.length) {
+  if (!row.start_date) {
+    addRowError(
+      row,
+      "Start date is required."
+    );
+  }
+
+
+  if (!row.end_date) {
+    addRowError(
+      row,
+      "End date is required."
+    );
+  }
+
+
+  if (
+    !Array.isArray(
+      row.candidate_results
+    ) ||
+    !row.candidate_results.length
+  ) {
     addRowError(
       row,
       "At least one candidate result is required."
@@ -7692,80 +8203,101 @@ function validateImportedPrimaryPoll(
     return;
   }
 
-  const total =
-    results.reduce(
-      (
-        sum,
-        result
-      ) =>
-        sum +
-        Number(
-          result.percentage ||
-          0
-        ),
-      0
+
+  row.candidate_results
+    .forEach(
+      result => {
+        if (
+          !cleanText(
+            result.candidate_name
+          )
+        ) {
+          addRowError(
+            row,
+            "Every primary result needs a candidate name."
+          );
+        }
+
+
+        validatePercentage(
+          row,
+          result.percentage,
+          `${result.candidate_name || "Candidate"} percentage`,
+          true
+        );
+      }
     );
+
+
+  const total =
+    row.candidate_results
+      .reduce(
+        (
+          sum,
+          result
+        ) =>
+          sum +
+          Number(
+            result.percentage ||
+            0
+          ),
+        0
+      );
+
 
   if (
     total >
     100.5
   ) {
-    addRowError(
+    addRowWarning(
       row,
-      `Primary percentages total ${total.toFixed(
+      `Candidate results total ${total.toFixed(
         1
       )}%.`
     );
   }
-
-  results.forEach(
-    result => {
-      validatePercentage(
-        row,
-        result.percentage,
-        `${result.candidate_name} percentage`,
-        true
-      );
-    }
-  );
 }
 
 function validateElectionWorkbookRows(
-  normalizedRows
+  rows
 ) {
   const importedRaceSlugs =
-    normalizedRows
+    rows
       .filter(
         row =>
           row.record_type ===
-          "race" &&
-          row.slug
+          "race"
       )
       .map(
         row =>
           row.slug
+      )
+      .filter(
+        Boolean
       );
 
-  const existingRaceSlugs =
-    state.races
-      .map(
+
+  const knownRaceSlugs =
+    new Set([
+      ...state.races.map(
         race =>
           slugify(
             race.slug
           )
-      )
-      .filter(Boolean);
+      ),
 
-  const knownRaceSlugs =
-    new Set([
-      ...existingRaceSlugs,
       ...importedRaceSlugs
     ]);
 
-  normalizedRows.forEach(
+
+  rows.forEach(
     row => {
-      row.__errors = [];
-      row.__warnings = [];
+      row.__errors =
+        [];
+
+      row.__warnings =
+        [];
+
 
       if (
         !supportedRecordType(
@@ -7780,6 +8312,7 @@ function validateElectionWorkbookRows(
         return;
       }
 
+
       if (
         row.record_type ===
         "race"
@@ -7788,6 +8321,7 @@ function validateElectionWorkbookRows(
           row
         );
       }
+
 
       if (
         row.record_type ===
@@ -7799,41 +8333,37 @@ function validateElectionWorkbookRows(
         );
       }
 
+
       if (
         row.record_type ===
         "poll"
       ) {
-        validateImportedPoll(
+        validateImportedRacePoll(
           row,
           knownRaceSlugs
         );
       }
 
+
       if (
         row.record_type ===
         "generic_ballot"
       ) {
-        validateImportedTwoWayPoll(
-          row,
-          "dem_pct",
-          "rep_pct",
-          "Democratic percentage",
-          "Republican percentage"
+        validateImportedGenericBallot(
+          row
         );
       }
+
 
       if (
         row.record_type ===
         "approval_poll"
       ) {
-        validateImportedTwoWayPoll(
-          row,
-          "approve_pct",
-          "disapprove_pct",
-          "Approval percentage",
-          "Disapproval percentage"
+        validateImportedApprovalPoll(
+          row
         );
       }
+
 
       if (
         row.record_type ===
@@ -7843,28 +8373,13 @@ function validateElectionWorkbookRows(
           row
         );
       }
-
-      if (
-        !row.sample_size &&
-        [
-          "poll",
-          "generic_ballot",
-          "approval_poll",
-          "primary_poll"
-        ].includes(
-          row.record_type
-        )
-      ) {
-        addRowWarning(
-          row,
-          "Sample size is blank."
-        );
-      }
     }
   );
 
-  return normalizedRows;
+
+  return rows;
 }
+
 
 
 /* =========================================================
@@ -7894,13 +8409,12 @@ function spreadsheetRecordLabel(
       "Primary poll"
   };
 
-  return (
-    labels[
-      recordType
-    ] ||
-    recordType ||
-    "Unknown"
-  );
+
+  return labels[
+    recordType
+  ] ||
+  recordType ||
+  "Unknown";
 }
 
 function spreadsheetRecordDescription(
@@ -7913,49 +8427,55 @@ function spreadsheetRecordDescription(
     return (
       row.title ||
       row.slug ||
-      "Untitled race"
+      "Race"
     );
   }
+
 
   if (
     row.record_type ===
     "candidate"
   ) {
-    return `${row.name || "Unnamed candidate"} · ${row.race_slug || "No race"}`;
+    return `${row.name || "Candidate"} · ${row.race_slug || "No race"}`;
   }
+
 
   if (
     row.record_type ===
     "poll"
   ) {
-    return `${row.pollster || "Unknown pollster"} · ${row.race_slug || "No race"}`;
+    return `${row.pollster || "Poll"} · ${row.race_slug || "No race"}`;
   }
+
 
   if (
     row.record_type ===
     "generic_ballot"
   ) {
-    return `${row.pollster || "Unknown pollster"} · Generic ballot`;
+    return `${row.pollster || "Poll"} · Generic ballot`;
   }
+
 
   if (
     row.record_type ===
     "approval_poll"
   ) {
-    return `${row.pollster || "Unknown pollster"} · Trump approval`;
+    return `${row.pollster || "Poll"} · Trump approval`;
   }
+
 
   if (
     row.record_type ===
     "primary_poll"
   ) {
-    return `${row.pollster || "Unknown pollster"} · ${
+    return `${row.pollster || "Poll"} · ${
       row.primary_party ===
       "R"
         ? "Republican"
         : "Democratic"
     } primary`;
   }
+
 
   return "Unknown record";
 }
@@ -7969,9 +8489,6 @@ function renderSpreadsheetPreview(
   const summary =
     $("#spreadsheetPreviewSummary");
 
-  const messages =
-    $("#spreadsheetValidationMessages");
-
   const head =
     $("#spreadsheetPreviewHead");
 
@@ -7981,10 +8498,10 @@ function renderSpreadsheetPreview(
   const importButton =
     $("#importElectionWorkbook");
 
+
   if (
     !card ||
     !summary ||
-    !messages ||
     !head ||
     !body ||
     !importButton
@@ -7992,8 +8509,10 @@ function renderSpreadsheetPreview(
     return;
   }
 
+
   card.style.display =
     "";
+
 
   const errorRows =
     rows.filter(
@@ -8001,20 +8520,13 @@ function renderSpreadsheetPreview(
         row.__errors.length
     );
 
+
   const warningRows =
     rows.filter(
       row =>
         row.__warnings.length
     );
 
-  const validRows =
-    rows.filter(
-      row =>
-        !row.__errors.length
-    );
-
-  summary.textContent =
-    `${rows.length} records found · ${validRows.length} ready · ${errorRows.length} with errors · ${warningRows.length} with warnings`;
 
   const typeCounts =
     rows.reduce(
@@ -8040,19 +8552,23 @@ function renderSpreadsheetPreview(
       {}
     );
 
-  messages.innerHTML = `
-    <div class="notice ${
-      errorRows.length
-        ? "error"
-        : "success"
-    }">
 
-      ${
-        errorRows.length
-          ? `${errorRows.length} record(s) must be corrected before importing.`
-          : "Spreadsheet validation passed."
-      }
-
+  summary.innerHTML = `
+    <div>
+      <b>
+        ${rows.length}
+      </b>
+      records found
+      ·
+      <b>
+        ${errorRows.length}
+      </b>
+      errors
+      ·
+      <b>
+        ${warningRows.length}
+      </b>
+      warnings
     </div>
 
     <p class="subtle">
@@ -8071,10 +8587,13 @@ function renderSpreadsheetPreview(
                 type
               )}: ${count}`
           )
-          .join(" · ")
+          .join(
+            " · "
+          )
       }
     </p>
   `;
+
 
   head.innerHTML = `
     <tr>
@@ -8085,6 +8604,7 @@ function renderSpreadsheetPreview(
       <th>Messages</th>
     </tr>
   `;
+
 
   body.innerHTML =
     rows
@@ -8098,15 +8618,20 @@ function renderSpreadsheetPreview(
             row.__errors.length >
             0;
 
+
           const hasWarnings =
             row.__warnings.length >
             0;
+
 
           const messagesText =
             [
               ...row.__errors,
               ...row.__warnings
-            ].join(" ");
+            ].join(
+              " "
+            );
+
 
           return `
             <tr>
@@ -8167,7 +8692,10 @@ function renderSpreadsheetPreview(
           `;
         }
       )
-      .join("");
+      .join(
+        ""
+      );
+
 
   if (
     rows.length >
@@ -8188,6 +8716,7 @@ function renderSpreadsheetPreview(
     );
   }
 
+
   importButton.disabled =
     Boolean(
       errorRows.length
@@ -8199,32 +8728,41 @@ async function previewElectionWorkbook() {
     const input =
       $("#electionWorkbookFile");
 
+
     const file =
-      input?.files?.[0];
+      input
+        ?.files
+        ?.[0];
+
 
     const rawRows =
       await readElectionWorkbook(
         file
       );
 
+
     const normalizedRows =
       rawRows.map(
         normalizeImportedRecord
       );
+
 
     const mergedRows =
       mergeImportedPrimaryRows(
         normalizedRows
       );
 
+
     electionWorkbookPreviewRows =
       validateElectionWorkbookRows(
         mergedRows
       );
 
+
     renderSpreadsheetPreview(
       electionWorkbookPreviewRows
     );
+
 
     msg(
       "Spreadsheet preview created."
@@ -8235,18 +8773,22 @@ async function previewElectionWorkbook() {
     electionWorkbookPreviewRows =
       [];
 
+
     const importButton =
       $("#importElectionWorkbook");
+
 
     if (importButton) {
       importButton.disabled =
         true;
     }
 
+
     console.error(
       "Spreadsheet preview failed:",
       error
     );
+
 
     msg(
       error.message ||
@@ -8255,8 +8797,11 @@ async function previewElectionWorkbook() {
     );
   }
 }
+
+
+
 /* =========================================================
-   SPREADSHEET IMPORT — DUPLICATE MATCHING
+   DUPLICATE MATCHING
    ========================================================= */
 
 function sameText(
@@ -8264,162 +8809,264 @@ function sameText(
   second
 ) {
   return (
-    cleanText(first)
+    cleanText(
+      first
+    )
       .toLowerCase() ===
-    cleanText(second)
+    cleanText(
+      second
+    )
       .toLowerCase()
   );
 }
 
-function sameDate(
+function sameNullableNumber(
   first,
   second
 ) {
-  return (
-    cleanText(first) ===
-    cleanText(second)
-  );
-}
+  const firstNumber =
+    numberOrNull(
+      first
+    );
 
-function findExistingCandidate(
-  raceId,
-  candidateName,
-  party
-) {
-  return (
-    state.candidates.find(
-      candidate =>
-        candidate.race_id ===
-          raceId &&
-        sameText(
-          candidate.name,
-          candidateName
-        ) &&
-        normalizePartyCode(
-          candidate.party
-        ) ===
-          normalizePartyCode(
-            party
-          )
-    ) ||
+
+  const secondNumber =
+    numberOrNull(
+      second
+    );
+
+
+  if (
+    firstNumber ===
+    null &&
+    secondNumber ===
     null
+  ) {
+    return true;
+  }
+
+
+  if (
+    firstNumber ===
+    null ||
+    secondNumber ===
+    null
+  ) {
+    return false;
+  }
+
+
+  return (
+    Math.abs(
+      firstNumber -
+      secondNumber
+    ) <
+    0.001
   );
 }
 
-function findExistingRacePoll(
-  raceId,
+function existingRacePollDuplicate(
+  row,
+  raceId
+) {
+  return state.polls.find(
+    poll =>
+      poll.race_id ===
+        raceId &&
+      sameText(
+        poll.pollster,
+        row.pollster
+      ) &&
+      poll.start_date ===
+        row.start_date &&
+      poll.end_date ===
+        row.end_date &&
+      sameNullableNumber(
+        poll.dem_pct,
+        row.dem_pct
+      ) &&
+      sameNullableNumber(
+        poll.rep_pct,
+        row.rep_pct
+      )
+  );
+}
+
+function existingGenericBallotDuplicate(
   row
 ) {
-  return (
-    state.polls.find(
-      poll =>
-        poll.race_id ===
-          raceId &&
-        sameText(
-          poll.pollster,
-          row.pollster
-        ) &&
-        sameDate(
-          poll.start_date,
-          row.start_date
-        ) &&
-        sameDate(
-          poll.end_date,
-          row.end_date
-        )
-    ) ||
-    null
+  return state.genericBallotPolls.find(
+    poll =>
+      sameText(
+        poll.pollster,
+        row.pollster
+      ) &&
+      poll.start_date ===
+        row.start_date &&
+      poll.end_date ===
+        row.end_date &&
+      sameNullableNumber(
+        poll.dem_pct,
+        row.dem_pct
+      ) &&
+      sameNullableNumber(
+        poll.rep_pct,
+        row.rep_pct
+      )
   );
 }
 
-function findExistingGenericBallotPoll(
+function existingApprovalDuplicate(
   row
 ) {
-  return (
-    state.genericBallotPolls.find(
-      poll =>
-        sameText(
-          poll.pollster,
-          row.pollster
-        ) &&
-        sameDate(
-          poll.start_date,
-          row.start_date
-        ) &&
-        sameDate(
-          poll.end_date,
-          row.end_date
-        )
-    ) ||
-    null
+  return state.approvalPolls.find(
+    poll =>
+      sameText(
+        poll.pollster,
+        row.pollster
+      ) &&
+      poll.start_date ===
+        row.start_date &&
+      poll.end_date ===
+        row.end_date &&
+      sameNullableNumber(
+        poll.approve_pct,
+        row.approve_pct
+      ) &&
+      sameNullableNumber(
+        poll.disapprove_pct,
+        row.disapprove_pct
+      )
   );
 }
 
-function findExistingApprovalPoll(
+function existingPrimaryDuplicate(
   row
 ) {
-  return (
-    state.approvalPolls.find(
-      poll =>
-        sameText(
-          poll.pollster,
-          row.pollster
-        ) &&
-        sameDate(
-          poll.start_date,
-          row.start_date
-        ) &&
-        sameDate(
-          poll.end_date,
-          row.end_date
-        )
-    ) ||
-    null
+  return state.primaryPolls.find(
+    poll =>
+      sameText(
+        poll.pollster,
+        row.pollster
+      ) &&
+      normalizePrimaryParty(
+        poll.primary_party ??
+        poll.party
+      ) ===
+        row.primary_party &&
+      poll.start_date ===
+        row.start_date &&
+      poll.end_date ===
+        row.end_date
   );
 }
 
-function findExistingPrimaryPoll(
-  row
-) {
-  return (
-    state.primaryPolls.find(
-      poll =>
-        sameText(
-          poll.pollster,
-          row.pollster
-        ) &&
-        normalizePrimaryParty(
-          poll.primary_party ??
-          poll.party
-        ) ===
-          normalizePrimaryParty(
-            row.primary_party
-          ) &&
-        sameDate(
-          poll.start_date,
-          row.start_date
-        ) &&
-        sameDate(
-          poll.end_date,
-          row.end_date
-        )
-    ) ||
-    null
-  );
-}
 
 
 /* =========================================================
-   SPREADSHEET IMPORT — DATABASE HELPERS
+   DATABASE IMPORT HELPERS
    ========================================================= */
 
-async function upsertImportedRace(
+function createImportSummary() {
+  return {
+    inserted: {
+      race:
+        0,
+
+      candidate:
+        0,
+
+      poll:
+        0,
+
+      generic_ballot:
+        0,
+
+      approval_poll:
+        0,
+
+      primary_poll:
+        0
+    },
+
+    skipped: {
+      race:
+        0,
+
+      candidate:
+        0,
+
+      poll:
+        0,
+
+      generic_ballot:
+        0,
+
+      approval_poll:
+        0,
+
+      primary_poll:
+        0
+    },
+
+    failed:
+      []
+  };
+}
+
+function importSummaryText(
+  summary
+) {
+  const inserted =
+    Object.values(
+      summary.inserted
+    )
+      .reduce(
+        (
+          total,
+          value
+        ) =>
+          total +
+          value,
+        0
+      );
+
+
+  const skipped =
+    Object.values(
+      summary.skipped
+    )
+      .reduce(
+        (
+          total,
+          value
+        ) =>
+          total +
+          value,
+        0
+      );
+
+
+  return `${inserted} inserted, ${skipped} duplicates skipped, ${summary.failed.length} failed`;
+}
+
+async function insertImportedRace(
   row
 ) {
-  const existing =
-    raceBySlug(
-      row.slug
+  const duplicate =
+    state.races.find(
+      race =>
+        slugify(
+          race.slug
+        ) ===
+        row.slug
     );
+
+
+  if (duplicate) {
+    return "skipped";
+  }
+
 
   const payload = {
     office:
@@ -8435,120 +9082,50 @@ async function upsertImportedRace(
       row.slug,
 
     rating:
-      row.rating ||
-      "Toss-up",
+      row.rating,
 
     projected_margin:
-      Number(
-        row.projected_margin ||
-        0
-      ),
+      row.projected_margin,
 
     featured:
-      Boolean(
-        row.featured
-      ),
+      row.featured,
 
     race_of_the_day:
-      Boolean(
-        row.race_of_the_day
-      ),
-
-    summary:
-      row.summary ||
-      "",
+      row.race_of_the_day,
 
     status:
-      normalizeStatus(
-        row.status
-      ),
+      row.status,
+
+    summary:
+      row.summary,
 
     updated_at:
       new Date()
         .toISOString()
   };
 
-  if (
-    payload.race_of_the_day
-  ) {
-    await clearOtherRaceOfDay(
-      existing?.id ||
-      null
-    );
-  }
-
-  if (existing) {
-    const {
-      data,
-      error
-    } =
-      await sb
-        .from("races")
-        .update(
-          payload
-        )
-        .eq(
-          "id",
-          existing.id
-        )
-        .select("*")
-        .single();
-
-    if (error) {
-      throw error;
-    }
-
-    const index =
-      state.races.findIndex(
-        race =>
-          race.id ===
-          existing.id
-      );
-
-    if (index !== -1) {
-      state.races[index] =
-        data;
-    }
-
-    return {
-      action:
-        "updated",
-
-      record:
-        data
-    };
-  }
 
   const {
-    data,
     error
   } =
     await sb
-      .from("races")
+      .from(
+        "races"
+      )
       .insert(
         payload
-      )
-      .select("*")
-      .single();
+      );
+
 
   if (error) {
     throw error;
   }
 
-  state.races.push(
-    data
-  );
 
-  return {
-    action:
-      "created",
-
-    record:
-      data
-  };
+  return "inserted";
 }
 
-async function upsertImportedCandidate(
+async function insertImportedCandidate(
   row
 ) {
   const race =
@@ -8556,18 +9133,30 @@ async function upsertImportedCandidate(
       row.race_slug
     );
 
+
   if (!race) {
     throw new Error(
-      `No matching race for ${row.race_slug}.`
+      `No race matches "${row.race_slug}".`
     );
   }
 
-  const existing =
-    findExistingCandidate(
-      race.id,
-      row.name,
-      row.party
+
+  const duplicate =
+    state.candidates.find(
+      candidate =>
+        candidate.race_id ===
+          race.id &&
+        sameText(
+          candidate.name,
+          row.name
+        )
     );
+
+
+  if (duplicate) {
+    return "skipped";
+  }
+
 
   const payload = {
     race_id:
@@ -8577,51 +9166,45 @@ async function upsertImportedCandidate(
       row.name,
 
     party:
-      normalizePartyCode(
-        row.party
-      ),
+      row.party,
 
     incumbent:
-      Boolean(
-        row.incumbent
-      ),
+      row.incumbent,
 
     win_probability:
-      Number(
-        row.win_probability
-      ),
+      row.win_probability,
 
     expected_vote_share:
-      Number(
-        row.expected_vote_share
-      ),
-
-    candidate_to_watch:
-      Boolean(
-        row.candidate_to_watch
-      ),
+      row.expected_vote_share,
 
     photo_url:
-      row.photo_url ||
-      null
+      row.photo_url,
+
+    candidate_to_watch:
+      row.candidate_to_watch
   };
 
-  let result;
 
-  if (existing) {
-    result =
-      await sb
-        .from(
-          "candidates"
-        )
-        .update(
-          payload
-        )
-        .eq(
-          "id",
-          existing.id
-        );
-  } else {
+  let result =
+    await sb
+      .from(
+        "candidates"
+      )
+      .insert(
+        payload
+      );
+
+
+  if (
+    result.error &&
+    isMissingColumnError(
+      result.error
+    )
+  ) {
+    delete payload
+      .candidate_to_watch;
+
+
     result =
       await sb
         .from(
@@ -8632,54 +9215,16 @@ async function upsertImportedCandidate(
         );
   }
 
-  if (
-    result.error &&
-    isMissingColumnError(
-      result.error
-    )
-  ) {
-    const fallback = {
-      ...payload
-    };
-
-    delete fallback
-      .candidate_to_watch;
-
-    result =
-      existing
-        ? await sb
-            .from(
-              "candidates"
-            )
-            .update(
-              fallback
-            )
-            .eq(
-              "id",
-              existing.id
-            )
-        : await sb
-            .from(
-              "candidates"
-            )
-            .insert(
-              fallback
-            );
-  }
 
   if (result.error) {
     throw result.error;
   }
 
-  return {
-    action:
-      existing
-        ? "updated"
-        : "created"
-  };
+
+  return "inserted";
 }
 
-async function upsertImportedRacePoll(
+async function insertImportedRacePoll(
   row
 ) {
   const race =
@@ -8687,17 +9232,23 @@ async function upsertImportedRacePoll(
       row.race_slug
     );
 
+
   if (!race) {
     throw new Error(
-      `No matching race for ${row.race_slug}.`
+      `No race matches "${row.race_slug}".`
     );
   }
 
-  const existing =
-    findExistingRacePoll(
-      race.id,
-      row
-    );
+
+  if (
+    existingRacePollDuplicate(
+      row,
+      race.id
+    )
+  ) {
+    return "skipped";
+  }
+
 
   const payload = {
     race_id:
@@ -8713,74 +9264,47 @@ async function upsertImportedRacePoll(
       row.end_date,
 
     sample_size:
-      integerOrNull(
-        row.sample_size
-      ),
+      row.sample_size,
 
     population:
-      normalizePopulation(
-        row.population
-      ),
+      row.population,
 
     dem_pct:
-      Number(
-        row.dem_pct
-      ),
+      row.dem_pct,
 
     rep_pct:
-      Number(
-        row.rep_pct
-      ),
+      row.rep_pct,
 
     ind_pct:
-      numberOrNull(
-        row.ind_pct
-      ),
+      row.ind_pct,
 
     lib_pct:
-      numberOrNull(
-        row.lib_pct
-      ),
+      row.lib_pct,
 
     green_pct:
-      numberOrNull(
-        row.green_pct
-      ),
+      row.green_pct,
 
     quality_weight:
-      Number(
-        row.quality_weight ||
-        1
-      ),
+      row.quality_weight,
 
     status:
-      normalizeStatus(
-        row.status
-      ),
+      row.status,
 
     updated_at:
       new Date()
         .toISOString()
   };
 
-  let result;
 
-  result =
-    existing
-      ? await sb
-          .from("polls")
-          .update(
-            payload
-          )
-          .eq(
-            "id",
-            existing.id
-          )
-      : await sb
-          .from("polls")
-          .insert(
-            payload
-          );
+  let result =
+    await sb
+      .from(
+        "polls"
+      )
+      .insert(
+        payload
+      );
+
 
   if (
     result.error &&
@@ -8788,234 +9312,175 @@ async function upsertImportedRacePoll(
       result.error
     )
   ) {
-    const fallback = {
-      ...payload
-    };
+    delete payload
+      .ind_pct;
 
-    delete fallback.ind_pct;
-    delete fallback.lib_pct;
-    delete fallback.green_pct;
+    delete payload
+      .lib_pct;
+
+    delete payload
+      .green_pct;
+
 
     result =
-      existing
-        ? await sb
-            .from("polls")
-            .update(
-              fallback
-            )
-            .eq(
-              "id",
-              existing.id
-            )
-        : await sb
-            .from("polls")
-            .insert(
-              fallback
-            );
+      await sb
+        .from(
+          "polls"
+        )
+        .insert(
+          payload
+        );
   }
+
 
   if (result.error) {
     throw result.error;
   }
 
-  return {
-    action:
-      existing
-        ? "updated"
-        : "created"
-  };
+
+  return "inserted";
 }
 
-async function upsertImportedGenericBallot(
+async function insertImportedGenericBallot(
   row
 ) {
-  const existing =
-    findExistingGenericBallotPoll(
+  if (
+    existingGenericBallotDuplicate(
       row
-    );
-
-  const payload = {
-    pollster:
-      row.pollster,
-
-    start_date:
-      row.start_date,
-
-    end_date:
-      row.end_date,
-
-    sample_size:
-      integerOrNull(
-        row.sample_size
-      ),
-
-    population:
-      normalizePopulation(
-        row.population
-      ),
-
-    dem_pct:
-      Number(
-        row.dem_pct
-      ),
-
-    rep_pct:
-      Number(
-        row.rep_pct
-      ),
-
-    quality_weight:
-      Number(
-        row.quality_weight ||
-        1
-      ),
-
-    status:
-      normalizeStatus(
-        row.status
-      ),
-
-    updated_at:
-      new Date()
-        .toISOString()
-  };
-
-  const result =
-    existing
-      ? await sb
-          .from(
-            "generic_ballot_polls"
-          )
-          .update(
-            payload
-          )
-          .eq(
-            "id",
-            existing.id
-          )
-      : await sb
-          .from(
-            "generic_ballot_polls"
-          )
-          .insert(
-            payload
-          );
-
-  if (result.error) {
-    throw result.error;
+    )
+  ) {
+    return "skipped";
   }
 
-  return {
-    action:
-      existing
-        ? "updated"
-        : "created"
-  };
-}
 
-async function upsertImportedApprovalPoll(
-  row
-) {
-  const existing =
-    findExistingApprovalPoll(
-      row
-    );
+  const {
+    error
+  } =
+    await sb
+      .from(
+        "generic_ballot_polls"
+      )
+      .insert({
+        pollster:
+          row.pollster,
 
-  const payload = {
-    pollster:
-      row.pollster,
+        start_date:
+          row.start_date,
 
-    start_date:
-      row.start_date,
+        end_date:
+          row.end_date,
 
-    end_date:
-      row.end_date,
+        sample_size:
+          row.sample_size,
 
-    sample_size:
-      integerOrNull(
-        row.sample_size
-      ),
+        population:
+          row.population,
 
-    population:
-      normalizePopulation(
-        row.population
-      ),
+        dem_pct:
+          row.dem_pct,
 
-    approve_pct:
-      Number(
-        row.approve_pct
-      ),
+        rep_pct:
+          row.rep_pct,
 
-    disapprove_pct:
-      Number(
-        row.disapprove_pct
-      ),
+        quality_weight:
+          row.quality_weight,
 
-    quality_weight:
-      Number(
-        row.quality_weight ||
-        1
-      ),
+        status:
+          row.status,
 
-    status:
-      normalizeStatus(
-        row.status
-      ),
+        updated_at:
+          new Date()
+            .toISOString()
+      });
 
-    updated_at:
-      new Date()
-        .toISOString()
-  };
 
-  const result =
-    existing
-      ? await sb
-          .from(
-            "approval_polls"
-          )
-          .update(
-            payload
-          )
-          .eq(
-            "id",
-            existing.id
-          )
-      : await sb
-          .from(
-            "approval_polls"
-          )
-          .insert(
-            payload
-          );
-
-  if (result.error) {
-    throw result.error;
+  if (error) {
+    throw error;
   }
 
-  return {
-    action:
-      existing
-        ? "updated"
-        : "created"
-  };
+
+  return "inserted";
 }
 
-async function upsertImportedPrimaryPoll(
+async function insertImportedApprovalPoll(
   row
 ) {
-  const existing =
-    findExistingPrimaryPoll(
+  if (
+    existingApprovalDuplicate(
       row
-    );
+    )
+  ) {
+    return "skipped";
+  }
+
+
+  const {
+    error
+  } =
+    await sb
+      .from(
+        "approval_polls"
+      )
+      .insert({
+        pollster:
+          row.pollster,
+
+        start_date:
+          row.start_date,
+
+        end_date:
+          row.end_date,
+
+        sample_size:
+          row.sample_size,
+
+        population:
+          row.population,
+
+        approve_pct:
+          row.approve_pct,
+
+        disapprove_pct:
+          row.disapprove_pct,
+
+        quality_weight:
+          row.quality_weight,
+
+        status:
+          row.status,
+
+        updated_at:
+          new Date()
+            .toISOString()
+      });
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  return "inserted";
+}
+
+async function insertImportedPrimaryPoll(
+  row
+) {
+  if (
+    existingPrimaryDuplicate(
+      row
+    )
+  ) {
+    return "skipped";
+  }
+
 
   const payload = {
     pollster:
       row.pollster,
 
     primary_party:
-      normalizePrimaryParty(
-        row.primary_party
-      ),
+      row.primary_party,
 
     start_date:
       row.start_date,
@@ -9024,56 +9489,35 @@ async function upsertImportedPrimaryPoll(
       row.end_date,
 
     sample_size:
-      integerOrNull(
-        row.sample_size
-      ),
+      row.sample_size,
 
     population:
-      normalizePopulation(
-        row.population
-      ),
+      row.population,
 
     candidate_results:
-      normalizePrimaryResults(
-        row.candidate_results
-      ),
+      row.candidate_results,
 
     quality_weight:
-      Number(
-        row.quality_weight ||
-        1
-      ),
+      row.quality_weight,
 
     status:
-      normalizeStatus(
-        row.status
-      ),
+      row.status,
 
     updated_at:
       new Date()
         .toISOString()
   };
 
+
   let result =
-    existing
-      ? await sb
-          .from(
-            "primary_polls"
-          )
-          .update(
-            payload
-          )
-          .eq(
-            "id",
-            existing.id
-          )
-      : await sb
-          .from(
-            "primary_polls"
-          )
-          .insert(
-            payload
-          );
+    await sb
+      .from(
+        "primary_polls"
+      )
+      .insert(
+        payload
+      );
+
 
   if (
     result.error &&
@@ -9081,7 +9525,7 @@ async function upsertImportedPrimaryPoll(
       result.error
     )
   ) {
-    const fallback = {
+    const fallbackPayload = {
       pollster:
         payload.pollster,
 
@@ -9113,147 +9557,91 @@ async function upsertImportedPrimaryPoll(
         payload.updated_at
     };
 
+
     result =
-      existing
-        ? await sb
-            .from(
-              "primary_polls"
-            )
-            .update(
-              fallback
-            )
-            .eq(
-              "id",
-              existing.id
-            )
-        : await sb
-            .from(
-              "primary_polls"
-            )
-            .insert(
-              fallback
-            );
+      await sb
+        .from(
+          "primary_polls"
+        )
+        .insert(
+          fallbackPayload
+        );
   }
+
 
   if (result.error) {
     throw result.error;
   }
 
-  return {
-    action:
-      existing
-        ? "updated"
-        : "created"
-  };
+
+  return "inserted";
 }
 
-
-/* =========================================================
-   SPREADSHEET IMPORT — EXECUTION
-   ========================================================= */
-
-function createImportSummary() {
-  return {
-    created: {
-      race: 0,
-      candidate: 0,
-      poll: 0,
-      generic_ballot: 0,
-      approval_poll: 0,
-      primary_poll: 0
-    },
-
-    updated: {
-      race: 0,
-      candidate: 0,
-      poll: 0,
-      generic_ballot: 0,
-      approval_poll: 0,
-      primary_poll: 0
-    },
-
-    failed: []
-  };
-}
-
-function addImportResult(
-  summary,
-  recordType,
-  action
-) {
-  if (
-    summary[action] &&
-    Object.prototype
-      .hasOwnProperty.call(
-        summary[action],
-        recordType
-      )
-  ) {
-    summary[action][
-      recordType
-    ] += 1;
-  }
-}
-
-async function importSingleSpreadsheetRow(
+async function importSingleRow(
   row
 ) {
   if (
     row.record_type ===
     "race"
   ) {
-    return upsertImportedRace(
+    return insertImportedRace(
       row
     );
   }
+
 
   if (
     row.record_type ===
     "candidate"
   ) {
-    return upsertImportedCandidate(
+    return insertImportedCandidate(
       row
     );
   }
+
 
   if (
     row.record_type ===
     "poll"
   ) {
-    return upsertImportedRacePoll(
+    return insertImportedRacePoll(
       row
     );
   }
+
 
   if (
     row.record_type ===
     "generic_ballot"
   ) {
-    return upsertImportedGenericBallot(
+    return insertImportedGenericBallot(
       row
     );
   }
+
 
   if (
     row.record_type ===
     "approval_poll"
   ) {
-    return upsertImportedApprovalPoll(
+    return insertImportedApprovalPoll(
       row
     );
   }
+
 
   if (
     row.record_type ===
     "primary_poll"
   ) {
-    return upsertImportedPrimaryPoll(
+    return insertImportedPrimaryPoll(
       row
     );
   }
 
+
   throw new Error(
-    `Unsupported record type: ${row.record_type}`
+    `Unsupported record_type "${row.record_type}".`
   );
 }
 
@@ -9269,22 +9657,26 @@ async function importRowsByType(
         recordType
     );
 
+
   for (
-    const row of
-    matchingRows
+    const row of matchingRows
   ) {
     try {
       const result =
-        await importSingleSpreadsheetRow(
+        await importSingleRow(
           row
         );
 
-      addImportResult(
-        summary,
-        recordType,
-        result.action
-      );
+
+      summary[
+        result
+      ][
+        recordType
+      ] +=
+        1;
+
     } catch (error) {
+
       summary.failed.push({
         sheet:
           row.__sheet,
@@ -9302,245 +9694,165 @@ async function importRowsByType(
 
         message:
           error.message ||
-          "Unknown import error."
+          "Import failed."
       });
     }
   }
 }
 
-function totalImportCount(
-  group
-) {
-  return Object.values(
-    group
-  ).reduce(
-    (
-      total,
-      count
-    ) =>
-      total +
-      Number(count || 0),
-    0
-  );
-}
 
-function importSummaryText(
-  summary
-) {
-  const created =
-    totalImportCount(
-      summary.created
-    );
 
-  const updated =
-    totalImportCount(
-      summary.updated
-    );
-
-  const failed =
-    summary.failed.length;
-
-  return (
-    `${created} created · ` +
-    `${updated} updated · ` +
-    `${failed} failed`
-  );
-}
+/* =========================================================
+   IMPORT RESULTS
+   ========================================================= */
 
 function renderImportResults(
   summary
 ) {
-  const messages =
-    $("#spreadsheetValidationMessages");
+  const box =
+    $("#spreadsheetImportResults");
 
-  if (!messages) {
+
+  if (!box) {
     return;
   }
 
-  const created =
-    totalImportCount(
-      summary.created
-    );
 
-  const updated =
-    totalImportCount(
-      summary.updated
-    );
+  const inserted =
+    Object.values(
+      summary.inserted
+    )
+      .reduce(
+        (
+          total,
+          value
+        ) =>
+          total +
+          value,
+        0
+      );
+
+
+  const skipped =
+    Object.values(
+      summary.skipped
+    )
+      .reduce(
+        (
+          total,
+          value
+        ) =>
+          total +
+          value,
+        0
+      );
+
 
   const failed =
     summary.failed.length;
 
-  const breakdown = [
-    [
-      "Races",
-      summary.created.race,
-      summary.updated.race
-    ],
-    [
-      "Candidates",
-      summary.created.candidate,
-      summary.updated.candidate
-    ],
-    [
-      "Race polls",
-      summary.created.poll,
-      summary.updated.poll
-    ],
-    [
-      "Generic ballot",
-      summary.created
-        .generic_ballot,
-      summary.updated
-        .generic_ballot
-    ],
-    [
-      "Approval polls",
-      summary.created
-        .approval_poll,
-      summary.updated
-        .approval_poll
-    ],
-    [
-      "Primary polls",
-      summary.created
-        .primary_poll,
-      summary.updated
-        .primary_poll
-    ]
-  ];
 
-  messages.innerHTML = `
-    <div class="notice ${
-      failed
-        ? "error"
-        : "success"
-    }">
-      Import complete:
-      ${created} created,
-      ${updated} updated,
-      ${failed} failed.
-    </div>
+  box.style.display =
+    "";
 
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Record type</th>
-            <th>Created</th>
-            <th>Updated</th>
-          </tr>
-        </thead>
 
-        <tbody>
-          ${
-            breakdown
-              .map(
-                item => `
-                  <tr>
-                    <td>
-                      ${escapeHtml(
-                        item[0]
-                      )}
-                    </td>
+  box.innerHTML = `
+    <div class="sectionMiniHead">
 
-                    <td>
-                      ${item[1]}
-                    </td>
+      <div>
 
-                    <td>
-                      ${item[2]}
-                    </td>
-                  </tr>
-                `
-              )
-              .join("")
-          }
-        </tbody>
-      </table>
+        <div class="kicker">
+          Import Results
+        </div>
+
+        <h3>
+          ${inserted} inserted · ${skipped} skipped · ${failed} failed
+        </h3>
+
+      </div>
+
     </div>
 
     ${
       failed
         ? `
-          <div class="section">
+          <div class="tableWrap">
 
-            <h3>
-              Failed records
-            </h3>
+            <table>
 
-            <div class="tableWrap">
+              <thead>
 
-              <table>
+                <tr>
+                  <th>Sheet</th>
+                  <th>Row</th>
+                  <th>Type</th>
+                  <th>Record</th>
+                  <th>Error</th>
+                </tr>
 
-                <thead>
+              </thead>
 
-                  <tr>
-                    <th>Sheet</th>
-                    <th>Row</th>
-                    <th>Type</th>
-                    <th>Record</th>
-                    <th>Error</th>
-                  </tr>
+              <tbody>
 
-                </thead>
+                ${
+                  summary.failed
+                    .map(
+                      failure => `
+                        <tr>
 
-                <tbody>
+                          <td>
+                            ${escapeHtml(
+                              failure.sheet ||
+                              ""
+                            )}
+                          </td>
 
-                  ${
-                    summary.failed
-                      .map(
-                        failure => `
-                          <tr>
+                          <td>
+                            ${failure.row ||
+                            "—"}
+                          </td>
 
-                            <td>
-                              ${escapeHtml(
-                                failure.sheet ||
-                                ""
-                              )}
-                            </td>
+                          <td>
+                            ${escapeHtml(
+                              spreadsheetRecordLabel(
+                                failure.record_type
+                              )
+                            )}
+                          </td>
 
-                            <td>
-                              ${failure.row ||
-                              "—"}
-                            </td>
+                          <td>
+                            ${escapeHtml(
+                              failure.description ||
+                              ""
+                            )}
+                          </td>
 
-                            <td>
-                              ${escapeHtml(
-                                spreadsheetRecordLabel(
-                                  failure.record_type
-                                )
-                              )}
-                            </td>
+                          <td>
+                            ${escapeHtml(
+                              failure.message ||
+                              ""
+                            )}
+                          </td>
 
-                            <td>
-                              ${escapeHtml(
-                                failure.description ||
-                                ""
-                              )}
-                            </td>
+                        </tr>
+                      `
+                    )
+                    .join(
+                      ""
+                    )
+                }
 
-                            <td>
-                              ${escapeHtml(
-                                failure.message ||
-                                ""
-                              )}
-                            </td>
+              </tbody>
 
-                          </tr>
-                        `
-                      )
-                      .join("")
-                  }
-
-                </tbody>
-
-              </table>
-
-            </div>
+            </table>
 
           </div>
         `
-        : ""
+        : `
+          <p class="subtle">
+            Every validated record was processed successfully.
+          </p>
+        `
     }
   `;
 }
@@ -9558,12 +9870,14 @@ async function importElectionWorkbook() {
     return;
   }
 
+
   const invalidRows =
     electionWorkbookPreviewRows
       .filter(
         row =>
           row.__errors.length
       );
+
 
   if (
     invalidRows.length
@@ -9576,17 +9890,21 @@ async function importElectionWorkbook() {
     return;
   }
 
+
   const confirmed =
     window.confirm(
       `Import ${electionWorkbookPreviewRows.length} validated records into ElectionLab?`
     );
 
+
   if (!confirmed) {
     return;
   }
 
+
   const importButton =
     $("#importElectionWorkbook");
+
 
   if (importButton) {
     importButton.disabled =
@@ -9596,22 +9914,21 @@ async function importElectionWorkbook() {
       "Importing…";
   }
 
+
   const summary =
     createImportSummary();
 
-  try {
-    /*
-      Races must be imported first because candidates and
-      polls depend on race IDs.
-    */
 
+  try {
     await importRowsByType(
       electionWorkbookPreviewRows,
       "race",
       summary
     );
 
+
     await reloadAll();
+
 
     await importRowsByType(
       electionWorkbookPreviewRows,
@@ -9619,11 +9936,13 @@ async function importElectionWorkbook() {
       summary
     );
 
+
     await importRowsByType(
       electionWorkbookPreviewRows,
       "poll",
       summary
     );
+
 
     await importRowsByType(
       electionWorkbookPreviewRows,
@@ -9631,11 +9950,13 @@ async function importElectionWorkbook() {
       summary
     );
 
+
     await importRowsByType(
       electionWorkbookPreviewRows,
       "approval_poll",
       summary
     );
+
 
     await importRowsByType(
       electionWorkbookPreviewRows,
@@ -9643,11 +9964,14 @@ async function importElectionWorkbook() {
       summary
     );
 
+
     await reloadAll();
+
 
     renderImportResults(
       summary
     );
+
 
     msg(
       `Import complete: ${importSummaryText(
@@ -9665,6 +9989,7 @@ async function importElectionWorkbook() {
       error
     );
 
+
     msg(
       error.message ||
       "Unable to import spreadsheet.",
@@ -9674,89 +9999,29 @@ async function importElectionWorkbook() {
   } finally {
 
     if (importButton) {
-      importButton.textContent =
-        "Import spreadsheet";
-
       importButton.disabled =
         false;
+
+      importButton.textContent =
+        "Import Spreadsheet";
     }
   }
 }
 
 
+
 /* =========================================================
-   SPREADSHEET TEMPLATE
+   DOWNLOAD SPREADSHEET TEMPLATE
    ========================================================= */
 
 function electionWorkbookTemplateRows() {
   return [
     {
       record_type:
-        "race",
-
-      office:
-        "senate",
-
-      state:
-        "MI",
-
-      title:
-        "Michigan Senate",
-
-      race_slug:
-        "mi-senate",
-
-      rating:
-        "Toss-up",
-
-      projected_margin:
-        0,
-
-      featured:
-        true,
-
-      race_of_the_day:
-        false,
-
-      summary:
-        "A closely watched open-seat Senate race.",
-
-      status:
-        "published"
-    },
-
-    {
-      record_type:
-        "candidate",
-
-      race_slug:
-        "mi-senate",
-
-      candidate_name:
-        "Democratic Candidate",
-
-      party:
-        "D",
-
-      incumbent:
-        false,
-
-      win_probability:
-        50,
-
-      expected_vote_share:
-        48,
-
-      candidate_to_watch:
-        false
-    },
-
-    {
-      record_type:
         "poll",
 
       race_slug:
-        "mi-senate",
+        "pa-governor",
 
       pollster:
         "Example Pollster",
@@ -9777,48 +10042,10 @@ function electionWorkbookTemplateRows() {
         48,
 
       rep_pct:
-        47,
+        46,
 
       ind_pct:
         "",
-
-      lib_pct:
-        "",
-
-      green_pct:
-        "",
-
-      quality_weight:
-        1,
-
-      status:
-        "published"
-    },
-
-    {
-      record_type:
-        "generic_ballot",
-
-      pollster:
-        "Example Pollster",
-
-      start_date:
-        "2026-07-01",
-
-      end_date:
-        "2026-07-03",
-
-      sample_size:
-        1000,
-
-      population:
-        "RV",
-
-      dem_pct:
-        47,
-
-      rep_pct:
-        45,
 
       quality_weight:
         1,
@@ -9881,11 +10108,8 @@ function electionWorkbookTemplateRows() {
       population:
         "LV",
 
-      candidate_name:
-        "Candidate One",
-
-      candidate_pct:
-        25,
+      candidate_results:
+        "Candidate One 25; Candidate Two 20",
 
       quality_weight:
         1,
@@ -9909,8 +10133,10 @@ function downloadElectionWorkbookTemplate() {
     return;
   }
 
+
   const rows =
     electionWorkbookTemplateRows();
+
 
   const worksheet =
     XLSX.utils
@@ -9918,9 +10144,11 @@ function downloadElectionWorkbookTemplate() {
         rows
       );
 
+
   const workbook =
     XLSX.utils
       .book_new();
+
 
   XLSX.utils
     .book_append_sheet(
@@ -9929,11 +10157,13 @@ function downloadElectionWorkbookTemplate() {
       "Website Import"
     );
 
+
   XLSX.writeFile(
     workbook,
     "electionlab_import_template.xlsx"
   );
 }
+
 
 
 /* =========================================================
@@ -9944,16 +10174,20 @@ function resetSpreadsheetPreview() {
   electionWorkbookPreviewRows =
     [];
 
+
   const previewCard =
     $("#spreadsheetPreviewCard");
 
+
   const importButton =
     $("#importElectionWorkbook");
+
 
   if (previewCard) {
     previewCard.style.display =
       "none";
   }
+
 
   if (importButton) {
     importButton.disabled =
@@ -9965,35 +10199,45 @@ function initializeSpreadsheetControls() {
   const fileInput =
     $("#electionWorkbookFile");
 
+
   const previewButton =
     $("#previewElectionWorkbook");
+
 
   const importButton =
     $("#importElectionWorkbook");
 
+
   const templateButton =
     $("#downloadElectionWorkbookTemplate");
+
 
   fileInput?.addEventListener(
     "change",
     resetSpreadsheetPreview
   );
 
+
   previewButton?.addEventListener(
     "click",
     previewElectionWorkbook
   );
+
 
   importButton?.addEventListener(
     "click",
     importElectionWorkbook
   );
 
+
   templateButton?.addEventListener(
     "click",
     downloadElectionWorkbookTemplate
   );
 }
+
+
+
 /* =========================================================
    SIDEBAR PANELS
    ========================================================= */
@@ -10012,6 +10256,7 @@ function showAdminPanel(
       }
     );
 
+
   $$(".sidebar button[data-panel]")
     .forEach(
       button => {
@@ -10023,9 +10268,13 @@ function showAdminPanel(
       }
     );
 
+
   window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+    top:
+      0,
+
+    behavior:
+      "smooth"
   });
 }
 
@@ -10046,6 +10295,7 @@ function initializeAdminPanels() {
 }
 
 
+
 /* =========================================================
    FORM EVENT LISTENERS
    ========================================================= */
@@ -10057,11 +10307,13 @@ function initializeAdminForms() {
       saveHomepageSettings
     );
 
+
   $("#raceForm")
     ?.addEventListener(
       "submit",
       saveRace
     );
+
 
   $("#forecastChangeForm")
     ?.addEventListener(
@@ -10069,11 +10321,13 @@ function initializeAdminForms() {
       saveForecastChange
     );
 
+
   $("#candidateForm")
     ?.addEventListener(
       "submit",
       saveCandidate
     );
+
 
   $("#pollForm")
     ?.addEventListener(
@@ -10081,11 +10335,13 @@ function initializeAdminForms() {
       savePoll
     );
 
+
   $("#genericBallotForm")
     ?.addEventListener(
       "submit",
       saveGenericBallotPoll
     );
+
 
   $("#approvalPollForm")
     ?.addEventListener(
@@ -10093,12 +10349,14 @@ function initializeAdminForms() {
       saveApprovalPoll
     );
 
+
   $("#primaryPollForm")
     ?.addEventListener(
       "submit",
       savePrimaryPoll
     );
 }
+
 
 
 /* =========================================================
@@ -10109,8 +10367,10 @@ function initializeRaceSlugHelper() {
   const titleInput =
     $("#raceTitle");
 
+
   const slugInput =
     $("#raceSlug");
+
 
   if (
     !titleInput ||
@@ -10118,6 +10378,7 @@ function initializeRaceSlugHelper() {
   ) {
     return;
   }
+
 
   titleInput.addEventListener(
     "input",
@@ -10128,6 +10389,7 @@ function initializeRaceSlugHelper() {
             ?.value
         );
 
+
       if (
         raceId ||
         cleanText(
@@ -10136,6 +10398,7 @@ function initializeRaceSlugHelper() {
       ) {
         return;
       }
+
 
       slugInput.value =
         slugify(
@@ -10146,331 +10409,67 @@ function initializeRaceSlugHelper() {
 }
 
 
-/* =========================================================
-   RACE-OF-THE-DAY CHECKBOX NOTICE
-   ========================================================= */
-
-function initializeRaceOfDayNotice() {
-  const checkbox =
-    $("#raceOfTheDay");
-
-  if (!checkbox) {
-    return;
-  }
-
-  checkbox.addEventListener(
-    "change",
-    () => {
-      if (!checkbox.checked) {
-        return;
-      }
-
-      const selected =
-        state.races.find(
-          race =>
-            race.race_of_the_day &&
-            race.id !==
-              cleanText(
-                $("#raceId")
-                  ?.value
-              )
-        );
-
-      if (selected) {
-        msg(
-          `"${selected.title}" is currently Race of the Day. Saving this race will replace it.`,
-          "success"
-        );
-      }
-    }
-  );
-}
-
 
 /* =========================================================
-   FORECAST-HISTORY FORM ASSIST
+   SIGN OUT
    ========================================================= */
 
-function initializeForecastHistoryAssist() {
-  const raceSelect =
-    $("#forecastChangeRace");
-
-  if (!raceSelect) {
-    return;
-  }
-
-  raceSelect.addEventListener(
-    "change",
-    () => {
-      const race =
-        raceById(
-          raceSelect.value
-        );
-
-      if (!race) {
-        return;
-      }
-
-      if (
-        !cleanText(
-          $("#forecastChangeNewRating")
-            ?.value
-        )
-      ) {
-        $("#forecastChangeNewRating").value =
-          race.rating ||
-          "Toss-up";
-      }
-
-      if (
-        cleanText(
-          $("#forecastChangeNewMargin")
-            ?.value
-        ) ===
-        ""
-      ) {
-        $("#forecastChangeNewMargin").value =
-          Number(
-            race.projected_margin ||
-            0
-          );
-      }
-    }
-  );
-}
-
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
-async function logoutAdmin() {
-  const button =
-    $("#logout");
-
-  if (button) {
-    button.disabled =
-      true;
-
-    button.textContent =
-      "Logging out…";
-  }
-
+async function signOutAdmin() {
   try {
-    const {
-      error
-    } =
-      await sb.auth
-        .signOut();
+    await sb.auth
+      .signOut();
 
-    if (error) {
-      throw error;
-    }
+  } finally {
 
     location.href =
       "login.html";
-
-  } catch (error) {
-
-    console.error(
-      "Logout failed:",
-      error
-    );
-
-    msg(
-      error.message ||
-      "Unable to log out.",
-      "error"
-    );
-
-    if (button) {
-      button.disabled =
-        false;
-
-      button.textContent =
-        "Log out";
-    }
   }
 }
 
-function initializeLogout() {
-  $("#logout")
-    ?.addEventListener(
-      "click",
-      logoutAdmin
-    );
-}
 
 
 /* =========================================================
-   BUTTON LOADING HELPER
-   ========================================================= */
-
-function setButtonLoading(
-  button,
-  loading,
-  loadingText =
-    "Saving…"
-) {
-  if (!button) {
-    return;
-  }
-
-  if (loading) {
-    button.dataset.originalText =
-      button.textContent;
-
-    button.disabled =
-      true;
-
-    button.textContent =
-      loadingText;
-
-    return;
-  }
-
-  button.disabled =
-    false;
-
-  button.textContent =
-    button.dataset.originalText ||
-    button.textContent;
-
-  delete button.dataset
-    .originalText;
-}
-
-
-/* =========================================================
-   ADMIN ERROR DISPLAY
-   ========================================================= */
-
-function renderAdminFatalError(
-  error
-) {
-  const main =
-    $(".adminMain");
-
-  if (!main) {
-    return;
-  }
-
-  main.innerHTML = `
-    <div class="card">
-
-      <div class="kicker">
-        ElectionLab Newsroom
-      </div>
-
-      <h1>
-        Unable to load the admin portal
-      </h1>
-
-      <p class="subtle">
-        ${escapeHtml(
-          error?.message ||
-          "An unknown error occurred."
-        )}
-      </p>
-
-      <div class="toolbar">
-
-        <button
-          class="btn blue"
-          type="button"
-          onclick="location.reload()"
-        >
-          Try again
-        </button>
-
-        <a
-          class="btn light"
-          href="index.html"
-        >
-          Return to website
-        </a>
-
-      </div>
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
-   GLOBAL BUTTON FUNCTIONS
-
-   The HTML uses inline onclick attributes, so these functions
-   must be attached to window.
-   ========================================================= */
-
-Object.assign(
-  window,
-  {
-    openModal,
-    closeModal,
-
-    editRace,
-    deleteRace,
-
-    editForecastChange,
-    deleteForecastChange,
-
-    editCandidate,
-    deleteCandidate,
-
-    editPoll,
-    deletePoll,
-
-    editGenericBallotPoll,
-    deleteGenericBallotPoll,
-
-    editApprovalPoll,
-    deleteApprovalPoll,
-
-    editPrimaryPoll,
-    deletePrimaryPoll
-  }
-);
-
-
-/* =========================================================
-   ADMIN INITIALIZATION
+   START ADMIN
    ========================================================= */
 
 async function initializeAdmin() {
   try {
-    initializeAdminPanels();
-
-    initializeModalClosing();
-
-    initializeAdminForms();
-
-    initializeSpreadsheetControls();
-
-    initializeRaceSlugHelper();
-
-    initializeRaceOfDayNotice();
-
-    initializeForecastHistoryAssist();
-
-    initializeLogout();
-
-    const authorized =
+    const allowed =
       await requireAdmin();
 
-    if (!authorized) {
+
+    if (!allowed) {
       return;
     }
 
+
+    initializeModalClosing();
+
+
+    initializeAdminPanels();
+
+
+    initializeAdminForms();
+
+
+    initializeSpreadsheetControls();
+
+
+    initializeRaceSlugHelper();
+
+
+    $("#signOutButton")
+      ?.addEventListener(
+        "click",
+        signOutAdmin
+      );
+
+
     await reloadAll();
 
-    showAdminPanel(
-      "dashboardPanel"
-    );
 
     msg(
-      "ElectionLab Newsroom loaded."
+      "ElectionLab newsroom loaded."
     );
 
   } catch (error) {
@@ -10480,11 +10479,16 @@ async function initializeAdmin() {
       error
     );
 
-    renderAdminFatalError(
-      error
+
+    msg(
+      error.message ||
+      "Unable to load the admin portal.",
+      "error"
     );
   }
 }
+
+
 
 document.addEventListener(
   "DOMContentLoaded",
