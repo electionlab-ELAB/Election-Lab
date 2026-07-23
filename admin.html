@@ -106,6 +106,14 @@
         Dashboard
       </button>
 
+
+      <button
+        data-panel="forecastEnginePanel"
+        type="button"
+      >
+        Forecast Engine
+      </button>
+
       <button
         data-panel="websitePanel"
         type="button"
@@ -219,6 +227,106 @@
         id="dashboardPanel"
         class="adminPanel active"
       >
+
+
+        <div class="modelDashboardGrid">
+
+          <article class="card readinessCard">
+
+            <div class="modelCardHead">
+
+              <div>
+                <div class="kicker">Model Readiness</div>
+                <h2>ElectionLab forecast progress</h2>
+              </div>
+
+              <strong id="v2ReadinessPercent" class="readinessPercent">—</strong>
+
+            </div>
+
+            <div class="progressTrack" aria-label="Forecast readiness">
+              <span id="v2ReadinessBar" style="width:0%"></span>
+            </div>
+
+            <div class="progressMeta">
+              <span id="v2ReadinessCount">Loading readiness…</span>
+              <span>Required data only</span>
+            </div>
+
+            <div class="readinessBreakdown">
+              <button type="button" data-readiness-filter="ready">
+                <strong id="v2ReadyCount">—</strong>
+                <span>Ready</span>
+              </button>
+
+              <button type="button" data-readiness-filter="needs_review">
+                <strong id="v2ReviewCount">—</strong>
+                <span>Needs review</span>
+              </button>
+
+              <button type="button" data-readiness-filter="needs_attention">
+                <strong id="v2AttentionCount">—</strong>
+                <span>Needs attention</span>
+              </button>
+
+              <button type="button" data-readiness-filter="missing_data">
+                <strong id="v2MissingCount">—</strong>
+                <span>Missing data</span>
+              </button>
+            </div>
+
+          </article>
+
+          <article class="card engineHealthCard">
+
+            <div class="kicker">Automation</div>
+            <h2>Forecast engine</h2>
+
+            <div class="engineHealthLine">
+              <span id="v2EngineStatusDot" class="statusDot"></span>
+              <strong id="v2EngineStatus">Checking…</strong>
+            </div>
+
+            <dl class="engineMeta">
+              <div>
+                <dt>Latest model run</dt>
+                <dd id="v2LastRun">—</dd>
+              </div>
+              <div>
+                <dt>Races processed</dt>
+                <dd id="v2LastProcessed">—</dd>
+              </div>
+              <div>
+                <dt>Visible changes</dt>
+                <dd id="v2LastChanged">—</dd>
+              </div>
+              <div>
+                <dt>Model version</dt>
+                <dd id="v2ModelVersion">2.0</dd>
+              </div>
+            </dl>
+
+            <div class="toolbar">
+              <button
+                id="v2RecalculateAllDashboard"
+                class="btn blue"
+                type="button"
+              >
+                Recalculate all forecasts
+              </button>
+
+              <button
+                id="v2OpenEngine"
+                class="btn light"
+                type="button"
+              >
+                Open forecast engine
+              </button>
+            </div>
+
+          </article>
+
+        </div>
 
         <div class="statGrid">
 
@@ -339,6 +447,150 @@
             ElectionLab can record the old value, the new value,
             and an optional explanation in Forecast History.
           </p>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           FORECAST ENGINE 2.0
+           ================================================= -->
+
+      <section
+        id="forecastEnginePanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+
+          <div>
+            <div class="kicker">ElectionLab Model 2.0</div>
+            <h2>Forecast engine</h2>
+            <p>
+              The model recalculates automatically when polls, candidates,
+              fundraising, approval, or race fundamentals change.
+            </p>
+          </div>
+
+          <div class="toolbar">
+            <button
+              id="v2RefreshEngine"
+              class="btn light"
+              type="button"
+            >
+              Refresh
+            </button>
+
+            <button
+              id="v2RecalculateAll"
+              class="btn blue"
+              type="button"
+            >
+              Recalculate all
+            </button>
+          </div>
+
+        </div>
+
+        <div class="statGrid v2EngineStats">
+
+          <div class="stat">
+            <span class="subtle">Automatic</span>
+            <strong id="v2AutomaticCount">—</strong>
+          </div>
+
+          <div class="stat">
+            <span class="subtle">Manual overrides</span>
+            <strong id="v2ManualCount">—</strong>
+          </div>
+
+          <div class="stat">
+            <span class="subtle">Ready</span>
+            <strong id="v2EngineReadyCount">—</strong>
+          </div>
+
+          <div class="stat">
+            <span class="subtle">Needs review</span>
+            <strong id="v2EngineReviewCount">—</strong>
+          </div>
+
+          <div class="stat">
+            <span class="subtle">Stale inputs</span>
+            <strong id="v2EngineStaleCount">—</strong>
+          </div>
+
+          <div class="stat">
+            <span class="subtle">No model output</span>
+            <strong id="v2NoOutputCount">—</strong>
+          </div>
+
+        </div>
+
+        <div class="card section">
+
+          <div class="engineToolbar">
+
+            <input
+              id="v2RaceSearch"
+              type="search"
+              placeholder="Search state, race, slug, or rating…"
+              autocomplete="off"
+            >
+
+            <select id="v2OfficeFilter">
+              <option value="">All offices</option>
+              <option value="senate">Senate</option>
+              <option value="house">House</option>
+              <option value="governor">Governor</option>
+            </select>
+
+            <select id="v2StatusFilter">
+              <option value="">All readiness statuses</option>
+              <option value="ready">Ready</option>
+              <option value="needs_review">Needs review</option>
+              <option value="needs_attention">Needs attention</option>
+              <option value="missing_data">Missing data</option>
+              <option value="draft">Draft</option>
+              <option value="model_ready">Model ready</option>
+            </select>
+
+            <select id="v2ModeFilter">
+              <option value="">Automatic and manual</option>
+              <option value="automatic">Automatic only</option>
+              <option value="manual">Manual overrides only</option>
+            </select>
+
+          </div>
+
+        </div>
+
+        <div class="tableWrap section">
+
+          <table class="forecastEngineTable">
+
+            <thead>
+              <tr>
+                <th>Race</th>
+                <th>Mode</th>
+                <th>Model</th>
+                <th>Published</th>
+                <th>Readiness</th>
+                <th>Missing / warnings</th>
+                <th>Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="v2ForecastEngineBody">
+              <tr>
+                <td colspan="8" class="empty">
+                  Loading forecast engine…
+                </td>
+              </tr>
+            </tbody>
+
+          </table>
 
         </div>
 
@@ -3319,6 +3571,180 @@ Undecided|20"
   </div>
 
 
+
+  <!-- =====================================================
+       MODEL 2.0 MANUAL OVERRIDE MODAL
+       ===================================================== -->
+
+  <div
+    id="v2OverrideModal"
+    class="modal"
+  >
+
+    <div class="modalCard v2OverrideModalCard">
+
+      <div class="modalHead">
+
+        <div>
+          <div class="kicker">Private admin control</div>
+          <h2 id="v2OverrideTitle">Forecast override</h2>
+        </div>
+
+        <button
+          class="close"
+          type="button"
+          aria-label="Close override editor"
+          data-v2-close-override
+        >
+          ×
+        </button>
+
+      </div>
+
+      <form id="v2OverrideForm" class="formGrid">
+
+        <input id="v2OverrideRaceId" type="hidden">
+
+        <div class="field full">
+
+          <div class="modelComparison">
+
+            <div>
+              <span>Current model</span>
+              <strong id="v2OverrideModelForecast">—</strong>
+            </div>
+
+            <div>
+              <span>Currently published</span>
+              <strong id="v2OverridePublishedForecast">—</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="field">
+
+          <label for="v2OverrideMargin">
+            Published margin
+          </label>
+
+          <input
+            id="v2OverrideMargin"
+            type="number"
+            step="0.1"
+            required
+          >
+
+          <small class="subtle">
+            Positive = Democratic; negative = Republican.
+          </small>
+
+        </div>
+
+        <div class="field">
+
+          <label for="v2OverrideRating">
+            Published rating
+          </label>
+
+          <select id="v2OverrideRating" required>
+            <option>Toss-up</option>
+            <option>Lean Democratic</option>
+            <option>Likely Democratic</option>
+            <option>Safe Democratic</option>
+            <option>Lean Republican</option>
+            <option>Likely Republican</option>
+            <option>Safe Republican</option>
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="v2OverrideDemProbability">
+            Democratic win probability
+          </label>
+
+          <input
+            id="v2OverrideDemProbability"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="v2OverrideRepProbability">
+            Republican win probability
+          </label>
+
+          <input
+            id="v2OverrideRepProbability"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            required
+          >
+
+        </div>
+
+        <div class="field full">
+
+          <label for="v2OverrideReason">
+            Internal override reason
+          </label>
+
+          <textarea
+            id="v2OverrideReason"
+            required
+            placeholder="Explain why the published forecast should differ from the model. This remains private."
+          ></textarea>
+
+        </div>
+
+        <div class="field full">
+
+          <div class="overrideActions">
+
+            <button
+              id="v2CopyModelValues"
+              class="btn light"
+              type="button"
+            >
+              Copy model values
+            </button>
+
+            <button
+              id="v2ReturnAutomatic"
+              class="btn light"
+              type="button"
+            >
+              Return to automatic
+            </button>
+
+            <button
+              class="btn green"
+              type="submit"
+            >
+              Save private override
+            </button>
+
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
   <!-- =====================================================
        JAVASCRIPT
        ===================================================== -->
@@ -3334,6 +3760,7 @@ Undecided|20"
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="admin.js"></script>
+  <script src="admin-v2.js"></script>
 
 </body>
 </html>
