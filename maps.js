@@ -505,6 +505,351 @@ function normalizeStateCode(
   return "";
 }
 
+/* =========================================================
+   MODEL 2.1 EFFECTIVE MAP FORECAST HELPERS
+
+   The public map must never infer a real forecast from the old
+   default 50/50 candidate values. It uses, in order:
+
+   1. effective public forecast fields
+   2. latest model fields
+   3. published projected margin/rating fallback
+
+   Manual-override metadata remains private.
+   ========================================================= */
+
+function mapFiniteNumber(
+  value,
+  fallback = null
+) {
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : fallback;
+}
+
+function effectiveMapMargin(
+  race
+) {
+  if (!race) {
+    return null;
+  }
+
+  return mapFiniteNumber(
+    race.effective_projected_margin,
+    mapFiniteNumber(
+      race.model_projected_margin,
+      mapFiniteNumber(
+        race.projected_margin,
+        null
+      )
+    )
+  );
+}
+
+function effectiveMapRating(
+  race
+) {
+  if (!race) {
+    return null;
+  }
+
+  return (
+    race.effective_rating ||
+    race.model_rating ||
+    race.rating ||
+    null
+  );
+}
+
+function effectiveMapProbabilities(
+  race
+) {
+  if (!race) {
+    return {
+      dem: null,
+      rep: null
+    };
+  }
+
+  let dem =
+    mapFiniteNumber(
+      race.effective_dem_probability,
+      mapFiniteNumber(
+        race.model_dem_probability,
+        mapFiniteNumber(
+          race.dem_win_probability,
+          null
+        )
+      )
+    );
+
+  let rep =
+    mapFiniteNumber(
+      race.effective_rep_probability,
+      mapFiniteNumber(
+        race.model_rep_probability,
+        mapFiniteNumber(
+          race.rep_win_probability,
+          null
+        )
+      )
+    );
+
+  if (
+    dem !== null &&
+    rep === null
+  ) {
+    rep = 100 - dem;
+  }
+
+  if (
+    rep !== null &&
+    dem === null
+  ) {
+    dem = 100 - rep;
+  }
+
+  return {
+    dem,
+    rep
+  };
+}
+
+function mapHasModelForecast(
+  race
+) {
+  if (!race) {
+    return false;
+  }
+
+  const probabilities =
+    effectiveMapProbabilities(
+      race
+    );
+
+  const margin =
+    effectiveMapMargin(
+      race
+    );
+
+  /*
+    A genuine model forecast has an explicit model/effective field,
+    model timestamp/version, or non-default output. This prevents an
+    inherited candidate default of 50% from coloring a state.
+  */
+  const explicitModelSignal =
+    race.effective_projected_margin !== undefined ||
+    race.model_projected_margin !== undefined ||
+    race.effective_dem_probability !== undefined ||
+    race.model_dem_probability !== undefined ||
+    Boolean(
+      race.model_updated_at ||
+      race.model_version ||
+      race.public_updated_at
+    );
+
+  if (explicitModelSignal) {
+    return (
+      margin !== null ||
+      probabilities.dem !== null ||
+      probabilities.rep !== null
+    );
+  }
+
+  const rating =
+    String(
+      effectiveMapRating(
+        race
+      ) ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    rating &&
+    !rating.includes("unrated")
+  ) {
+    return true;
+  }
+
+  return (
+    margin !== null &&
+    Math.abs(margin) > 0.05
+  );
+}
+
+function probabilityMapClass(
+  demProbability
+) {
+  const dem =
+    mapFiniteNumber(
+      demProbability,
+      50
+    );
+
+  const leader =
+    dem >= 50
+      ? "dem"
+      : "rep";
+
+  const winningProbability =
+    Math.max(
+      dem,
+      100 - dem
+    );
+
+  if (
+    winningProbability < 60
+  ) {
+    return "map-tossup";
+  }
+
+  if (
+    winningProbability < 80
+  ) {
+    return `map-${leader}-lean`;
+  }
+
+  if (
+    winningProbability < 99
+  ) {
+    return `map-${leader}-likely`;
+  }
+
+  return `map-${leader}-safe`;
+}
+
+function effectiveMapLeader(
+  race
+) {
+  const probabilities =
+    effectiveMapProbabilities(
+      race
+    );
+
+  const candidates =
+    [
+      ...(
+        race?.candidates ||
+        []
+      )
+    ];
+
+  const demCandidate =
+    candidates.find(
+      candidate =>
+        String(
+          candidate.party ||
+          ""
+        )
+          .trim()
+          .toUpperCase() ===
+        "D"
+    );
+
+  const repCandidate =
+    candidates.find(
+      candidate =>
+        String(
+          candidate.party ||
+          ""
+        )
+          .trim()
+          .toUpperCase() ===
+        "R"
+    );
+
+  if (
+    probabilities.dem !== null &&
+    probabilities.rep !== null
+  ) {
+    if (
+      probabilities.dem >=
+      probabilities.rep
+    ) {
+      return {
+        candidate:
+          demCandidate ||
+          null,
+        party: "D",
+        probability:
+          probabilities.dem
+      };
+    }
+
+    return {
+      candidate:
+        repCandidate ||
+        null,
+      party: "R",
+      probability:
+        probabilities.rep
+    };
+  }
+
+  /*
+    Candidate odds are only a fallback when they are not the generic
+    untouched 50/50 defaults.
+  */
+  const sorted =
+    candidates
+      .map(
+        candidate => ({
+          candidate,
+          probability:
+            mapFiniteNumber(
+              candidate.win_probability,
+              null
+            )
+        })
+      )
+      .filter(
+        item =>
+          item.probability !==
+          null
+      )
+      .sort(
+        (
+          first,
+          second
+        ) =>
+          second.probability -
+          first.probability
+      );
+
+  if (
+    sorted.length &&
+    (
+      sorted.length === 1 ||
+      Math.abs(
+        sorted[0].probability -
+        sorted[1].probability
+      ) > 0.05
+    )
+  ) {
+    return {
+      candidate:
+        sorted[0].candidate,
+      party:
+        String(
+          sorted[0].candidate
+            .party ||
+          "I"
+        )
+          .trim()
+          .toUpperCase(),
+      probability:
+        sorted[0].probability
+    };
+  }
+
+  return null;
+}
+
 function mapClassForRace(
   race,
   office
@@ -515,9 +860,33 @@ function mapClassForRace(
       : "map-no-race";
   }
 
+  if (
+    !mapHasModelForecast(
+      race
+    )
+  ) {
+    return "map-unrated";
+  }
+
+  const probabilities =
+    effectiveMapProbabilities(
+      race
+    );
+
+  if (
+    probabilities.dem !== null
+  ) {
+    return probabilityMapClass(
+      probabilities.dem
+    );
+  }
+
   const rating =
     String(
-      race.rating || ""
+      effectiveMapRating(
+        race
+      ) ||
+      ""
     )
       .trim()
       .toLowerCase();
@@ -530,9 +899,13 @@ function mapClassForRace(
   }
 
   const margin =
-    Number(
-      race.projected_margin || 0
+    effectiveMapMargin(
+      race
     );
+
+  if (margin === null) {
+    return "map-unrated";
+  }
 
   const party =
     margin >= 0
@@ -554,12 +927,34 @@ function mapClassForRace(
     return `map-${party}-lean`;
   }
 
+  /*
+    Model 2.1 uses no public Tilt category. Older Tilt records are
+    treated as toss-ups until recalculated into the current scale.
+  */
   if (rating.includes("tilt")) {
-    return `map-${party}-tilt`;
+    return "map-tossup";
   }
 
-  return "map-tossup";
+  const absoluteMargin =
+    Math.abs(
+      margin
+    );
+
+  if (absoluteMargin < 2) {
+    return "map-tossup";
+  }
+
+  if (absoluteMargin < 6) {
+    return `map-${party}-lean`;
+  }
+
+  if (absoluteMargin < 12) {
+    return `map-${party}-likely`;
+  }
+
+  return `map-${party}-safe`;
 }
+
 function featureStateCode(
   feature
 ) {
@@ -833,13 +1228,22 @@ function renderStateMap(
             : `${stateName}: no published forecast`;
         }
 
+        const rating =
+          mapHasModelForecast(
+            race
+          )
+            ? (
+                effectiveMapRating(
+                  race
+                ) ||
+                "Toss-up"
+              )
+            : "Awaiting model forecast";
+
         return `${stateName}: ${
           race.title ||
           "Published race"
-        }, ${
-          race.rating ||
-          "Toss-up"
-        }`;
+        }, ${rating}`;
       }
     )
     .on(
@@ -1144,11 +1548,22 @@ function showMapTooltip(
     race?.title ||
     fallbackTitle;
 
+  const hasForecast =
+    mapHasModelForecast(
+      race
+    );
+
   const status =
     race
       ? (
-          race.rating ||
-          "Toss-up"
+          hasForecast
+            ? (
+                effectiveMapRating(
+                  race
+                ) ||
+                "Toss-up"
+              )
+            : "Awaiting model forecast"
         )
       : (
           office === "senate"
@@ -1156,29 +1571,19 @@ function showMapTooltip(
             : "No published forecast"
         );
 
-  const candidates =
-    [
-      ...(
-        race?.candidates ||
-        []
-      )
-    ].sort(
-      (
-        first,
-        second
-      ) =>
-        Number(
-          second.win_probability ||
-            0
-        ) -
-        Number(
-          first.win_probability ||
-            0
-        )
-    );
-
   const leader =
-    candidates[0];
+    hasForecast
+      ? effectiveMapLeader(
+          race
+        )
+      : null;
+
+  const margin =
+    hasForecast
+      ? effectiveMapMargin(
+          race
+        )
+      : null;
 
   tooltip.innerHTML = `
     <strong>
@@ -1198,12 +1603,48 @@ function showMapTooltip(
         ? `
           <span>
             ${escapeMapHtml(
-              leader.name ||
-              "Leading candidate"
+              leader.candidate
+                ?.name ||
+              (
+                leader.party === "D"
+                  ? "Democratic candidate"
+                  : leader.party === "R"
+                  ? "Republican candidate"
+                  : "Leading candidate"
+              )
             )}: ${Number(
-              leader.win_probability ||
-              0
+              leader.probability
             ).toFixed(0)}%
+          </span>
+        `
+        : ""
+    }
+
+    ${
+      margin !== null
+        ? `
+          <span>
+            Projected margin:
+            ${escapeMapHtml(
+              typeof formatMargin ===
+              "function"
+                ? formatMargin(
+                    margin
+                  )
+                : (
+                    Math.abs(
+                      margin
+                    ) < 0.05
+                      ? "Tied"
+                      : `${
+                          margin > 0
+                            ? "D"
+                            : "R"
+                        } +${Math.abs(
+                          margin
+                        ).toFixed(1)}`
+                  )
+            )}
           </span>
         `
         : ""
@@ -1869,29 +2310,18 @@ function getHouseDistrictNumber(
 function getHouseRaceDescription(
   race
 ) {
-  const candidates =
-    [
-      ...(
-        race?.candidates ||
-        []
-      )
-    ].sort(
-      (
-        first,
-        second
-      ) =>
-        Number(
-          second.win_probability ||
-            0
-        ) -
-        Number(
-          first.win_probability ||
-            0
+  const leaderData =
+    mapHasModelForecast(
+      race
+    )
+      ? effectiveMapLeader(
+          race
         )
-    );
+      : null;
 
   const leader =
-    candidates[0];
+    leaderData?.candidate ||
+    null;
 
   const parts = [
     race?.title ||
