@@ -114,6 +114,22 @@
         Forecast Engine
       </button>
 
+
+      <button
+        data-panel="modelDataPanel"
+        type="button"
+      >
+        Model Data
+      </button>
+
+
+      <button
+        data-panel="modelImportPanel"
+        type="button"
+      >
+        Model Import
+      </button>
+
       <button
         data-panel="websitePanel"
         type="button"
@@ -452,6 +468,584 @@
 
       </section>
 
+
+
+
+      <!-- =================================================
+           IMPORT CENTER V3
+           ================================================= -->
+
+      <section
+        id="modelImportPanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+          <div>
+            <div class="kicker">ElectionLab Import v3</div>
+            <h2>Import Center</h2>
+            <p>
+              Import races, candidates, model factors, race polls,
+              generic ballot, Trump approval, and primary polls from
+              separate workbook sheets.
+            </p>
+          </div>
+
+          <a
+            class="btn light"
+            href="electionlab_import_template_v3.xlsx"
+            download
+          >
+            Download v3 template
+          </a>
+        </div>
+
+        <div class="card section">
+          <div class="modelImportDrop">
+            <input
+              id="modelImportFile"
+              type="file"
+              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            >
+
+            <div>
+              <strong>Select an ElectionLab Import v3 workbook</strong>
+              <p class="subtle">
+                The importer validates each sheet, imports in dependency
+                order, skips exact duplicates, and recalculates affected races.
+              </p>
+            </div>
+          </div>
+
+          <div
+            id="modelImportMessage"
+            class="notice"
+            style="display:none"
+          ></div>
+        </div>
+
+        <div id="modelImportPreview" class="section" hidden>
+          <div class="modelImportSummary">
+            <article class="stat"><span class="subtle">Races</span><strong id="modelImportRacesCount">0</strong></article>
+            <article class="stat"><span class="subtle">Candidates</span><strong id="modelImportCandidatesCount">0</strong></article>
+            <article class="stat"><span class="subtle">Model factors</span><strong id="modelImportFactorsCount">0</strong></article>
+            <article class="stat"><span class="subtle">Race polls</span><strong id="modelImportRacePollsCount">0</strong></article>
+            <article class="stat"><span class="subtle">National polls</span><strong id="modelImportNationalPollsCount">0</strong></article>
+            <article class="stat"><span class="subtle">Warnings</span><strong id="modelImportWarningCount">0</strong></article>
+          </div>
+
+          <div class="card section">
+            <div class="sectionMiniHead">
+              <div>
+                <div class="kicker">Validation</div>
+                <h2>Import preview</h2>
+              </div>
+
+              <div class="toolbar">
+                <button id="modelImportClear" class="btn light" type="button">Clear</button>
+                <button id="modelImportRun" class="btn green" type="button">Import all sheets</button>
+              </div>
+            </div>
+
+            <div id="modelImportWarnings" class="modelImportWarnings"></div>
+
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sheet</th>
+                    <th>Row</th>
+                    <th>Key</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="modelImportPreviewBody">
+                  <tr><td colspan="5" class="empty">Select a workbook to preview.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =================================================
+           MODEL DATA STUDIO
+           ================================================= -->
+
+      <section
+        id="modelDataPanel"
+        class="adminPanel"
+      >
+
+        <div class="sectionHead">
+
+          <div>
+            <div class="kicker">Automated Model Inputs</div>
+            <h2>Model Data Studio</h2>
+            <p>
+              Edit the evidence that feeds the forecast engine. Saving
+              any input automatically recalculates the affected race.
+            </p>
+          </div>
+
+          <button
+            id="dataStudioRefresh"
+            class="btn light"
+            type="button"
+          >
+            Refresh data
+          </button>
+
+        </div>
+
+        <div class="card dataStudioSelector">
+
+          <div class="field">
+            <label for="dataStudioRaceSearch">
+              Find a race
+            </label>
+
+            <input
+              id="dataStudioRaceSearch"
+              type="search"
+              placeholder="Search state, district, race, or slug…"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="field">
+            <label for="dataStudioRaceSelect">
+              Selected race
+            </label>
+
+            <select id="dataStudioRaceSelect">
+              <option value="">Choose a race…</option>
+            </select>
+          </div>
+
+          <div
+            id="dataStudioRaceSummary"
+            class="dataStudioRaceSummary"
+          >
+            Select a race to edit its model inputs.
+          </div>
+
+        </div>
+
+        <div
+          id="dataStudioWorkspace"
+          class="dataStudioWorkspace"
+          hidden
+        >
+
+          <div class="dataStudioTabs" role="tablist">
+
+            <button
+              class="active"
+              type="button"
+              data-data-tab="fundamentals"
+            >
+              Fundamentals
+            </button>
+
+            <button
+              type="button"
+              data-data-tab="candidates"
+            >
+              Candidate Scores
+            </button>
+
+            <button
+              type="button"
+              data-data-tab="fundraising"
+            >
+              Fundraising
+            </button>
+
+            <button
+              type="button"
+              data-data-tab="approval"
+            >
+              Approval
+            </button>
+
+            <button
+              type="button"
+              data-data-tab="developments"
+            >
+              Developments
+            </button>
+
+          </div>
+
+          <!-- Fundamentals -->
+
+          <div
+            class="dataStudioTab active"
+            data-data-panel="fundamentals"
+          >
+
+            <div class="card section">
+
+              <div class="sectionMiniHead">
+                <div>
+                  <div class="kicker">Baseline</div>
+                  <h2>Race fundamentals</h2>
+                  <p>
+                    Positive margins favor Democrats; negative margins
+                    favor Republicans.
+                  </p>
+                </div>
+              </div>
+
+              <form
+                id="dataStudioFundamentalsForm"
+                class="formGrid"
+              >
+
+                <div class="field">
+
+                  <label for="dataOffice">
+                    Office
+                  </label>
+
+                  <select id="dataOffice" required>
+                    <option value="senate">U.S. Senate</option>
+                    <option value="house">U.S. House</option>
+                    <option value="governor">Governor</option>
+                  </select>
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataElectionDate">
+                    Election date
+                  </label>
+
+                  <input
+                    id="dataElectionDate"
+                    type="date"
+                    required
+                  >
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataDistrictCode">
+                    District code
+                  </label>
+
+                  <input
+                    id="dataDistrictCode"
+                    placeholder="PA-16"
+                  >
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataIncumbentParty">
+                    Incumbent party
+                  </label>
+
+                  <select id="dataIncumbentParty">
+                    <option value="">None / open seat</option>
+                    <option value="D">Democratic</option>
+                    <option value="R">Republican</option>
+                    <option value="I">Independent</option>
+                  </select>
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataPartisanLean">
+                    Partisan lean
+                  </label>
+
+                  <input
+                    id="dataPartisanLean"
+                    type="number"
+                    step="0.1"
+                    placeholder="-4.2"
+                  >
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataPreviousResult">
+                    Previous race margin
+                  </label>
+
+                  <input
+                    id="dataPreviousResult"
+                    type="number"
+                    step="0.1"
+                    placeholder="-2.8"
+                  >
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataStatewideMargin">
+                    Recent statewide margin
+                  </label>
+
+                  <input
+                    id="dataStatewideMargin"
+                    type="number"
+                    step="0.1"
+                    placeholder="1.4"
+                  >
+
+                </div>
+
+                <div class="field">
+
+                  <label for="dataElasticity">
+                    National elasticity
+                  </label>
+
+                  <input
+                    id="dataElasticity"
+                    type="number"
+                    min="0"
+                    max="3"
+                    step="0.05"
+                    value="1"
+                  >
+
+                </div>
+
+                <div class="field full">
+
+                  <label for="dataFundamentalsNotes">
+                    Internal fundamentals notes
+                  </label>
+
+                  <textarea
+                    id="dataFundamentalsNotes"
+                    placeholder="Explain unusual district or state characteristics…"
+                  ></textarea>
+
+                </div>
+
+                <div class="field full">
+
+                  <div class="toolbar">
+                    <button
+                      class="btn green"
+                      type="submit"
+                    >
+                      Save fundamentals
+                    </button>
+
+                    <button
+                      id="dataMarkReviewed"
+                      class="btn light"
+                      type="button"
+                    >
+                      Mark race reviewed
+                    </button>
+                  </div>
+
+                </div>
+
+              </form>
+
+            </div>
+
+          </div>
+
+          <!-- Candidate scores -->
+
+          <div
+            class="dataStudioTab"
+            data-data-panel="candidates"
+          >
+
+            <div class="sectionHead section">
+
+              <div>
+                <div class="kicker">Candidate Model</div>
+                <h2>Candidate strength scores</h2>
+                <p>
+                  Use values from -5 to +5. Zero means neutral.
+                </p>
+              </div>
+
+            </div>
+
+            <div
+              id="dataCandidateScoreCards"
+              class="grid2"
+            >
+              <div class="empty">
+                Select a race to load candidates.
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Fundraising -->
+
+          <div
+            class="dataStudioTab"
+            data-data-panel="fundraising"
+          >
+
+            <div class="sectionHead section">
+
+              <div>
+                <div class="kicker">Campaign Finance</div>
+                <h2>Fundraising reports</h2>
+                <p>
+                  The model uses the newest report for each candidate.
+                </p>
+              </div>
+
+              <button
+                id="dataAddFundraising"
+                class="btn blue"
+                type="button"
+              >
+                Add report
+              </button>
+
+            </div>
+
+            <div class="tableWrap">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Candidate</th>
+                    <th>Report date</th>
+                    <th>Raised</th>
+                    <th>Cash</th>
+                    <th>Spent</th>
+                    <th>Outside support</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody id="dataFundraisingBody">
+                  <tr>
+                    <td colspan="7" class="empty">
+                      Select a race to load fundraising.
+                    </td>
+                  </tr>
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+          <!-- Approval -->
+
+          <div
+            class="dataStudioTab"
+            data-data-panel="approval"
+          >
+
+            <div class="sectionHead section">
+
+              <div>
+                <div class="kicker">Officeholder Standing</div>
+                <h2>Race-specific approval data</h2>
+                <p>
+                  Approval is optional and neutral when unavailable.
+                </p>
+              </div>
+
+              <button
+                id="dataAddApproval"
+                class="btn blue"
+                type="button"
+              >
+                Add approval poll
+              </button>
+
+            </div>
+
+            <div class="tableWrap">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Officeholder</th>
+                    <th>Pollster</th>
+                    <th>Date</th>
+                    <th>Sample</th>
+                    <th>Approve</th>
+                    <th>Disapprove</th>
+                    <th>Net</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody id="dataApprovalBody">
+                  <tr>
+                    <td colspan="8" class="empty">
+                      Select a race to load approval data.
+                    </td>
+                  </tr>
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+          <!-- Developments -->
+
+          <div
+            class="dataStudioTab"
+            data-data-panel="developments"
+          >
+
+            <div class="sectionHead section">
+
+              <div>
+                <div class="kicker">Race Context</div>
+                <h2>Developments and news</h2>
+                <p>
+                  Published items can appear on the public race page.
+                </p>
+              </div>
+
+              <button
+                id="dataAddDevelopment"
+                class="btn blue"
+                type="button"
+              >
+                Add development
+              </button>
+
+            </div>
+
+            <div id="dataDevelopmentList" class="card developmentAdminList">
+              <div class="empty">
+                Select a race to load developments.
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
 
       <!-- =================================================
            FORECAST ENGINE 2.0
@@ -3745,6 +4339,248 @@ Undecided|20"
 
   </div>
 
+
+  <!-- =====================================================
+       FUNDRAISING MODAL
+       ===================================================== -->
+
+  <div id="dataFundraisingModal" class="modal">
+    <div class="modalCard">
+
+      <div class="modalHead">
+        <h2>Fundraising report</h2>
+        <button class="close" type="button" data-data-close="dataFundraisingModal">×</button>
+      </div>
+
+      <form id="dataFundraisingForm" class="formGrid">
+
+        <input id="dataFundraisingId" type="hidden">
+
+        <div class="field full">
+          <label for="dataFundraisingCandidate">Candidate</label>
+          <select id="dataFundraisingCandidate" required></select>
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingDate">Reporting date</label>
+          <input id="dataFundraisingDate" type="date" required>
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingSmallDonor">Small donor percentage</label>
+          <input id="dataFundraisingSmallDonor" type="number" min="0" max="100" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingRaised">Total raised</label>
+          <input id="dataFundraisingRaised" type="number" min="0" step="0.01" required>
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingCash">Cash on hand</label>
+          <input id="dataFundraisingCash" type="number" min="0" step="0.01" required>
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingSpent">Total spent</label>
+          <input id="dataFundraisingSpent" type="number" min="0" step="0.01" required>
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingFor">Outside spending for</label>
+          <input id="dataFundraisingFor" type="number" min="0" step="0.01" value="0">
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingAgainst">Outside spending against</label>
+          <input id="dataFundraisingAgainst" type="number" min="0" step="0.01" value="0">
+        </div>
+
+        <div class="field">
+          <label for="dataFundraisingSource">Source URL</label>
+          <input id="dataFundraisingSource" type="url">
+        </div>
+
+        <div class="field full">
+          <label for="dataFundraisingNotes">Notes</label>
+          <textarea id="dataFundraisingNotes"></textarea>
+        </div>
+
+        <div class="field full">
+          <button class="btn green" type="submit">Save fundraising report</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- =====================================================
+       APPROVAL MODAL
+       ===================================================== -->
+
+  <div id="dataApprovalModal" class="modal">
+    <div class="modalCard">
+
+      <div class="modalHead">
+        <h2>Approval poll</h2>
+        <button class="close" type="button" data-data-close="dataApprovalModal">×</button>
+      </div>
+
+      <form id="dataApprovalForm" class="formGrid">
+
+        <input id="dataApprovalId" type="hidden">
+
+        <div class="field">
+          <label for="dataApprovalCandidate">Candidate / officeholder</label>
+          <select id="dataApprovalCandidate">
+            <option value="">Unlinked officeholder</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalName">Officeholder name</label>
+          <input id="dataApprovalName" required>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalPollster">Pollster</label>
+          <input id="dataApprovalPollster" required>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalPopulation">Population</label>
+          <select id="dataApprovalPopulation">
+            <option value="LV">LV</option>
+            <option value="RV">RV</option>
+            <option value="V">V</option>
+            <option value="A">A</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalStart">Start date</label>
+          <input id="dataApprovalStart" type="date">
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalEnd">End date</label>
+          <input id="dataApprovalEnd" type="date" required>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalSample">Sample size</label>
+          <input id="dataApprovalSample" type="number" min="1">
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalWeight">Quality weight</label>
+          <input id="dataApprovalWeight" type="number" min="0.25" max="2" step="0.05" value="1">
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalApprove">Approve</label>
+          <input id="dataApprovalApprove" type="number" min="0" max="100" step="0.1" required>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalDisapprove">Disapprove</label>
+          <input id="dataApprovalDisapprove" type="number" min="0" max="100" step="0.1" required>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalStatus">Status</label>
+          <select id="dataApprovalStatus">
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataApprovalSource">Source URL</label>
+          <input id="dataApprovalSource" type="url">
+        </div>
+
+        <div class="field full">
+          <button class="btn green" type="submit">Save approval poll</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- =====================================================
+       DEVELOPMENT MODAL
+       ===================================================== -->
+
+  <div id="dataDevelopmentModal" class="modal">
+    <div class="modalCard">
+
+      <div class="modalHead">
+        <h2>Race development</h2>
+        <button class="close" type="button" data-data-close="dataDevelopmentModal">×</button>
+      </div>
+
+      <form id="dataDevelopmentForm" class="formGrid">
+
+        <input id="dataDevelopmentId" type="hidden">
+
+        <div class="field full">
+          <label for="dataDevelopmentHeadline">Headline</label>
+          <input id="dataDevelopmentHeadline" required>
+        </div>
+
+        <div class="field">
+          <label for="dataDevelopmentType">Type</label>
+          <select id="dataDevelopmentType">
+            <option value="news">News</option>
+            <option value="poll">Poll</option>
+            <option value="fundraising">Fundraising</option>
+            <option value="endorsement">Endorsement</option>
+            <option value="debate">Debate</option>
+            <option value="scandal">Scandal</option>
+            <option value="candidate">Candidate change</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataDevelopmentDate">Event date</label>
+          <input id="dataDevelopmentDate" type="date" required>
+        </div>
+
+        <div class="field">
+          <label for="dataDevelopmentImpact">Model impact</label>
+          <input id="dataDevelopmentImpact" type="number" step="0.1" value="0">
+        </div>
+
+        <div class="field">
+          <label for="dataDevelopmentStatus">Status</label>
+          <select id="dataDevelopmentStatus">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="dataDevelopmentDescription">Description</label>
+          <textarea id="dataDevelopmentDescription"></textarea>
+        </div>
+
+        <div class="field full">
+          <label for="dataDevelopmentSource">Source URL</label>
+          <input id="dataDevelopmentSource" type="url">
+        </div>
+
+        <div class="field full">
+          <button class="btn green" type="submit">Save development</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
   <!-- =====================================================
        JAVASCRIPT
        ===================================================== -->
@@ -3761,6 +4597,8 @@ Undecided|20"
   <script src="common.js"></script>
   <script src="admin.js"></script>
   <script src="admin-v2.js"></script>
+  <script src="admin-data.js"></script>
+  <script src="admin-import-v3.js"></script>
 
 </body>
 </html>
