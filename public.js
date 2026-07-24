@@ -1157,7 +1157,7 @@ function insertRaceModelSections(
       <div class="sectionHead">
         <div>
           <div class="kicker">
-            Forecast Factors
+            Forecast Breakdown
           </div>
 
           <h2>
@@ -1165,7 +1165,7 @@ function insertRaceModelSections(
           </h2>
 
           <p>
-            Contributions shown as Democratic or Republican margin advantages.
+            Each factor shows which party currently benefits and by how much.
           </p>
         </div>
 
@@ -1186,81 +1186,161 @@ function insertRaceModelSections(
         </div>
       </div>
 
-      <div class="modelFactorGrid">
+      <div class="forecastBreakdownCard">
 
-        <article class="modelFactor">
-          <span>Fundamentals</span>
-          <strong>
-            ${escapeHtml(
-              modelBreakdownLabel(
-                result.fundamentals_margin
-              )
-            )}
-          </strong>
-        </article>
+        <div class="forecastBreakdownHeader">
+          <div>
+            <span class="forecastBreakdownEyebrow">
+              Current model projection
+            </span>
 
-        <article class="modelFactor">
-          <span>Polling</span>
-          <strong>
-            ${escapeHtml(
-              modelBreakdownLabel(
-                result.polling_margin
-              )
-            )}
-          </strong>
-          <small>
-            ${(
-              publicNumber(
-                result.polling_weight,
-                0
-              ) * 100
-            ).toFixed(0)}% forecast weight
-          </small>
-        </article>
+            <strong class="forecastBreakdownMargin">
+              ${escapeHtml(
+                formatMargin(
+                  result.final_model_margin
+                )
+              )}
+            </strong>
+          </div>
 
-        <article class="modelFactor">
-          <span>Candidate strength</span>
-          <strong>
+          <div class="forecastBreakdownRating">
             ${escapeHtml(
-              modelBreakdownLabel(
-                result.candidate_margin
-              )
+              result.rating ||
+              race.rating ||
+              "Toss-up"
             )}
-          </strong>
-        </article>
+          </div>
+        </div>
 
-        <article class="modelFactor">
-          <span>Fundraising</span>
-          <strong>
-            ${escapeHtml(
-              modelBreakdownLabel(
-                result.fundraising_margin
-              )
-            )}
-          </strong>
-        </article>
+        <div class="forecastFactorList">
 
-        <article class="modelFactor">
-          <span>Incumbency</span>
-          <strong>
-            ${escapeHtml(
-              modelBreakdownLabel(
-                result.incumbency_margin
-              )
-            )}
-          </strong>
-        </article>
+          ${[
+            {
+              label: "Fundamentals",
+              value: result.fundamentals_margin,
+              detail: "Partisan lean, prior results, and national environment"
+            },
+            {
+              label: "Polling",
+              value: result.polling_margin,
+              detail: `${(
+                publicNumber(
+                  result.polling_weight,
+                  0
+                ) * 100
+              ).toFixed(0)}% of the forecast`
+            },
+            {
+              label: "Candidate strength",
+              value: result.candidate_margin,
+              detail: "Experience, favorability, campaign, and liabilities"
+            },
+            {
+              label: "Fundraising",
+              value: result.fundraising_margin,
+              detail: "Cash, spending, and financial strength"
+            },
+            {
+              label: "Incumbency",
+              value: result.incumbency_margin,
+              detail: "Officeholder advantage"
+            },
+            {
+              label: "Approval",
+              value: result.approval_margin,
+              detail: "Race-specific approval evidence"
+            }
+          ].map(
+            factor => {
+              const value =
+                publicNumber(
+                  factor.value,
+                  0
+                );
 
-        <article class="modelFactor">
-          <span>Approval</span>
-          <strong>
-            ${escapeHtml(
-              modelBreakdownLabel(
-                result.approval_margin
-              )
-            )}
-          </strong>
-        </article>
+              const direction =
+                Math.abs(value) < 0.05
+                  ? "even"
+                  : value > 0
+                  ? "dem"
+                  : "rep";
+
+              const strength =
+                Math.min(
+                  100,
+                  Math.max(
+                    4,
+                    Math.abs(value) / 6 * 100
+                  )
+                );
+
+              return `
+                <article class="forecastFactorRow">
+
+                  <div class="forecastFactorCopy">
+
+                    <div class="forecastFactorTitle">
+                      ${escapeHtml(
+                        factor.label
+                      )}
+                    </div>
+
+                    <div class="forecastFactorDetail">
+                      ${escapeHtml(
+                        factor.detail
+                      )}
+                    </div>
+
+                  </div>
+
+                  <div class="forecastFactorVisual">
+
+                    <div class="forecastFactorScale">
+
+                      <span class="forecastFactorCenter"></span>
+
+                      ${
+                        direction === "dem"
+                          ? `
+                            <span
+                              class="forecastFactorFill dem"
+                              style="width:${strength / 2}%"
+                            ></span>
+                          `
+                          : direction === "rep"
+                          ? `
+                            <span
+                              class="forecastFactorFill rep"
+                              style="width:${strength / 2}%"
+                            ></span>
+                          `
+                          : `
+                            <span class="forecastFactorEvenMark"></span>
+                          `
+                      }
+
+                    </div>
+
+                    <div class="forecastFactorValue ${direction}">
+                      ${
+                        direction === "even"
+                          ? "Even"
+                          : escapeHtml(
+                              formatMargin(
+                                value
+                              )
+                            )
+                      }
+                    </div>
+
+                  </div>
+
+                </article>
+              `;
+            }
+          ).join("")}
+
+        </div>
 
       </div>
     `;
