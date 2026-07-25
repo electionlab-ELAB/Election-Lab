@@ -400,6 +400,14 @@ function iv3ValidateWorkbook(workbook) {
 
         ),
 
+        elasticity: Math.max(
+
+          0.20,
+
+          Math.min(1.50, iv3Number(row.elasticity, 1))
+
+        ),
+
         rating: iv3Clean(row.rating) || "Toss-up",
 
         projected_margin: iv3Number(row.projected_margin, 0),
@@ -471,6 +479,8 @@ function iv3ValidateWorkbook(workbook) {
       ["approval_factor", -5, 5],
 
       ["candidate_quality_factor", -5, 5],
+
+      ["historical_overperformance_factor", -8, 8],
 
       ["incumbency_factor", -3, 3],
 
