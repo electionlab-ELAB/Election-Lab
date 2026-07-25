@@ -194,9 +194,83 @@ function iv3Warn(message) {
 
  
 
+function iv3CandidateNameKey(name) {
+
+  return iv3Clean(name)
+
+    .normalize("NFKD")
+
+    .replace(/[\u0300-\u036f]/g, "")
+
+    .toLowerCase()
+
+    .replace(/[’‘`]/g, "'")
+
+    .replace(/[^a-z0-9]+/g, " ")
+
+    .trim()
+
+    .replace(/\s+/g, " ");
+
+}
+
+ 
+
 function iv3CandidateKey(raceId, name) {
 
-  return `${raceId}::${iv3Lower(name)}`;
+  return `${raceId}::${iv3CandidateNameKey(name)}`;
+
+}
+
+ 
+
+async function iv3FetchAllRows(table, selectColumns = "*", orderColumn = "id") {
+
+  const pageSize = 1000;
+
+  const rows = [];
+
+ 
+
+  for (let start = 0; ; start += pageSize) {
+
+    const result = await sb
+
+      .from(table)
+
+      .select(selectColumns)
+
+      .order(orderColumn, { ascending: true })
+
+      .range(start, start + pageSize - 1);
+
+ 
+
+    if (result.error) {
+
+      throw result.error;
+
+    }
+
+ 
+
+    const page = result.data || [];
+
+    rows.push(...page);
+
+ 
+
+    if (page.length < pageSize) {
+
+      break;
+
+    }
+
+  }
+
+ 
+
+  return rows;
 
 }
 
@@ -204,33 +278,29 @@ function iv3CandidateKey(raceId, name) {
 
 async function iv3LoadLookups() {
 
-  const [raceResult, candidateResult] = await Promise.all([
+  const [races, candidates] = await Promise.all([
 
-    sb.from("races").select("*").order("state", { ascending: true }),
+    iv3FetchAllRows("races", "*", "state"),
 
-    sb.from("candidates").select("*").order("name", { ascending: true })
+    iv3FetchAllRows("candidates", "*", "name")
 
   ]);
 
  
 
-  if (raceResult.error || candidateResult.error) {
+  importV3.races = races;
 
-    throw raceResult.error || candidateResult.error;
-
-  }
+  importV3.candidates = candidates;
 
  
-
-  importV3.races = raceResult.data || [];
-
-  importV3.candidates = candidateResult.data || [];
 
   importV3.raceBySlug = new Map(
 
     importV3.races.map(race => [iv3Lower(race.slug), race])
 
   );
+
+ 
 
   importV3.candidateByKey = new Map(
 
@@ -319,6 +389,16 @@ function iv3ValidateWorkbook(workbook) {
         election_date: iv3Date(row.election_date) || "2026-11-03",
 
         incumbent_party: iv3Clean(row.incumbent_party) || null,
+
+        partisan_lean: iv3Number(row.partisan_lean, 0),
+
+        state_partisan_lean: iv3Number(
+
+          row.state_partisan_lean,
+
+          iv3Number(row.partisan_lean, 0)
+
+        ),
 
         rating: iv3Clean(row.rating) || "Toss-up",
 
@@ -568,97 +648,29 @@ async function iv3RefreshLookups() {
 
  
 
-const IV3_WRITE_BATCH_SIZE = 75;
+async function iv3ImportRaces(rows, affected) {
 
-const IV3_RECALC_BATCH_SIZE = 12;
+  for (const item of rows) {
 
- 
+    const current = importV3.raceBySlug.get(item.slug);
 
-function iv3Chunks(items, size) {
+    let result;
 
-  const chunks = [];
+    if (current) {
 
-  for (let index = 0; index < items.length; index += size) {
+      result = await sb.from("races").update(item.payload).eq("id", current.id);
 
-    chunks.push(items.slice(index, index + size));
+    } else {
 
-  }
-
-  return chunks;
-
-}
-
- 
-
-function iv3SetRunProgress(text) {
-
-  const button = iv3$("#modelImportRun");
-
-  if (button) button.textContent = text;
-
-}
-
- 
-
-async function iv3BatchUpsert(table, payloads, options, label) {
-
-  const batches = iv3Chunks(payloads, IV3_WRITE_BATCH_SIZE);
-
- 
-
-  for (let index = 0; index < batches.length; index += 1) {
-
-    iv3SetRunProgress(
-
-      `${label} ${index + 1}/${batches.length}…`
-
-    );
-
- 
-
-    const result = await sb
-
-      .from(table)
-
-      .upsert(batches[index], options);
-
- 
-
-    if (result.error) {
-
-      throw new Error(`${label}: ${result.error.message}`);
+      result = await sb.from("races").insert(item.payload);
 
     }
 
+    if (result.error) throw new Error(`Races row ${item.line}: ${result.error.message}`);
+
   }
 
-}
-
- 
-
-async function iv3ImportRaces(rows, affected) {
-
-  if (!rows.length) return;
-
- 
-
-  await iv3BatchUpsert(
-
-    "races",
-
-    rows.map(item => item.payload),
-
-    { onConflict: "slug" },
-
-    "Importing races"
-
-  );
-
- 
-
   await iv3RefreshLookups();
-
- 
 
   rows.forEach(item => {
 
@@ -674,39 +686,21 @@ async function iv3ImportRaces(rows, affected) {
 
 async function iv3ImportCandidates(rows, affected) {
 
-  if (!rows.length) return;
-
- 
-
-  const payloads = rows.map(item => {
+  for (const item of rows) {
 
     const race = importV3.raceBySlug.get(item.slug);
 
- 
-
-    if (!race) {
-
-      throw new Error(
-
-        `Candidates row ${item.line}: race ${item.slug} was not found.`
-
-      );
-
-    }
+    if (!race) throw new Error(`Candidates row ${item.line}: race ${item.slug} was not found.`);
 
  
+
+    const existing = importV3.candidateByKey.get(iv3CandidateKey(race.id, item.name));
 
     const row = item.row;
 
     const nomineeStatus = iv3Lower(row.nominee_status);
 
- 
-
-    affected.add(race.id);
-
- 
-
-    return {
+    const payload = {
 
       race_id: race.id,
 
@@ -718,11 +712,7 @@ async function iv3ImportCandidates(rows, affected) {
 
       active: row.active === "" ? true : iv3Boolean(row.active),
 
-      is_presumptive_nominee: ["confirmed", "presumptive"].includes(
-
-        nomineeStatus
-
-      ),
+      is_presumptive_nominee: ["confirmed", "presumptive"].includes(nomineeStatus),
 
       win_probability: iv3Number(row.win_probability, 50),
 
@@ -732,23 +722,19 @@ async function iv3ImportCandidates(rows, affected) {
 
     };
 
-  });
-
  
 
-  await iv3BatchUpsert(
+    let result;
 
-    "candidates",
+    if (existing) result = await sb.from("candidates").update(payload).eq("id", existing.id);
 
-    payloads,
+    else result = await sb.from("candidates").insert(payload);
 
-    { onConflict: "race_id,name" },
+    if (result.error) throw new Error(`Candidates row ${item.line}: ${result.error.message}`);
 
-    "Importing candidates"
+    affected.add(race.id);
 
-  );
-
- 
+  }
 
   await iv3RefreshLookups();
 
@@ -758,33 +744,91 @@ async function iv3ImportCandidates(rows, affected) {
 
 async function iv3ImportFactors(rows, affected) {
 
-  if (!rows.length) return;
-
- 
-
-  const payloads = rows.map(item => {
+  for (const item of rows) {
 
     const race = importV3.raceBySlug.get(item.slug);
 
+    if (!race) throw new Error(`Model Factors row ${item.line}: race ${item.slug} was not found.`);
+
+    let candidate = importV3.candidateByKey.get(
+
+      iv3CandidateKey(race.id, item.name)
+
+    );
+
  
 
-    if (!race) {
+    if (!candidate) {
 
-      throw new Error(
+      const lookup = await sb
 
-        `Model Factors row ${item.line}: race ${item.slug} was not found.`
+        .from("candidates")
 
-      );
+        .select("*")
+
+        .eq("race_id", race.id)
+
+        .ilike("name", item.name)
+
+        .limit(1);
+
+ 
+
+      if (lookup.error) {
+
+        throw new Error(
+
+          `Model Factors row ${item.line}: ${lookup.error.message}`
+
+        );
+
+      }
+
+ 
+
+      candidate = lookup.data?.[0] || null;
+
+ 
+
+      if (candidate) {
+
+        importV3.candidateByKey.set(
+
+          iv3CandidateKey(candidate.race_id, candidate.name),
+
+          candidate
+
+        );
+
+      }
 
     }
 
  
 
-    const candidate = importV3.candidateByKey.get(
+    if (!candidate) {
 
-      iv3CandidateKey(race.id, item.name)
+      const raceCandidates = importV3.candidates.filter(
 
-    );
+        existing => existing.race_id === race.id
+
+      );
+
+ 
+
+      const normalizedWanted = iv3CandidateNameKey(item.name);
+
+ 
+
+      candidate = raceCandidates.find(
+
+        existing =>
+
+          iv3CandidateNameKey(existing.name) === normalizedWanted
+
+      ) || null;
+
+    }
 
  
 
@@ -800,39 +844,19 @@ async function iv3ImportFactors(rows, affected) {
 
  
 
+    const result = await sb
+
+      .from("candidates")
+
+      .update(item.payload)
+
+      .eq("id", candidate.id);
+
+    if (result.error) throw new Error(`Model Factors row ${item.line}: ${result.error.message}`);
+
     affected.add(race.id);
 
- 
-
-    return {
-
-      ...candidate,
-
-      ...item.payload,
-
-      id: candidate.id
-
-    };
-
-  });
-
- 
-
-  await iv3BatchUpsert(
-
-    "candidates",
-
-    payloads,
-
-    { onConflict: "id" },
-
-    "Importing model factors"
-
-  );
-
- 
-
-  await iv3RefreshLookups();
+  }
 
 }
 
@@ -1076,47 +1100,19 @@ async function iv3RunImport() {
 
  
 
-    const affectedRaceIds = [...affected];
+    for (const raceId of affected) {
 
-    const recalcBatches = iv3Chunks(
+      const result = await sb.rpc("recalculate_race_forecast", {
 
-      affectedRaceIds,
+        target_race_id: raceId,
 
-      IV3_RECALC_BATCH_SIZE
-
-    );
-
- 
-
-    for (let index = 0; index < recalcBatches.length; index += 1) {
-
-      iv3SetRunProgress(
-
-        `Recalculating ${index + 1}/${recalcBatches.length}…`
-
-      );
-
- 
-
-      const result = await sb.rpc("recalculate_races_bulk", {
-
-        target_race_ids: recalcBatches[index],
+        run_id: null,
 
         reason_text: "Import Center v3"
 
       });
 
- 
-
-      if (result.error) {
-
-        throw new Error(
-
-          `Forecast recalculation batch ${index + 1}: ${result.error.message}`
-
-        );
-
-      }
+      if (result.error) throw result.error;
 
     }
 
@@ -1219,4 +1215,3 @@ function initializeImportV3() {
  
 
 document.addEventListener("DOMContentLoaded", initializeImportV3);
-
