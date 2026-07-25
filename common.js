@@ -20,7 +20,7 @@ const configured =
 
  
 
-const sb =
+window.sb =
 
   configured
 
@@ -33,6 +33,8 @@ const sb =
       )
 
     : null;
+
+const sb = window.sb;
 
  
 
