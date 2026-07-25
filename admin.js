@@ -6227,6 +6227,27 @@ function normalizeRecordType(
     candidates:
       "candidate",
 
+    race_factor:
+      "race_factor",
+
+    race_factors:
+      "race_factor",
+
+    race_fundamental:
+      "race_factor",
+
+    race_fundamentals:
+      "race_factor",
+
+    partisan_baseline:
+      "race_factor",
+
+    partisan_baselines:
+      "race_factor",
+
+    fundamentals:
+      "race_factor",
+
     poll:
       "poll",
 
@@ -6315,6 +6336,7 @@ function supportedRecordType(
   return [
     "race",
     "candidate",
+    "race_factor",
     "poll",
     "generic_ballot",
     "approval_poll",
@@ -6427,6 +6449,24 @@ function inferSpreadsheetRecordType(
     ])
   ) {
     return "generic_ballot";
+  }
+
+  if (
+    hasAny([
+      "race_slug"
+    ]) &&
+    hasAny([
+      "state_partisan_lean",
+      "district_partisan_lean",
+      "presidential_baseline_margin",
+      "national_environment_margin",
+      "midterm_environment_factor",
+      "elasticity",
+      "polarization_factor",
+      "polling_error_adjustment"
+    ])
+  ) {
+    return "race_factor";
   }
 
   if (
@@ -6919,6 +6959,115 @@ function normalizeImportedRecord(
             row,
             [
               "status"
+            ]
+          )
+        )
+    };
+  }
+
+
+  if (
+    recordType ===
+    "race_factor"
+  ) {
+    return {
+      ...base,
+
+      race_slug:
+        slugify(
+          firstSpreadsheetValue(
+            row,
+            [
+              "race_slug",
+              "slug"
+            ]
+          )
+        ),
+
+      state_partisan_lean:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "state_partisan_lean",
+              "state_lean"
+            ]
+          )
+        ),
+
+      district_partisan_lean:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "district_partisan_lean",
+              "district_lean"
+            ]
+          )
+        ),
+
+      presidential_baseline_margin:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "presidential_baseline_margin",
+              "presidential_baseline",
+              "baseline_margin"
+            ]
+          )
+        ),
+
+      national_environment_margin:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "national_environment_margin",
+              "national_environment"
+            ]
+          )
+        ),
+
+      midterm_environment_factor:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "midterm_environment_factor",
+              "midterm_factor"
+            ]
+          )
+        ),
+
+      elasticity:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "elasticity"
+            ]
+          )
+        ),
+
+      polarization_factor:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "polarization_factor",
+              "polarization"
+            ]
+          )
+        ),
+
+      polling_error_adjustment:
+        spreadsheetNumber(
+          firstSpreadsheetValue(
+            row,
+            [
+              "polling_error_adjustment",
+              "polling_error"
             ]
           )
         )
@@ -7919,6 +8068,82 @@ function validateImportedRace(
   }
 }
 
+function validateImportedRaceFactor(
+  row,
+  knownRaceSlugs
+) {
+  if (!row.race_slug) {
+    addRowError(
+      row,
+      "race_slug is required."
+    );
+
+  } else if (
+    !knownRaceSlugs.has(
+      row.race_slug
+    )
+  ) {
+    addRowError(
+      row,
+      `No matching race was found for "${row.race_slug}".`
+    );
+  }
+
+  const requiredFields = [
+    [
+      "state_partisan_lean",
+      "State partisan lean"
+    ],
+    [
+      "district_partisan_lean",
+      "District partisan lean"
+    ],
+    [
+      "presidential_baseline_margin",
+      "Presidential baseline margin"
+    ],
+    [
+      "national_environment_margin",
+      "National environment margin"
+    ],
+    [
+      "midterm_environment_factor",
+      "Midterm environment factor"
+    ],
+    [
+      "elasticity",
+      "Elasticity"
+    ],
+    [
+      "polarization_factor",
+      "Polarization factor"
+    ],
+    [
+      "polling_error_adjustment",
+      "Polling error adjustment"
+    ]
+  ];
+
+  requiredFields.forEach(
+    ([field, label]) => {
+      if (
+        row[field] === null ||
+        row[field] === undefined ||
+        !Number.isFinite(
+          Number(
+            row[field]
+          )
+        )
+      ) {
+        addRowError(
+          row,
+          `${label} is required and must be numeric.`
+        );
+      }
+    }
+  );
+}
+
 function validateImportedCandidate(
   row,
   knownRaceSlugs
@@ -8325,6 +8550,17 @@ function validateElectionWorkbookRows(
 
       if (
         row.record_type ===
+        "race_factor"
+      ) {
+        validateImportedRaceFactor(
+          row,
+          knownRaceSlugs
+        );
+      }
+
+
+      if (
+        row.record_type ===
         "candidate"
       ) {
         validateImportedCandidate(
@@ -8396,6 +8632,9 @@ function spreadsheetRecordLabel(
     candidate:
       "Candidate",
 
+    race_factor:
+      "Race factors",
+
     poll:
       "Race poll",
 
@@ -8437,6 +8676,14 @@ function spreadsheetRecordDescription(
     "candidate"
   ) {
     return `${row.name || "Candidate"} · ${row.race_slug || "No race"}`;
+  }
+
+
+  if (
+    row.record_type ===
+    "race_factor"
+  ) {
+    return `${row.race_slug || "No race"} · Partisan baseline`;
   }
 
 
@@ -8976,6 +9223,9 @@ function createImportSummary() {
       candidate:
         0,
 
+      race_factor:
+        0,
+
       poll:
         0,
 
@@ -8994,6 +9244,9 @@ function createImportSummary() {
         0,
 
       candidate:
+        0,
+
+      race_factor:
         0,
 
       poll:
@@ -9121,6 +9374,109 @@ async function insertImportedRace(
     throw error;
   }
 
+
+  return "inserted";
+}
+
+async function insertImportedRaceFactor(
+  row
+) {
+  const race =
+    raceBySlug(
+      row.race_slug
+    );
+
+  if (!race) {
+    throw new Error(
+      `No race matches "${row.race_slug}".`
+    );
+  }
+
+  const now =
+    new Date()
+      .toISOString();
+
+  const payload = {
+    state_partisan_lean:
+      row.state_partisan_lean,
+
+    district_partisan_lean:
+      row.district_partisan_lean,
+
+    presidential_baseline_margin:
+      row.presidential_baseline_margin,
+
+    national_environment_margin:
+      row.national_environment_margin,
+
+    midterm_environment_factor:
+      row.midterm_environment_factor,
+
+    elasticity:
+      row.elasticity,
+
+    polarization_factor:
+      row.polarization_factor,
+
+    polling_error_adjustment:
+      row.polling_error_adjustment,
+
+    latest_input_at:
+      now,
+
+    updated_at:
+      now
+  };
+
+  let result =
+    await sb
+      .from(
+        "races"
+      )
+      .update(
+        payload
+      )
+      .eq(
+        "id",
+        race.id
+      );
+
+  /*
+    Older race schemas may not have latest_input_at yet.
+    Retry without that optional timestamp rather than rejecting
+    the entire partisan-baseline import.
+  */
+
+  if (
+    result.error &&
+    isMissingColumnError(
+      result.error
+    )
+  ) {
+    const fallbackPayload = {
+      ...payload
+    };
+
+    delete fallbackPayload
+      .latest_input_at;
+
+    result =
+      await sb
+        .from(
+          "races"
+        )
+        .update(
+          fallbackPayload
+        )
+        .eq(
+          "id",
+          race.id
+        );
+  }
+
+  if (result.error) {
+    throw result.error;
+  }
 
   return "inserted";
 }
@@ -9602,6 +9958,16 @@ async function importSingleRow(
 
   if (
     row.record_type ===
+    "race_factor"
+  ) {
+    return insertImportedRaceFactor(
+      row
+    );
+  }
+
+
+  if (
+    row.record_type ===
     "poll"
   ) {
     return insertImportedRacePoll(
@@ -9932,6 +10298,16 @@ async function importElectionWorkbook() {
 
     await importRowsByType(
       electionWorkbookPreviewRows,
+      "race_factor",
+      summary
+    );
+
+
+    await reloadAll();
+
+
+    await importRowsByType(
+      electionWorkbookPreviewRows,
       "candidate",
       summary
     );
@@ -10016,6 +10392,38 @@ async function importElectionWorkbook() {
 
 function electionWorkbookTemplateRows() {
   return [
+    {
+      record_type:
+        "race_factor",
+
+      race_slug:
+        "pa-governor",
+
+      state_partisan_lean:
+        2.5,
+
+      district_partisan_lean:
+        2.5,
+
+      presidential_baseline_margin:
+        2.5,
+
+      national_environment_margin:
+        2,
+
+      midterm_environment_factor:
+        1,
+
+      elasticity:
+        0.9,
+
+      polarization_factor:
+        1,
+
+      polling_error_adjustment:
+        3.2
+    },
+
     {
       record_type:
         "poll",
