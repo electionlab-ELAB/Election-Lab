@@ -4795,11 +4795,3 @@ function renderLoadError(
   `;
 
 }
-        friendlyErrorMessage(
-          error,
-          fallback
-        )
-      )}
-    </div>
-  `;
-}
