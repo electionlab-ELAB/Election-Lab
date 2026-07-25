@@ -1116,11 +1116,11 @@ function effectiveMapRating(
 
   return (
 
+    race.rating ||
+
     race.effective_rating ||
 
     race.model_rating ||
-
-    race.rating ||
 
     null
 
@@ -1416,11 +1416,9 @@ function probabilityMapClass(
 
   }
 
- 
-
   if (
 
-    winningProbability < 80
+    winningProbability < 75
 
   ) {
 
@@ -1428,19 +1426,15 @@ function probabilityMapClass(
 
   }
 
- 
-
   if (
 
-    winningProbability < 95
+    winningProbability < 90
 
   ) {
 
     return `map-${leader}-likely`;
 
   }
-
- 
 
   return `map-${leader}-safe`;
 
@@ -1720,50 +1714,6 @@ function mapClassForRace(
 
   }
 
- 
-
-  if (
-
-    !mapHasModelForecast(
-
-      race
-
-    )
-
-  ) {
-
-    return "map-unrated";
-
-  }
-
- 
-
-  const probabilities =
-
-    effectiveMapProbabilities(
-
-      race
-
-    );
-
- 
-
-  if (
-
-    probabilities.dem !== null
-
-  ) {
-
-    return probabilityMapClass(
-
-      probabilities.dem
-
-    );
-
-  }
-
- 
-
   const rating =
 
     String(
@@ -1782,7 +1732,13 @@ function mapClassForRace(
 
       .toLowerCase();
 
- 
+  /*
+    The published rating is authoritative for map color.
+    Supported examples:
+      Safe D, Likely D, Lean D
+      Safe R, Likely R, Lean R
+      Tossup / Toss-up
+  */
 
   if (
 
@@ -1796,7 +1752,103 @@ function mapClassForRace(
 
   }
 
- 
+  const ratingParty =
+
+    rating.includes("democratic") ||
+
+    rating.includes(" dem") ||
+
+    rating.endsWith(" d")
+
+      ? "dem"
+
+      : rating.includes("republican") ||
+
+        rating.includes(" rep") ||
+
+        rating.endsWith(" r")
+
+      ? "rep"
+
+      : null;
+
+  if (
+
+    ratingParty &&
+
+    rating.includes("safe")
+
+  ) {
+
+    return `map-${ratingParty}-safe`;
+
+  }
+
+  if (
+
+    ratingParty &&
+
+    (
+
+      rating.includes("likely") ||
+
+      rating.includes("likley")
+
+    )
+
+  ) {
+
+    return `map-${ratingParty}-likely`;
+
+  }
+
+  if (
+
+    ratingParty &&
+
+    rating.includes("lean")
+
+  ) {
+
+    return `map-${ratingParty}-lean`;
+
+  }
+
+  if (
+
+    rating.includes("tilt")
+
+  ) {
+
+    return "map-tossup";
+
+  }
+
+  /*
+    Only use probabilities when no usable published rating exists.
+  */
+
+  const probabilities =
+
+    effectiveMapProbabilities(
+
+      race
+
+    );
+
+  if (
+
+    probabilities.dem !== null
+
+  ) {
+
+    return probabilityMapClass(
+
+      probabilities.dem
+
+    );
+
+  }
 
   const margin =
 
@@ -1806,15 +1858,11 @@ function mapClassForRace(
 
     );
 
- 
-
   if (margin === null) {
 
     return "map-unrated";
 
   }
-
- 
 
   const party =
 
@@ -1824,54 +1872,6 @@ function mapClassForRace(
 
       : "rep";
 
- 
-
-  if (rating.includes("safe")) {
-
-    return `map-${party}-safe`;
-
-  }
-
- 
-
-  if (
-
-    rating.includes("likely") ||
-
-    rating.includes("likley")
-
-  ) {
-
-    return `map-${party}-likely`;
-
-  }
-
- 
-
-  if (rating.includes("lean")) {
-
-    return `map-${party}-lean`;
-
-  }
-
- 
-
-  /*
-
-    Model 2.1 uses no public Tilt category. Older Tilt records are
-
-    treated as toss-ups until recalculated into the current scale.
-
-  */
-
-  if (rating.includes("tilt")) {
-
-    return "map-tossup";
-
-  }
-
- 
-
   const absoluteMargin =
 
     Math.abs(
@@ -1880,15 +1880,11 @@ function mapClassForRace(
 
     );
 
- 
-
   if (absoluteMargin < 2) {
 
     return "map-tossup";
 
   }
-
- 
 
   if (absoluteMargin < 6) {
 
@@ -1896,21 +1892,15 @@ function mapClassForRace(
 
   }
 
- 
-
   if (absoluteMargin < 12) {
 
     return `map-${party}-likely`;
 
   }
 
- 
-
   return `map-${party}-safe`;
 
 }
-
- 
 
 function featureStateCode(
 
